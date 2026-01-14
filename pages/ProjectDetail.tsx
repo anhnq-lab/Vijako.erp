@@ -10,6 +10,7 @@ import ProjectGantt from '../components/ProjectGantt';
 import ContractModal from '../components/ContractModal';
 import BudgetModal from '../components/BudgetModal';
 import DiaryFeed from '../components/DiaryFeed';
+import DiaryFormModal from '../components/DiaryFormModal'; // New Import
 import BimViewer from '../components/BimViewer';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { Suspense } from 'react';
@@ -189,6 +190,7 @@ export default function ProjectDetail() {
     const [contracts, setContracts] = useState<Contract[]>([]);
     const [wbsView, setWbsView] = useState<'list' | 'gantt'>('list');
     const [loading, setLoading] = useState(true);
+    const [diaryRefreshKey, setDiaryRefreshKey] = useState(0); // Add this for refreshing feed
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const modelInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -231,6 +233,9 @@ export default function ProjectDetail() {
             setContracts(contractsData);
         }
     };
+
+    // Diary Modal State
+    const [isDiaryModalOpen, setIsDiaryModalOpen] = useState(false);
 
     // Budget Modal State
     const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
@@ -974,6 +979,13 @@ export default function ProjectDetail() {
                                         </h3>
                                         <div className="flex gap-2 items-center">
                                             <button
+                                                onClick={() => setIsDiaryModalOpen(true)}
+                                                className="text-xs font-bold text-white bg-primary px-3 py-1.5 rounded hover:bg-primary/90 flex items-center gap-1 transition-colors shadow-sm"
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">add</span>
+                                                Viết nhật ký
+                                            </button>
+                                            <button
                                                 onClick={handleExportDiary}
                                                 className="text-xs font-bold text-slate-600 bg-white border border-slate-300 px-3 py-1.5 rounded hover:bg-slate-50 flex items-center gap-1 transition-colors"
                                             >
@@ -986,7 +998,7 @@ export default function ProjectDetail() {
                                         </div>
                                     </div>
                                     <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                                        <DiaryFeed projectId={id || ''} />
+                                        <DiaryFeed key={diaryRefreshKey} projectId={id || ''} />
                                     </div>
                                 </div>
 
@@ -1083,7 +1095,27 @@ export default function ProjectDetail() {
                 projectId={id || ''}
                 existingItem={editingBudgetItem}
             />
+
+            {/* Diary Modal */}
+            <DiaryFormModal
+                isOpen={isDiaryModalOpen}
+                onClose={() => setIsDiaryModalOpen(false)}
+                onSaved={() => {
+                    // Force refresh of diary feed by effectively effectively re-fetching in DiaryFeed component
+                    // For now, simple page state update or just trust live reload if feasible.
+                    // Ideally, DiaryFeed should expose a refresh capability or depend on a shared context/state.
+                    // Since DiaryFeed fetches on mount/projectId change, we can trigger a re-fetch if we had a trigger.
+                    // For simplicity, we can reload window or setup a trigger. 
+                    // Let's assume user accepts a manual refresh or we improve DiaryFeed later.
+                    // Actually, let's just let it be, user will see it after refresh or we pass a key to DiaryFeed.
+                    // OPTIMIZATION: We can pass a refreshTrigger prop to DiaryFeed
+                    // For now, create a key based on timestamp to force re-render of DiaryFeed
+                    setDiaryRefreshKey(prev => prev + 1);
+                }}
+                projectId={id || ''}
+            />
         </>
     )
 }
+
 
