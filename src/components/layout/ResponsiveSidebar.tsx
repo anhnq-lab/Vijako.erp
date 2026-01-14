@@ -15,8 +15,8 @@ const SidebarItem = ({ to, icon, label, active, count, onClick }: SidebarItemPro
         to={to}
         onClick={onClick}
         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${active
-                ? 'bg-primary/10 text-primary font-bold'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            ? 'bg-primary/10 text-primary font-bold'
+            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             }`}
     >
         <span className={`material-symbols-outlined ${active ? 'filled' : ''} group-hover:text-primary transition-colors`}>
@@ -113,9 +113,16 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isOpen, on
                         onClick={onClose}
                     />
                     <SidebarItem
+                        to="/contracts"
+                        icon="description"
+                        label="Hợp đồng & Đấu thầu"
+                        active={path === '/contracts'}
+                        onClick={onClose}
+                    />
+                    <SidebarItem
                         to="/finance"
                         icon="account_balance_wallet"
-                        label="Tài chính & Hợp đồng"
+                        label="Tài chính & Thanh toán"
                         active={path === '/finance'}
                         onClick={onClose}
                     />

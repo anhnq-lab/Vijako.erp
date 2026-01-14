@@ -11,6 +11,7 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Workspace = lazy(() => import('./pages/Workspace'));
 const ProjectList = lazy(() => import('./pages/ProjectList'));
 const ProjectDetail = lazy(() => import('./pages/ProjectDetail'));
+const Contracts = lazy(() => import('./pages/Contracts'));
 const Finance = lazy(() => import('./pages/Finance'));
 const SupplyChain = lazy(() => import('./pages/SupplyChain'));
 const HRM = lazy(() => import('./pages/HRM'));
@@ -80,6 +81,7 @@ export default function App() {
               <Route path="/workspace" element={<Workspace />} />
               <Route path="/projects" element={<ProjectList />} />
               <Route path="/projects/:id" element={<ProjectDetail />} />
+              <Route path="/contracts" element={<Contracts />} />
               <Route path="/finance" element={<Finance />} />
               <Route path="/supply" element={<SupplyChain />} />
               <Route path="/hrm" element={<HRM />} />
