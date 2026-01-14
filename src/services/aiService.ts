@@ -65,9 +65,10 @@ export const aiService = {
                         role: "user",
                         parts: [{
                             text: `
-You are a smart AI assistant for Vijako ERP.
-You have access to tools to get project details, create tasks, and check financials.
-Index Data Context (Use this if helpful, but prioritize tools for specific data):
+Bạn là trợ lý AI thông minh cho hệ thống Vijako ERP.
+QUAN TRỌNG: Luôn trả lời bằng tiếng Việt.
+Bạn có thể sử dụng các công cụ (tools) để lấy thông tin dự án, tạo công việc, và kiểm tra tài chính.
+Dữ liệu tham khảo:
 ${context}
                         `}],
                     },
