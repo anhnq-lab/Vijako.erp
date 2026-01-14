@@ -282,5 +282,50 @@ export const projectService = {
         }
 
         return data || [];
+    },
+
+    async createBudgetItem(budgetItem: Omit<ProjectBudget, 'id'>): Promise<ProjectBudget | null> {
+        const { data, error } = await supabase
+            .from('project_budget')
+            .insert(budgetItem)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error creating budget item:', error);
+            throw error;
+        }
+
+        return data;
+    },
+
+    async updateBudgetItem(id: string, updates: Partial<ProjectBudget>): Promise<ProjectBudget | null> {
+        const { data, error } = await supabase
+            .from('project_budget')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error(`Error updating budget item ${id}:`, error);
+            throw error;
+        }
+
+        return data;
+    },
+
+    async deleteBudgetItem(id: string): Promise<boolean> {
+        const { error } = await supabase
+            .from('project_budget')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error(`Error deleting budget item ${id}:`, error);
+            throw error;
+        }
+
+        return true;
     }
 };

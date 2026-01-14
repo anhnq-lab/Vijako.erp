@@ -58,6 +58,7 @@ export interface ProjectIssue {
 
 export interface ProjectBudget {
   id: string;
+  project_id?: string; // Link to project
   category: string;
   budget_amount: number;
   actual_amount: number;

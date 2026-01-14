@@ -7,6 +7,7 @@ import { importService } from '../src/services/importService'; // New Import
 import { Project, WBSItem, ProjectIssue, ProjectBudget, Contract } from '../types';
 import ProjectGantt from '../components/ProjectGantt';
 import ContractModal from '../components/ContractModal';
+import BudgetModal from '../components/BudgetModal';
 
 // Mock Chart Data (Keep for visual until backend supports time-series)
 const costData = [
@@ -71,13 +72,17 @@ const IssueRow: React.FC<{ issue: ProjectIssue }> = ({ issue }) => (
     </tr>
 )
 
-const BudgetRow: React.FC<{ item: ProjectBudget }> = ({ item }) => {
+const BudgetRow: React.FC<{
+    item: ProjectBudget;
+    onEdit?: (item: ProjectBudget) => void;
+    onDelete?: (item: ProjectBudget) => void;
+}> = ({ item, onEdit, onDelete }) => {
     const percent = item.budget_amount > 0 ? Math.round((item.actual_amount / item.budget_amount) * 100) : 0;
     const isOver = item.actual_amount > item.budget_amount;
     const remain = item.budget_amount - item.actual_amount;
 
     return (
-        <tr className="border-b border-slate-50 hover:bg-slate-50">
+        <tr className="border-b border-slate-50 hover:bg-slate-50 group">
             <td className="px-4 py-3 text-sm font-bold text-slate-700">{item.category}</td>
             <td className="px-4 py-3 text-sm font-mono text-right">{item.budget_amount?.toLocaleString() || 0}</td>
             <td className="px-4 py-3 text-sm font-mono text-right font-bold text-slate-900">{item.actual_amount?.toLocaleString() || 0}</td>
@@ -90,8 +95,29 @@ const BudgetRow: React.FC<{ item: ProjectBudget }> = ({ item }) => {
                     </div>
                 </div>
             </td>
-            <td className={`px-4 py-3 text-sm font-mono text-right font-bold ${remain < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                {remain?.toLocaleString() || 0}
+            <td className="px-4 py-3">
+                <div className="flex items-center justify-end gap-2">
+                    <span className={`text-sm font-mono font-bold ${remain < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        {remain?.toLocaleString() || 0}
+                    </span>
+                    {/* Action Buttons */}
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                            onClick={() => onEdit?.(item)}
+                            className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                            title="Sửa"
+                        >
+                            <span className="material-symbols-outlined text-[16px]">edit</span>
+                        </button>
+                        <button
+                            onClick={() => onDelete?.(item)}
+                            className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                            title="Xóa"
+                        >
+                            <span className="material-symbols-outlined text-[16px]">delete</span>
+                        </button>
+                    </div>
+                </div>
             </td>
         </tr>
     );
@@ -197,6 +223,42 @@ export default function ProjectDetail() {
         if (id) {
             const contractsData = await financeService.getContractsByProjectId(id);
             setContracts(contractsData);
+        }
+    };
+
+    // Budget Modal State
+    const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+    const [editingBudgetItem, setEditingBudgetItem] = useState<ProjectBudget | null>(null);
+
+    const openAddBudgetModal = () => {
+        setEditingBudgetItem(null);
+        setIsBudgetModalOpen(true);
+    };
+
+    const openEditBudgetModal = (item: ProjectBudget) => {
+        setEditingBudgetItem(item);
+        setIsBudgetModalOpen(true);
+    };
+
+    const handleDeleteBudgetItem = async (item: ProjectBudget) => {
+        if (confirm(`Bạn có chắc muốn xóa khoản mục "${item.category}"?`)) {
+            try {
+                await projectService.deleteBudgetItem(item.id);
+                // Refresh budget
+                if (id) {
+                    const budgetData = await projectService.getProjectBudget(id);
+                    setBudget(budgetData);
+                }
+            } catch (error) {
+                alert('Lỗi khi xóa khoản mục');
+            }
+        }
+    };
+
+    const handleBudgetSaved = async () => {
+        if (id) {
+            const budgetData = await projectService.getProjectBudget(id);
+            setBudget(budgetData);
         }
     };
 
@@ -719,8 +781,14 @@ export default function ProjectDetail() {
 
                                     {/* Budget Section (Existing) */}
                                     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                        <div className="p-4 bg-slate-50 border-b border-slate-200">
+                                        <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                                             <h3 className="font-bold text-slate-700">Ngân sách & Chi phí Dự án</h3>
+                                            <button
+                                                onClick={openAddBudgetModal}
+                                                className="text-xs font-bold text-indigo-600 bg-white border border-indigo-200 px-3 py-1.5 rounded hover:bg-indigo-50 transition-colors"
+                                            >
+                                                + Thêm Khoản mục
+                                            </button>
                                         </div>
                                         <table className="w-full text-left">
                                             <thead className="bg-white text-xs text-slate-500 uppercase font-semibold border-b border-slate-100">
@@ -735,7 +803,12 @@ export default function ProjectDetail() {
                                             </thead>
                                             <tbody>
                                                 {budget.length > 0 ? budget.map(item => (
-                                                    <BudgetRow key={item.id} item={item} />
+                                                    <BudgetRow
+                                                        key={item.id}
+                                                        item={item}
+                                                        onEdit={openEditBudgetModal}
+                                                        onDelete={handleDeleteBudgetItem}
+                                                    />
                                                 )) : (
                                                     <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500">Chưa có dữ liệu ngân sách.</td></tr>
                                                 )}
@@ -765,6 +838,15 @@ export default function ProjectDetail() {
                 projectId={id || ''}
                 existingContract={editingContract}
                 contractType={contractModalType}
+            />
+
+            {/* Budget Modal */}
+            <BudgetModal
+                isOpen={isBudgetModalOpen}
+                onClose={() => setIsBudgetModalOpen(false)}
+                onSaved={handleBudgetSaved}
+                projectId={id || ''}
+                existingItem={editingBudgetItem}
             />
         </>
     )
