@@ -18,6 +18,8 @@ export interface Project {
   area?: string;
   budget?: number;
   model_url?: string;
+  lat?: number;
+  lng?: number;
 }
 
 export interface Contract {

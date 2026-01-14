@@ -58,6 +58,7 @@ const IFCModel = ({ url, file, progressUpdate }: { url?: string; file?: File; pr
     const [model, setModel] = useState<THREE.Object3D | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const { camera, controls, scene } = useThree() as any;
 
     useEffect(() => {
         const loadIfc = async () => {
@@ -72,13 +73,69 @@ const IFCModel = ({ url, file, progressUpdate }: { url?: string; file?: File; pr
                 // If this fails, we will try to copy them or alert user.
                 ifcLoader.ifcManager.setWasmPath('/');
 
-                // Optional: setup for better performance if supported by version
-                // await ifcLoader.ifcManager.useWebWorkers(true, '/web-ifc-worker.js'); // Only if we have worker
+                // Use Web Workers to prevent UI freeze
+                await ifcLoader.ifcManager.useWebWorkers(true, '/IFCWorker.js');
+
+                // IMPORTANT: Fix for large coordinates in BIM models
+                await ifcLoader.ifcManager.applyWebIfcConfig({
+                    COORDINATE_TO_ORIGIN: true,
+                    USE_FAST_BOOLS: true
+                });
 
                 const onLoad = (ifcModel: THREE.Object3D) => {
-                    console.log('IFC Loaded:', ifcModel);
-                    // Ensure matrix is updated
+                    console.log('IFC Model Loaded:', ifcModel);
+                    // Ensure matrix is updated and material is double-sided
+                    // Force update world matrix
                     ifcModel.updateMatrixWorld(true);
+
+                    // Check bounds
+                    const box = new THREE.Box3().setFromObject(ifcModel);
+                    const size = new THREE.Vector3();
+                    box.getSize(size);
+                    const center = new THREE.Vector3();
+                    box.getCenter(center);
+                    console.log('Model Size:', size);
+                    console.log('Model Center:', center);
+
+                    // Ensure materials are visible and meshes are not hidden
+                    ifcModel.traverse((child) => {
+                        child.visible = true;
+                        if ((child as THREE.Mesh).isMesh) {
+                            const mesh = child as THREE.Mesh;
+                            if (mesh.material) {
+                                (mesh.material as THREE.Material).side = THREE.DoubleSide;
+                                // If material is too dark or transparent, make it visible for debugging
+                                if (mesh.material instanceof THREE.MeshStandardMaterial) {
+                                    (mesh.material as THREE.Material).transparent = false;
+                                    (mesh.material as THREE.Material).opacity = 1;
+                                    (mesh.material as THREE.Material).depthWrite = true;
+                                    (mesh.material as THREE.Material).depthTest = true;
+                                }
+                            }
+                        }
+                    });
+
+                    // Zoom camera to fit
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const fov = camera.fov * (Math.PI / 180);
+                    let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+                    cameraZ *= 2.0; // Zoom out enough
+
+                    // Adjust near/far planes if model is huge
+                    camera.near = Math.min(0.1, maxDim / 1000);
+                    camera.far = Math.max(20000, maxDim * 10);
+                    camera.updateProjectionMatrix();
+
+                    camera.position.set(cameraZ, cameraZ, cameraZ);
+                    camera.lookAt(center);
+
+                    if (controls) {
+                        controls.target.copy(center);
+                        controls.maxDistance = camera.far * 0.8;
+                        controls.minDistance = camera.near * 2;
+                        controls.update();
+                    }
+
                     setModel(ifcModel);
                     setIsLoading(false);
                 };
@@ -118,7 +175,17 @@ const IFCModel = ({ url, file, progressUpdate }: { url?: string; file?: File; pr
         if (url || file) {
             loadIfc();
         }
-    }, [url, file]);
+    }, [url, file, camera, controls]);
+
+    // BoxHelper for debugging visibility
+    useEffect(() => {
+        if (!model) return;
+        const helper = new THREE.BoxHelper(model, 0xffff00);
+        scene.add(helper);
+        return () => {
+            scene.remove(helper);
+        };
+    }, [model, scene]);
 
     // Apply colors
     useMemo(() => {
@@ -201,23 +268,22 @@ const BimViewer: React.FC<BimViewerProps> = ({ modelUrl, progressUpdate, autoRot
                 />
             </div>
 
-            <Canvas shadows dpr={[1, 2]} camera={{ position: [50, 50, 50], fov: 50 }}>
-                <ambientLight intensity={0.5} />
-                <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
-                <pointLight position={[-10, -10, -10]} />
+            <Canvas shadows dpr={[1, 2]} camera={{ position: [50, 50, 50], fov: 50, near: 0.1, far: 20000 }}>
+                <ambientLight intensity={0.8} />
+                <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
+                <spotLight position={[50, 50, 50]} angle={0.15} penumbra={1} intensity={1} />
+                <pointLight position={[-10, -10, -10]} intensity={0.5} />
 
                 <Environment preset="city" />
 
-                <group position={[0, -1, 0]}>
-                    <gridHelper args={[100, 100, 0x444444, 0x222222]} />
-                    <axesHelper args={[5]} />
+                <group position={[0, -0.1, 0]}>
+                    <gridHelper args={[200, 200, 0x444444, 0x222222]} />
+                    <axesHelper args={[10]} />
                 </group>
 
-                <Center top>
-                    <Model url={localFile ? undefined : modelUrl} file={localFile || undefined} progressUpdate={progressUpdate} />
-                </Center>
+                <Model url={localFile ? undefined : modelUrl} file={localFile || undefined} progressUpdate={progressUpdate} />
 
-                <OrbitControls makeDefault autoRotate={autoRotate && !localFile} />
+                <OrbitControls makeDefault autoRotate={autoRotate && !localFile} minDistance={1} maxDistance={5000} />
 
                 <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
                     <GizmoViewport axisColors={['#9d4b4b', '#2f7f4f', '#3b5b9d']} labelColor="white" />
