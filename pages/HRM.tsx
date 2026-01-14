@@ -1,56 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { hrmService, Employee } from '../src/services/hrmService';
 
 // Data for Attendance
 const attendanceData = [
-  { day: 'T2', present: 142, absent: 5, late: 3 },
-  { day: 'T3', present: 145, absent: 2, late: 1 },
-  { day: 'T4', present: 140, absent: 8, late: 5 },
-  { day: 'T5', present: 148, absent: 1, late: 0 },
-  { day: 'T6', present: 144, absent: 4, late: 2 },
-  { day: 'T7', present: 130, absent: 15, late: 0 },
+    { day: 'T2', present: 142, absent: 5, late: 3 },
+    { day: 'T3', present: 145, absent: 2, late: 1 },
+    { day: 'T4', present: 140, absent: 8, late: 5 },
+    { day: 'T5', present: 148, absent: 1, late: 0 },
+    { day: 'T6', present: 144, absent: 4, late: 2 },
+    { day: 'T7', present: 130, absent: 15, late: 0 },
 ];
 
 const workforceData = [
-  { name: 'Kỹ sư/Giám sát', value: 45 },
-  { name: 'Công nhân lành nghề', value: 120 },
-  { name: 'Lao động phổ thông', value: 80 },
-  { name: 'Văn phòng', value: 30 },
+    { name: 'Kỹ sư/Giám sát', value: 45 },
+    { name: 'Công nhân lành nghề', value: 120 },
+    { name: 'Lao động phổ thông', value: 80 },
+    { name: 'Văn phòng', value: 30 },
 ];
 const COLORS = ['#1f3f89', '#07883d', '#FACC15', '#64748b'];
 
-const EmployeeRow = ({ id, name, role, dept, site, status, checkin }: any) => (
+const EmployeeRow = ({ employee }: { employee: Employee }) => (
     <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
         <td className="px-6 py-4 flex items-center gap-3">
             <div className="size-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 text-xs">
-                {name.split(' ').pop()[0]}
+                {employee.full_name.split(' ').pop()?.[0]}
             </div>
             <div>
-                <p className="text-sm font-bold text-slate-900">{name}</p>
-                <p className="text-xs text-slate-500">{id}</p>
+                <p className="text-sm font-bold text-slate-900">{employee.full_name}</p>
+                <p className="text-xs text-slate-500">{employee.employee_code}</p>
             </div>
         </td>
-        <td className="px-6 py-4 text-sm text-slate-700">{role}</td>
-        <td className="px-6 py-4 text-xs text-slate-500">{dept}</td>
+        <td className="px-6 py-4 text-sm text-slate-700">{employee.role}</td>
+        <td className="px-6 py-4 text-xs text-slate-500">{employee.department}</td>
         <td className="px-6 py-4">
-             <span className="flex items-center gap-1 text-xs font-bold text-slate-700">
+            <span className="flex items-center gap-1 text-xs font-bold text-slate-700">
                 <span className="material-symbols-outlined text-[14px] text-primary">location_on</span>
-                {site}
-             </span>
+                {employee.site}
+            </span>
         </td>
         <td className="px-6 py-4">
-            <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
-                status === 'active' ? 'bg-green-50 text-green-700' : 
-                status === 'leave' ? 'bg-orange-50 text-orange-700' : 'bg-slate-100 text-slate-500'
-            }`}>
-                {status === 'active' ? 'Đang làm việc' : status === 'leave' ? 'Nghỉ phép' : 'Vắng mặt'}
+            <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${employee.status === 'active' ? 'bg-green-50 text-green-700' :
+                    employee.status === 'leave' ? 'bg-orange-50 text-orange-700' : 'bg-slate-100 text-slate-500'
+                }`}>
+                {employee.status === 'active' ? 'Đang làm việc' : employee.status === 'leave' ? 'Nghỉ phép' : 'Vắng mặt'}
             </span>
         </td>
         <td className="px-6 py-4 text-xs font-mono text-slate-600">
-            {checkin || '--:--'}
+            {employee.last_checkin || '--:--'}
         </td>
         <td className="px-6 py-4 text-right">
-             <button className="text-slate-400 hover:text-primary"><span className="material-symbols-outlined">more_vert</span></button>
+            <button className="text-slate-400 hover:text-primary"><span className="material-symbols-outlined">more_vert</span></button>
         </td>
     </tr>
 )
@@ -69,210 +69,233 @@ const StatCard = ({ title, value, sub, icon, color }: any) => (
 )
 
 export default function HRM() {
-  const [activeTab, setActiveTab] = useState('employees');
+    const [activeTab, setActiveTab] = useState('employees');
+    const [employees, setEmployees] = useState<Employee[]>([]);
+    const [loading, setLoading] = useState(true);
 
-  return (
-    <div className="flex flex-col h-full bg-background-light">
-        <header className="bg-white border-b border-slate-100 px-8 py-5 flex justify-between items-center shrink-0">
-            <div>
-                <h2 className="text-2xl font-extrabold text-slate-900">Nhân sự & Đào tạo</h2>
-                <p className="text-sm text-slate-500 mt-1">Quản lý hồ sơ, Chấm công GPS và Phát triển năng lực.</p>
-            </div>
-             <div className="flex gap-3">
-                <button className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-slate-50">
-                    <span className="material-symbols-outlined text-[20px]">download</span> Xuất Báo cáo
-                </button>
-                <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-primary/90 shadow-lg shadow-primary/20">
-                    <span className="material-symbols-outlined text-[20px]">person_add</span> Thêm Nhân sự
-                </button>
-            </div>
-        </header>
+    useEffect(() => {
+        fetchEmployees();
+    }, []);
 
-        <div className="flex-1 overflow-y-auto p-8">
-            <div className="max-w-[1600px] mx-auto space-y-8">
-                
-                {/* KPI Cards */}
-                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <StatCard title="Tổng nhân sự" value="275" sub="Active: 260 | On-boarding: 15" icon="groups" color="bg-blue-50 text-blue-600" />
-                    <StatCard title="Tỷ lệ chuyên cần" value="96.5%" sub="Thấp nhất vào Thứ 7" icon="event_available" color="bg-green-50 text-green-600" />
-                    <StatCard title="Đào tạo & Cấp chứng chỉ" value="85%" sub="Nhân sự đạt chuẩn An toàn" icon="workspace_premium" color="bg-yellow-50 text-yellow-600" />
-                    <StatCard title="Chi phí nhân sự (T10)" value="4.2 Tỷ" sub="Bao gồm lương & phúc lợi" icon="payments" color="bg-red-50 text-red-600" />
+    const fetchEmployees = async () => {
+        try {
+            const data = await hrmService.getAllEmployees();
+            setEmployees(data);
+        } catch (error) {
+            console.error('Failed to fetch employees');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="flex flex-col h-full bg-background-light">
+            <header className="bg-white border-b border-slate-100 px-8 py-5 flex justify-between items-center shrink-0">
+                <div>
+                    <h2 className="text-2xl font-extrabold text-slate-900">Nhân sự & Đào tạo</h2>
+                    <p className="text-sm text-slate-500 mt-1">Quản lý hồ sơ, Chấm công GPS và Phát triển năng lực.</p>
                 </div>
+                <div className="flex gap-3">
+                    <button className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-slate-50">
+                        <span className="material-symbols-outlined text-[20px]">download</span> Xuất Báo cáo
+                    </button>
+                    <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-primary/90 shadow-lg shadow-primary/20">
+                        <span className="material-symbols-outlined text-[20px]">person_add</span> Thêm Nhân sự
+                    </button>
+                </div>
+            </header>
 
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                    {/* GPS Map & Attendance Chart */}
-                    <div className="xl:col-span-2 flex flex-col gap-6">
-                         {/* GPS Map Panel */}
-                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[400px]">
-                            <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                                <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                                     <span className="material-symbols-outlined text-primary">location_on</span> Bản đồ chấm công (Live GPS)
-                                </h3>
-                                <div className="flex items-center gap-2">
-                                    <span className="flex size-2 bg-green-500 rounded-full animate-pulse"></span>
-                                    <span className="text-xs font-bold text-slate-600">Real-time</span>
-                                </div>
-                            </div>
-                            <div className="flex-1 relative bg-slate-100 group">
-                                <div className="absolute inset-0 bg-cover bg-center grayscale-[20%] transition-transform duration-1000 group-hover:scale-105" style={{ backgroundImage: "url('https://picsum.photos/seed/construction_site/1200/800')" }}></div>
-                                <div className="absolute inset-0 bg-slate-900/10"></div>
-                                
-                                {/* Geofence Visualization */}
-                                <div className="absolute top-[20%] left-[30%] w-64 h-64 border-2 border-primary/40 bg-primary/5 rounded-full flex items-center justify-center animate-pulse"></div>
-                                <div className="absolute top-[20%] left-[30%] w-64 h-64 flex items-center justify-center">
-                                    <span className="bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg">Site: Vijako Tower</span>
-                                </div>
-                                
-                                {/* Workers Dots */}
-                                <div className="absolute top-[35%] left-[45%] size-3 bg-green-500 border-2 border-white rounded-full shadow-md tooltip" title="NV-01"></div>
-                                <div className="absolute top-[40%] left-[38%] size-3 bg-green-500 border-2 border-white rounded-full shadow-md"></div>
-                                <div className="absolute top-[45%] left-[48%] size-3 bg-green-500 border-2 border-white rounded-full shadow-md"></div>
-                                <div className="absolute top-[85%] left-[80%] size-3 bg-red-500 border-2 border-white rounded-full shadow-md animate-bounce" title="Ngoài vùng phủ sóng"></div>
-                            </div>
-                        </div>
+            <div className="flex-1 overflow-y-auto p-8">
+                <div className="max-w-[1600px] mx-auto space-y-8">
 
-                        {/* Chart */}
-                         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                            <h3 className="font-bold text-slate-900 mb-4">Xu hướng Đi làm & Vắng mặt (Tuần này)</h3>
-                            <div className="h-64 w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={attendanceData}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                        <XAxis dataKey="day" axisLine={false} tickLine={false} />
-                                        <Tooltip cursor={{fill: 'transparent'}} />
-                                        <Legend />
-                                        <Bar dataKey="present" name="Có mặt" fill="#07883d" radius={[4, 4, 0, 0]} stackId="a" barSize={40} />
-                                        <Bar dataKey="late" name="Đi muộn" fill="#FACC15" radius={[0, 0, 0, 0]} stackId="a" barSize={40} />
-                                        <Bar dataKey="absent" name="Vắng" fill="#ef4444" radius={[4, 4, 0, 0]} stackId="a" barSize={40} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
+                    {/* KPI Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <StatCard title="Tổng nhân sự" value={employees.length} sub={`Active: ${employees.filter(e => e.status === 'active').length}`} icon="groups" color="bg-blue-50 text-blue-600" />
+                        <StatCard title="Tỷ lệ chuyên cần" value="96.5%" sub="Thấp nhất vào Thứ 7" icon="event_available" color="bg-green-50 text-green-600" />
+                        <StatCard title="Đào tạo & Cấp chứng chỉ" value="85%" sub="Nhân sự đạt chuẩn An toàn" icon="workspace_premium" color="bg-yellow-50 text-yellow-600" />
+                        <StatCard title="Chi phí nhân sự (T10)" value="4.2 Tỷ" sub="Bao gồm lương & phúc lợi" icon="payments" color="bg-red-50 text-red-600" />
                     </div>
 
-                    {/* Right Column: Structure & Certs */}
-                    <div className="flex flex-col gap-6">
-                        {/* Workforce Structure */}
-                         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                            <h3 className="font-bold text-slate-900 mb-2">Cơ cấu Nhân sự</h3>
-                            <div className="h-48 w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={workforceData}
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius={60}
-                                            outerRadius={80}
-                                            paddingAngle={5}
-                                            dataKey="value"
-                                        >
-                                            {workforceData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip />
-                                    </PieChart>
-                                </ResponsiveContainer>
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                        {/* GPS Map & Attendance Chart */}
+                        <div className="xl:col-span-2 flex flex-col gap-6">
+                            {/* GPS Map Panel */}
+                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[400px]">
+                                <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                                    <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-primary">location_on</span> Bản đồ chấm công (Live GPS)
+                                    </h3>
+                                    <div className="flex items-center gap-2">
+                                        <span className="flex size-2 bg-green-500 rounded-full animate-pulse"></span>
+                                        <span className="text-xs font-bold text-slate-600">Real-time</span>
+                                    </div>
+                                </div>
+                                <div className="flex-1 relative bg-slate-100 group">
+                                    <div className="absolute inset-0 bg-cover bg-center grayscale-[20%] transition-transform duration-1000 group-hover:scale-105" style={{ backgroundImage: "url('https://picsum.photos/seed/construction_site/1200/800')" }}></div>
+                                    <div className="absolute inset-0 bg-slate-900/10"></div>
+
+                                    {/* Geofence Visualization */}
+                                    <div className="absolute top-[20%] left-[30%] w-64 h-64 border-2 border-primary/40 bg-primary/5 rounded-full flex items-center justify-center animate-pulse"></div>
+                                    <div className="absolute top-[20%] left-[30%] w-64 h-64 flex items-center justify-center">
+                                        <span className="bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg">Site: Vijako Tower</span>
+                                    </div>
+
+                                    {/* Workers Dots */}
+                                    <div className="absolute top-[35%] left-[45%] size-3 bg-green-500 border-2 border-white rounded-full shadow-md tooltip" title="NV-01"></div>
+                                    <div className="absolute top-[40%] left-[38%] size-3 bg-green-500 border-2 border-white rounded-full shadow-md"></div>
+                                    <div className="absolute top-[45%] left-[48%] size-3 bg-green-500 border-2 border-white rounded-full shadow-md"></div>
+                                    <div className="absolute top-[85%] left-[80%] size-3 bg-red-500 border-2 border-white rounded-full shadow-md animate-bounce" title="Ngoài vùng phủ sóng"></div>
+                                </div>
                             </div>
-                            <div className="space-y-2 mt-2">
-                                {workforceData.map((entry, index) => (
-                                    <div key={index} className="flex justify-between items-center text-xs">
-                                        <div className="flex items-center gap-2">
-                                            <span className="size-2 rounded-full" style={{backgroundColor: COLORS[index]}}></span>
-                                            <span className="text-slate-600">{entry.name}</span>
+
+                            {/* Chart */}
+                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                                <h3 className="font-bold text-slate-900 mb-4">Xu hướng Đi làm & Vắng mặt (Tuần này)</h3>
+                                <div className="h-64 w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={attendanceData}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                            <XAxis dataKey="day" axisLine={false} tickLine={false} />
+                                            <Tooltip cursor={{ fill: 'transparent' }} />
+                                            <Legend />
+                                            <Bar dataKey="present" name="Có mặt" fill="#07883d" radius={[4, 4, 0, 0]} stackId="a" barSize={40} />
+                                            <Bar dataKey="late" name="Đi muộn" fill="#FACC15" radius={[0, 0, 0, 0]} stackId="a" barSize={40} />
+                                            <Bar dataKey="absent" name="Vắng" fill="#ef4444" radius={[4, 4, 0, 0]} stackId="a" barSize={40} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Column: Structure & Certs */}
+                        <div className="flex flex-col gap-6">
+                            {/* Workforce Structure */}
+                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                                <h3 className="font-bold text-slate-900 mb-2">Cơ cấu Nhân sự</h3>
+                                <div className="h-48 w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={workforceData}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={60}
+                                                outerRadius={80}
+                                                paddingAngle={5}
+                                                dataKey="value"
+                                            >
+                                                {workforceData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+                                <div className="space-y-2 mt-2">
+                                    {workforceData.map((entry, index) => (
+                                        <div key={index} className="flex justify-between items-center text-xs">
+                                            <div className="flex items-center gap-2">
+                                                <span className="size-2 rounded-full" style={{ backgroundColor: COLORS[index] }}></span>
+                                                <span className="text-slate-600">{entry.name}</span>
+                                            </div>
+                                            <span className="font-bold text-slate-900">{entry.value}</span>
                                         </div>
-                                        <span className="font-bold text-slate-900">{entry.value}</span>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
 
-                         {/* Expiring Certs */}
-                         <div className="bg-red-50 rounded-xl border border-red-100 p-6">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="bg-white p-2 rounded-lg border border-red-100 text-red-600 shadow-sm">
-                                    <span className="material-symbols-outlined">warning</span>
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-slate-900">Cảnh báo Chứng chỉ</h3>
-                                    <p className="text-xs text-red-600 font-bold">5 nhân sự sắp hết hạn</p>
-                                </div>
-                            </div>
-                            <div className="space-y-3">
-                                <div className="bg-white p-3 rounded-lg border border-red-100 shadow-sm">
-                                    <div className="flex justify-between items-start mb-1">
-                                        <span className="text-xs font-bold text-slate-900">Lê Văn Ba</span>
-                                        <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">CCHN GS</span>
+                            {/* Expiring Certs */}
+                            <div className="bg-red-50 rounded-xl border border-red-100 p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="bg-white p-2 rounded-lg border border-red-100 text-red-600 shadow-sm">
+                                        <span className="material-symbols-outlined">warning</span>
                                     </div>
-                                    <p className="text-xs text-slate-500">Hết hạn: 15/11/2023 (Còn 5 ngày)</p>
-                                    <button className="w-full mt-2 py-1.5 text-[10px] font-bold bg-slate-50 hover:bg-slate-100 rounded text-slate-600">Gửi thông báo gia hạn</button>
+                                    <div>
+                                        <h3 className="font-bold text-slate-900">Cảnh báo Chứng chỉ</h3>
+                                        <p className="text-xs text-red-600 font-bold">5 nhân sự sắp hết hạn</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="bg-white p-3 rounded-lg border border-red-100 shadow-sm">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <span className="text-xs font-bold text-slate-900">Lê Văn Ba</span>
+                                            <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">CCHN GS</span>
+                                        </div>
+                                        <p className="text-xs text-slate-500">Hết hạn: 15/11/2023 (Còn 5 ngày)</p>
+                                        <button className="w-full mt-2 py-1.5 text-[10px] font-bold bg-slate-50 hover:bg-slate-100 rounded text-slate-600">Gửi thông báo gia hạn</button>
+                                    </div>
                                 </div>
                             </div>
-                         </div>
-                         
-                         {/* Training Promo */}
-                         <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-xl p-6 text-white shadow-lg relative overflow-hidden">
-                             <div className="relative z-10">
-                                <h3 className="font-bold text-lg mb-1">E-Learning 2024</h3>
-                                <p className="text-xs text-indigo-100 mb-3 opacity-90">Khóa học "An toàn lao động trên cao" bắt buộc cho nhóm thi công tầng 15.</p>
-                                <div className="w-full bg-white/20 h-1.5 rounded-full mb-3"><div className="bg-yellow-400 w-[65%] h-full rounded-full"></div></div>
-                                <button className="bg-white text-primary text-xs font-bold px-3 py-1.5 rounded shadow hover:bg-indigo-50 transition-colors">Tiếp tục học</button>
-                             </div>
-                             <span className="material-symbols-outlined absolute -bottom-4 -right-4 text-[100px] text-white/10 pointer-events-none">school</span>
-                         </div>
-                    </div>
-                </div>
 
-                {/* Employee List */}
-                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div className="p-6 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4">
-                        <div className="flex gap-6">
-                            <button 
-                                onClick={() => setActiveTab('employees')}
-                                className={`text-sm font-bold pb-1 border-b-2 transition-colors ${activeTab === 'employees' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
-                            >
-                                Danh sách Nhân sự
-                            </button>
-                            <button 
-                                onClick={() => setActiveTab('leave')}
-                                className={`text-sm font-bold pb-1 border-b-2 transition-colors ${activeTab === 'leave' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
-                            >
-                                Quản lý Nghỉ phép
-                            </button>
-                        </div>
-                         <div className="relative">
-                            <span className="material-symbols-outlined absolute left-3 top-2 text-slate-400 text-[18px]">search</span>
-                            <input className="pl-9 pr-4 py-1.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:ring-1 focus:ring-primary w-64" placeholder="Tìm kiếm nhân viên..." />
+                            {/* Training Promo */}
+                            <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-xl p-6 text-white shadow-lg relative overflow-hidden">
+                                <div className="relative z-10">
+                                    <h3 className="font-bold text-lg mb-1">E-Learning 2024</h3>
+                                    <p className="text-xs text-indigo-100 mb-3 opacity-90">Khóa học "An toàn lao động trên cao" bắt buộc cho nhóm thi công tầng 15.</p>
+                                    <div className="w-full bg-white/20 h-1.5 rounded-full mb-3"><div className="bg-yellow-400 w-[65%] h-full rounded-full"></div></div>
+                                    <button className="bg-white text-primary text-xs font-bold px-3 py-1.5 rounded shadow hover:bg-indigo-50 transition-colors">Tiếp tục học</button>
+                                </div>
+                                <span className="material-symbols-outlined absolute -bottom-4 -right-4 text-[100px] text-white/10 pointer-events-none">school</span>
+                            </div>
                         </div>
                     </div>
-                    
-                    {activeTab === 'employees' && (
-                        <table className="w-full text-left">
-                            <thead className="bg-slate-50 text-xs text-slate-500 uppercase font-semibold">
-                                <tr>
-                                    <th className="px-6 py-3">Nhân viên</th>
-                                    <th className="px-6 py-3">Chức vụ</th>
-                                    <th className="px-6 py-3">Phòng ban</th>
-                                    <th className="px-6 py-3">Địa điểm làm việc</th>
-                                    <th className="px-6 py-3">Trạng thái</th>
-                                    <th className="px-6 py-3">Check-in</th>
-                                    <th className="px-6 py-3"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <EmployeeRow id="VJ-0056" name="Nguyễn Văn An" role="Chỉ huy trưởng" dept="Ban QLDA" site="Vijako Tower" status="active" checkin="07:30" />
-                                <EmployeeRow id="VJ-0112" name="Trần Thị Bình" role="Kế toán công trường" dept="Phòng Kế toán" site="Vijako Tower" status="active" checkin="07:45" />
-                                <EmployeeRow id="VJ-0089" name="Lê Hoàng Cường" role="Giám sát MEP" dept="Kỹ thuật" site="The Nine" status="leave" checkin="" />
-                                <EmployeeRow id="VJ-0201" name="Phạm Văn Dũng" role="Đội trưởng Đội 1" dept="Thi công" site="Vijako Tower" status="active" checkin="07:15" />
-                                <EmployeeRow id="VJ-0222" name="Hoàng Hải" role="An toàn viên" dept="HSE" site="Aeon Mall Huế" status="active" checkin="08:00" />
-                            </tbody>
-                        </table>
-                    )}
-                </div>
 
+                    {/* Employee List */}
+                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="p-6 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4">
+                            <div className="flex gap-6">
+                                <button
+                                    onClick={() => setActiveTab('employees')}
+                                    className={`text-sm font-bold pb-1 border-b-2 transition-colors ${activeTab === 'employees' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+                                >
+                                    Danh sách Nhân sự
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('leave')}
+                                    className={`text-sm font-bold pb-1 border-b-2 transition-colors ${activeTab === 'leave' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+                                >
+                                    Quản lý Nghỉ phép
+                                </button>
+                            </div>
+                            <div className="relative">
+                                <span className="material-symbols-outlined absolute left-3 top-2 text-slate-400 text-[18px]">search</span>
+                                <input className="pl-9 pr-4 py-1.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white focus:ring-1 focus:ring-primary w-64" placeholder="Tìm kiếm nhân viên..." />
+                            </div>
+                        </div>
+
+                        {activeTab === 'employees' && (
+                            <div className="w-full overflow-x-auto">
+                                {loading ? (
+                                    <div className="p-8 text-center text-slate-500">Đang tải dữ liệu nhân sự...</div>
+                                ) : employees.length === 0 ? (
+                                    <div className="p-8 text-center text-slate-500">Chưa có dữ liệu nhân sự.</div>
+                                ) : (
+                                    <table className="w-full text-left">
+                                        <thead className="bg-slate-50 text-xs text-slate-500 uppercase font-semibold">
+                                            <tr>
+                                                <th className="px-6 py-3">Nhân viên</th>
+                                                <th className="px-6 py-3">Chức vụ</th>
+                                                <th className="px-6 py-3">Phòng ban</th>
+                                                <th className="px-6 py-3">Địa điểm làm việc</th>
+                                                <th className="px-6 py-3">Trạng thái</th>
+                                                <th className="px-6 py-3">Check-in</th>
+                                                <th className="px-6 py-3"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {employees.map(emp => (
+                                                <EmployeeRow key={emp.id} employee={emp} />
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                </div>
             </div>
         </div>
-    </div>
-  )
+    )
 }
