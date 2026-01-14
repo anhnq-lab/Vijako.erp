@@ -115,7 +115,56 @@ export default function ProjectList() {
         setLoading(true);
         try {
             const data = await projectService.getAllProjects();
-            setProjectList(data);
+
+            // Mock data fallback if DB returns empty
+            const mockProjects: Project[] = [
+                {
+                    id: '1', code: 'PRJ-2024-001', name: 'Trường Tiểu học Tiên Sơn', location: 'Sóc Sơn, Hà Nội',
+                    manager: 'Nguyễn Văn An', progress: 65, status: 'active', type: 'Dân dụng',
+                    avatar: 'https://images.unsplash.com/photo-1541829070764-84a7d30dee3f?q=80&w=800'
+                },
+                {
+                    id: '2', code: 'PRJ-2024-002', name: 'Nhà máy Foxconn Bắc Giang', location: 'KCN Quang Châu, Bắc Giang',
+                    manager: 'Trần Đức Bình', progress: 40, status: 'active', type: 'Công nghiệp',
+                    avatar: 'https://images.unsplash.com/photo-1565008480292-22621ec41da7?q=80&w=800'
+                },
+                {
+                    id: '3', code: 'PRJ-2024-003', name: 'Sun Urban City Hà Nam', location: 'Phủ Lý, Hà Nam',
+                    manager: 'Lê Thị Mai', progress: 15, status: 'active', type: 'Đô thị',
+                    avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800'
+                },
+                {
+                    id: '4', code: 'PRJ-2023-010', name: 'Aeon Mall Hải Phòng', location: 'Lê Chân, Hải Phòng',
+                    manager: 'Phạm Hồng Quân', progress: 100, status: 'completed', type: 'Thương mại',
+                    avatar: 'https://images.unsplash.com/photo-1519494026892-80bbd2d3fd0d?q=80&w=800'
+                },
+                {
+                    id: '5', code: 'PRJ-2024-005', name: 'Cầu Mỹ Thuận 2', location: 'Tiền Giang - Vĩnh Long',
+                    manager: 'Hoàng Văn Thái', progress: 85, status: 'active', type: 'Hạ tầng',
+                    avatar: 'https://images.unsplash.com/photo-1513828583688-c52646db42da?q=80&w=800'
+                },
+                {
+                    id: '6', code: 'PRJ-2024-008', name: 'Chung cư The Nine', location: 'Phạm Văn Đồng, Hà Nội',
+                    manager: 'Đỗ Tiến Đạt', progress: 95, status: 'active', type: 'Dân dụng',
+                    avatar: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=800'
+                },
+                {
+                    id: '7', code: 'PRJ-2024-009', name: 'Tòa nhà TechnoPark Ocean Park', location: 'Gia Lâm, Hà Nội',
+                    manager: 'Vũ Anh Tuấn', progress: 100, status: 'completed', type: 'Văn phòng',
+                    avatar: 'https://images.unsplash.com/photo-1503387762-592dea58ef23?q=80&w=800'
+                },
+                {
+                    id: '8', code: 'PRJ-2024-012', name: 'Khu nghỉ dưỡng InterContinental', location: 'Phú Quốc, Kiên Giang',
+                    manager: 'Trịnh Kim Liên', progress: 55, status: 'active', type: 'Nghỉ dưỡng',
+                    avatar: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=800'
+                }
+            ];
+
+            if (data && data.length > 0) {
+                setProjectList(data);
+            } else {
+                setProjectList(mockProjects);
+            }
         } catch (error) { console.error(error); } finally { setLoading(false); }
     };
 

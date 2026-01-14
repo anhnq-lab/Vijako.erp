@@ -17,6 +17,12 @@ const costStructureData = [
     { name: 'Th4', inflow: 6100, outflow: 4200 },
     { name: 'Th5', inflow: 5500, outflow: 5000 },
     { name: 'Th6', inflow: 6700, outflow: 5800 },
+    { name: 'Th7', inflow: 7200, outflow: 6100 },
+    { name: 'Th8', inflow: 6800, outflow: 6500 },
+    { name: 'Th9', inflow: 8100, outflow: 6900 },
+    { name: 'Th10', inflow: 7900, outflow: 7200 },
+    { name: 'Th11', inflow: 9200, outflow: 7500 },
+    { name: 'Th12', inflow: 10500, outflow: 8200 },
 ];
 
 const PremiumStatCard = ({ title, value, sub, icon, color, trend }: any) => (
@@ -90,8 +96,28 @@ export default function Finance() {
                 financeService.getCashFlowData(),
                 projectService.getAllProjects()
             ]);
-            if (prData) setPaymentRequests(prData);
-            if (cfData) setCashFlowRecords(cfData);
+
+            // Mock data fallback if DB returns empty for demonstration
+            const mockPRs: PaymentRequest[] = [
+                { id: '1', partner_name: 'Công ty CP Hòa Phát', amount: 450000000, status: 'paid', submission_date: '2024-05-10', project_id: 'p1' },
+                { id: '2', partner_name: 'Công ty TNHH Thiết bị Delta', amount: 125000000, status: 'pending', submission_date: '2024-05-12', project_id: 'p2' },
+                { id: '3', partner_name: 'Tổng công ty Sông Đà', amount: 2800000000, status: 'paid', submission_date: '2024-05-01', project_id: 'p1' },
+                { id: '4', partner_name: 'Bê tông An Việt', amount: 89000000, status: 'pending', submission_date: '2024-05-14', project_id: 'p3' },
+                { id: '5', partner_name: 'Điện lực Hà Nội', amount: 45000000, status: 'paid', submission_date: '2024-04-28', project_id: 'p1' },
+                { id: '6', partner_name: 'Công ty CP Đá ốp lát', amount: 210000000, status: 'pending', submission_date: '2024-05-15', project_id: 'p4' },
+                { id: '7', partner_name: 'Nhà thầu xây dựng 105', amount: 1560000000, status: 'paid', submission_date: '2024-04-20', project_id: 'p2' },
+                { id: '8', partner_name: 'Cung ứng vật tư Thái Bình', amount: 340000000, status: 'pending', submission_date: '2024-05-13', project_id: 'p3' },
+            ] as any;
+
+            if (prData && prData.length > 0) {
+                setPaymentRequests(prData);
+            } else {
+                setPaymentRequests(mockPRs);
+            }
+
+            if (cfData && cfData.length > 0) {
+                setCashFlowRecords(cfData);
+            }
             if (pData) setProjects(pData);
         } catch (err) {
             console.error('Failed to fetch finance data', err);

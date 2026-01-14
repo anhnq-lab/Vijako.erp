@@ -8,10 +8,10 @@ const mockContracts = [
     {
         id: '1',
         contract_code: 'HĐ-AB-2024-001',
-        type: 'revenue', // A-B (Đầu ra)
+        type: 'revenue',
         partner_name: 'UBND Huyện Sóc Sơn',
         project_name: 'Trường Tiểu học Tiên Sơn',
-        value: 15000000000,
+        value: 15250000000,
         paid_amount: 12000000000,
         retention_amount: 750000000,
         status: 'Đang thực hiện',
@@ -21,9 +21,76 @@ const mockContracts = [
         end_date: '2024-12-31'
     },
     {
+        id: '1.1',
+        contract_code: 'HĐ-AB-2024-005',
+        type: 'revenue',
+        partner_name: 'Ban Quản lý dự án Foxconn',
+        project_name: 'Nhà máy Foxconn Bắc Giang',
+        value: 48500000000,
+        paid_amount: 15000000000,
+        retention_amount: 2425000000,
+        status: 'Đang thực hiện',
+        is_risk: false,
+        signing_date: '2024-03-20',
+        start_date: '2024-04-01',
+        end_date: '2025-06-30'
+    },
+    {
+        id: '1.2',
+        contract_code: 'HĐ-AB-2024-012',
+        type: 'revenue',
+        partner_name: 'Công ty CP Sun Group',
+        project_name: 'Sun Urban City',
+        value: 86000000000,
+        paid_amount: 25000000000,
+        retention_amount: 4300000000,
+        status: 'Đang thực hiện',
+        is_risk: true,
+        signing_date: '2024-05-10'
+    },
+    {
+        id: '1.3',
+        contract_code: 'HĐ-AB-2024-025',
+        type: 'revenue',
+        partner_name: 'Tập đoàn Vingroup',
+        project_name: 'Vinhomes Ocean Park 3',
+        value: 125000000000,
+        paid_amount: 10000000000,
+        retention_amount: 6250000000,
+        status: 'Đang thực hiện',
+        is_risk: false,
+        signing_date: '2024-06-01'
+    },
+    {
+        id: '1.4',
+        contract_code: 'HĐ-AB-2023-088',
+        type: 'revenue',
+        partner_name: 'Samsung Electronics VN',
+        project_name: 'SEVT Phase 4',
+        value: 45600000000,
+        paid_amount: 45600000000,
+        retention_amount: 0,
+        status: 'Đã hoàn thành',
+        is_risk: false,
+        signing_date: '2023-01-15'
+    },
+    {
+        id: '1.5',
+        contract_code: 'HĐ-AB-2024-042',
+        type: 'revenue',
+        partner_name: 'Masterise Homes',
+        project_name: 'Grand Marina Saigon',
+        value: 210000000000,
+        paid_amount: 50000000000,
+        retention_amount: 10500000000,
+        status: 'Đang thực hiện',
+        is_risk: false,
+        signing_date: '2024-02-15'
+    },
+    {
         id: '2',
         contract_code: 'HĐ-BC-2024-001',
-        type: 'expense', // B-C (Đầu vào - Thầu phụ)
+        type: 'expense',
         partner_name: 'Công ty TNHH Thảm Hà Nội',
         project_name: 'Trường Tiểu học Tiên Sơn',
         value: 2500000000,
@@ -45,6 +112,58 @@ const mockContracts = [
         status: 'Đang thực hiện',
         is_risk: true,
         signing_date: '2024-03-01'
+    },
+    {
+        id: '2.1',
+        contract_code: 'HĐ-BC-2024-008',
+        type: 'expense',
+        partner_name: 'Công ty CP Cơ điện Miền Bắc',
+        project_name: 'Cầu Vượt Láng Hạ',
+        value: 12500000000,
+        paid_amount: 4500000000,
+        retention_amount: 625000000,
+        status: 'Đang thực hiện',
+        is_risk: false,
+        signing_date: '2024-04-15'
+    },
+    {
+        id: '2.2',
+        contract_code: 'HĐ-BC-2024-015',
+        type: 'expense',
+        partner_name: 'Bê tông Chèm',
+        project_name: 'Sun Urban City',
+        value: 5600000000,
+        paid_amount: 5600000000,
+        retention_amount: 0,
+        status: 'Đã quyết toán',
+        is_risk: false,
+        signing_date: '2024-01-10'
+    },
+    {
+        id: '2.3',
+        contract_code: 'HĐ-BC-2024-033',
+        type: 'expense',
+        partner_name: 'Thang máy Otis VN',
+        project_name: 'Foxconn Bắc Giang',
+        value: 8900000000,
+        paid_amount: 2000000000,
+        retention_amount: 445000000,
+        status: 'Đang thực hiện',
+        is_risk: false,
+        signing_date: '2024-05-01'
+    },
+    {
+        id: '2.4',
+        contract_code: 'HĐ-BC-2024-051',
+        type: 'expense',
+        partner_name: 'Nhôm kính Eurowindow',
+        project_name: 'Chung cư The Nine',
+        value: 15400000000,
+        paid_amount: 12000000000,
+        retention_amount: 770000000,
+        status: 'Đang thực hiện',
+        is_risk: false,
+        signing_date: '2024-03-12'
     },
     {
         id: '4',
@@ -88,9 +207,20 @@ const mockBiddingPackages = [
         id: '3',
         package_code: 'GT-2024-003',
         title: 'Gói thầu Hệ thống M&E',
-        project_name: 'Trường Tiểu học Tiên Sơn',
-        budget: 2800000000,
-        deadline: '2024-03-15',
+        project_name: 'Cầu Vượt Láng Hạ',
+        budget: 4800000000,
+        publish_date: '2024-05-20',
+        deadline: '2024-06-15',
+        status: 'Đang mời thầu',
+        bidders_count: 5
+    },
+    {
+        id: '4',
+        package_code: 'GT-2024-004',
+        title: 'Gói thầu Cung cấp thiết bị phòng cháy',
+        project_name: 'Nhà máy Foxconn',
+        budget: 1200000000,
+        deadline: '2024-07-30',
         status: 'Bản thảo',
         bidders_count: 0
     }
@@ -117,6 +247,17 @@ const mockBankGuarantees = [
         value: 375000000,
         issue_date: '2024-02-01',
         expiry_date: '2026-02-01',
+        status: 'Còn hiệu lực'
+    },
+    {
+        id: '4',
+        guarantee_code: 'BL-2024-005',
+        type: 'Bảo lãnh tạm ứng',
+        contract_code: 'HĐ-AB-2024-012',
+        bank_name: 'Techcombank',
+        value: 8600000000,
+        issue_date: '2024-05-15',
+        expiry_date: '2024-12-15',
         status: 'Còn hiệu lực'
     },
     {

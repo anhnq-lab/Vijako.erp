@@ -17,17 +17,20 @@ const financeData = [
   { name: 'T4', plan: 60, cost: 45, ev: 55 },
   { name: 'T5', plan: 75, cost: 55, ev: 65 },
   { name: 'T6', plan: 85, cost: 65, ev: 72 },
-  { name: 'T7', plan: 90, cost: 75, ev: 80 },
-  { name: 'T8', plan: 95, cost: 82, ev: 88 },
-  { name: 'T9', plan: 100, cost: 90, ev: 95 },
+  { name: 'T7', plan: 95, cost: 72, ev: 80 },
+  { name: 'T8', plan: 110, cost: 85, ev: 95 },
+  { name: 'T9', plan: 130, cost: 98, ev: 115 },
+  { name: 'T10', plan: 155, cost: 115, ev: 140 },
+  { name: 'T11', plan: 180, cost: 130, ev: 165 },
+  { name: 'T12', plan: 210, cost: 155, ev: 190 },
 ];
 
 const fallbackRiskData: RiskMatrixData[] = [
-  { x: 20, y: 20, z: 40, name: 'The Nine', status: 'Thấp', color: '#10b981' },
-  { x: 60, y: 60, z: 360, name: 'Foxconn BG', status: 'Trung bình', color: '#f59e0b' },
-  { x: 100, y: 100, z: 1000, name: 'Sun Urban', status: 'Nghiêm trọng', color: '#ef4444' },
-  { x: 80, y: 60, z: 480, name: 'Aeon Mall', status: 'Cao', color: '#f97316' },
-  { x: 40, y: 80, z: 320, name: 'Mỹ Thuận 2', status: 'Trung bình', color: '#3b82f6' },
+  { x: 20, y: 20, z: 40, name: 'The Nine', status: 'Low', color: '#10b981' },
+  { x: 60, y: 60, z: 360, name: 'Foxconn BG', status: 'Medium', color: '#f59e0b' },
+  { x: 100, y: 100, z: 1000, name: 'Sun Urban', status: 'Critical', color: '#ef4444' },
+  { x: 80, y: 60, z: 480, name: 'Aeon Mall', status: 'High', color: '#f97316' },
+  { x: 40, y: 80, z: 320, name: 'Mỹ Thuận 2', status: 'Medium', color: '#3b82f6' },
 ];
 
 const PremiumStatCard = ({ title, value, unit, change, type, icon, subValue, note }: any) => {
