@@ -38,24 +38,25 @@ export const tools: Record<string, Tool> = {
 
     create_task: {
         name: 'create_task',
-        description: 'Create a new task for a project',
+        description: 'Tạo công việc mới cho dự án. Project Identifier có thể là Mã dự án (P-001) hoặc Tên dự án.',
         parameters: {
             type: 'object',
             properties: {
-                project_id: { type: 'string', description: 'The ID of the project' },
-                task_name: { type: 'string', description: 'Name of the task' },
-                due_date: { type: 'string', description: 'Due date in YYYY-MM-DD format' },
-                assignee: { type: 'string', description: 'Name of the person assigned' }
+                project_identifier: { type: 'string', description: 'Mã dự án (VD: P-001) hoặc Tên dự án' },
+                task_name: { type: 'string', description: 'Tên công việc cần tạo' },
+                due_date: { type: 'string', description: 'Hạn hoàn thành (YYYY-MM-DD)' },
+                assignee: { type: 'string', description: 'Người được giao việc' }
             },
-            required: ['project_id', 'task_name'],
+            required: ['project_identifier', 'task_name'],
         },
         execute: async (args) => {
-            // In a real app, this would insert into a 'tasks' table
-            // For demo, we'll return a success mock
+            const projectId = await resolveProjectId(args.project_identifier);
+            if (!projectId) return { error: `Không tìm thấy dự án nào khớp với "${args.project_identifier}"` };
+
             console.log("Mock creating task:", args);
             return {
                 success: true,
-                message: `Task '${args.task_name}' created for project ${args.project_id}`,
+                message: `Đã tạo công việc '${args.task_name}' cho dự án (ID: ${projectId})`,
                 task_id: "mock-task-id-" + Date.now()
             };
         }
@@ -63,22 +64,26 @@ export const tools: Record<string, Tool> = {
 
     get_financial_summary: {
         name: 'get_financial_summary',
-        description: 'Get financial summary of a project including budget and expenses',
+        description: 'Xem tổng quan tài chính, ngân sách của dự án',
         parameters: {
             type: 'object',
             properties: {
-                project_id: { type: 'string', description: 'The UUID of the project' },
+                project_identifier: { type: 'string', description: 'Mã dự án (VD: P-001) hoặc Tên dự án' },
             },
-            required: ['project_id'],
+            required: ['project_identifier'],
         },
-        execute: async ({ project_id }) => {
+        execute: async ({ project_identifier }) => {
+            const projectId = await resolveProjectId(project_identifier);
+            if (!projectId) return { error: `Không tìm thấy dự án nào khớp với "${project_identifier}"` };
+
             const { data, error } = await supabase
                 .from('project_budget')
                 .select('*')
-                .eq('project_id', project_id);
+                .eq('project_id', projectId);
 
             if (error || !data || data.length === 0) {
                 return {
+                    project_identifier,
                     total_budget: 0,
                     spent: 0,
                     remaining: 0,
@@ -89,6 +94,7 @@ export const tools: Record<string, Tool> = {
             const totalBudget = data.reduce((sum, item) => sum + (item.budget_amount || 0), 0);
             const totalSpent = data.reduce((sum, item) => sum + (item.actual_amount || 0), 0);
             return {
+                project_identifier,
                 total_budget: totalBudget,
                 spent: totalSpent,
                 remaining: totalBudget - totalSpent,
@@ -126,19 +132,23 @@ export const tools: Record<string, Tool> = {
         parameters: {
             type: 'object',
             properties: {
-                project_id: { type: 'string', description: 'ID của dự án' },
+                project_identifier: { type: 'string', description: 'Mã dự án (VD: P-001) hoặc Tên dự án' },
             },
-            required: ['project_id'],
+            required: ['project_identifier'],
         },
-        execute: async ({ project_id }) => {
+        execute: async ({ project_identifier }) => {
+            const projectId = await resolveProjectId(project_identifier);
+            if (!projectId) return { error: `Không tìm thấy dự án nào khớp với "${project_identifier}"` };
+
             const { data, error } = await supabase
                 .from('project_wbs')
                 .select('*')
-                .eq('project_id', project_id)
+                .eq('project_id', projectId)
                 .order('wbs_code', { ascending: true });
 
             if (error) return { error: error.message };
             return {
+                project_identifier,
                 total_tasks: data?.length || 0,
                 tasks: data || [],
                 message: data?.length ? `Dự án có ${data.length} công việc` : "Chưa có lịch trình"
@@ -178,19 +188,22 @@ export const tools: Record<string, Tool> = {
         parameters: {
             type: 'object',
             properties: {
-                project_id: { type: 'string', description: 'ID của dự án' },
+                project_identifier: { type: 'string', description: 'Mã dự án (VD: P-001) hoặc Tên dự án' },
                 type: { type: 'string', description: 'Loại vấn đề: NCR, RFI, hoặc General' },
                 title: { type: 'string', description: 'Tiêu đề vấn đề' },
                 priority: { type: 'string', description: 'Độ ưu tiên: High, Medium, Low' },
                 description: { type: 'string', description: 'Mô tả chi tiết vấn đề' }
             },
-            required: ['project_id', 'type', 'title'],
+            required: ['project_identifier', 'type', 'title'],
         },
         execute: async (args) => {
+            const projectId = await resolveProjectId(args.project_identifier);
+            if (!projectId) return { error: `Không tìm thấy dự án nào khớp với "${args.project_identifier}"` };
+
             const { data, error } = await supabase
                 .from('project_issues')
                 .insert({
-                    project_id: args.project_id,
+                    project_id: projectId,
                     type: args.type,
                     title: args.title,
                     priority: args.priority || 'Medium',
@@ -217,15 +230,18 @@ export const tools: Record<string, Tool> = {
         parameters: {
             type: 'object',
             properties: {
-                project_id: { type: 'string', description: 'ID của dự án' },
+                project_identifier: { type: 'string', description: 'Mã dự án (VD: P-001) hoặc Tên dự án' },
             },
-            required: ['project_id'],
+            required: ['project_identifier'],
         },
-        execute: async ({ project_id }) => {
+        execute: async ({ project_identifier }) => {
+            const projectId = await resolveProjectId(project_identifier);
+            if (!projectId) return { error: `Không tìm thấy dự án nào khớp với "${project_identifier}"` };
+
             const { data, error } = await supabase
                 .from('contracts')
                 .select('*')
-                .eq('project_id', project_id);
+                .eq('project_id', projectId);
 
             if (error) return { error: error.message };
 
@@ -233,6 +249,7 @@ export const tools: Record<string, Tool> = {
             const totalPaid = data?.reduce((sum, c) => sum + (c.paid_amount || 0), 0) || 0;
 
             return {
+                project_identifier,
                 count: data?.length || 0,
                 contracts: data || [],
                 total_value: totalValue,
@@ -242,3 +259,19 @@ export const tools: Record<string, Tool> = {
         }
     }
 };
+
+// Helper to resolve project ID
+async function resolveProjectId(identifier: string): Promise<string | null> {
+    // If it looks like a UUID, return it
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (uuidRegex.test(identifier)) return identifier;
+
+    // Otherwise search by code or name
+    const { data } = await supabase
+        .from('projects')
+        .select('id')
+        .or(`code.eq.${identifier},name.ilike.%${identifier}%`)
+        .single();
+
+    return data?.id || null;
+}

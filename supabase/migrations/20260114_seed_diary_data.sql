@@ -52,7 +52,7 @@ BEGIN
             45,
             E'- Tiếp tục lắp đặt hệ thống điện tầng 2\n- Hoàn thiện sơn bả tường ngoài nhà trục A-B\n- Dọn dẹp vệ sinh công nghiệp tầng 1',
             NULL,
-            ARRAY['https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=800','https://images.unsplash.com/photo-1590486803833-1c5dc8ce2ac6?q=80&w=800'],
+            ARRAY['https://placehold.co/600x400/png?text=Site+Photo+1', 'https://placehold.co/600x400/png?text=Site+Photo+2'],
             '{"Wall_01": "completed", "Floor_01": "completed"}'
         );
 
@@ -65,7 +65,7 @@ BEGIN
             48,
             E'- Thi công trần thạch cao hành lang\n- Lắp đặt thiết bị vệ sinh khu WC nam/nữ\n- Kiểm tra, nghiệm thu đầu vào gạch ốp lát',
             NULL,
-            ARRAY['https://images.unsplash.com/photo-1581094794329-cd6829515189?q=80&w=800'],
+            ARRAY['https://placehold.co/600x400/png?text=Site+Photo+Yesterday'],
             '{"Floor_01": "completed"}'
         );
 
@@ -78,7 +78,7 @@ BEGIN
             35,
             E'- Tạm dừng công tác sơn bả ngoài trời do mưa\n- Tập trung nhân lực đi dây điện âm tường\n- Gia công ống gió tại xưởng',
             'Mưa lớn ảnh hưởng tiến độ sơn ngoài nhà',
-            ARRAY['https://images.unsplash.com/photo-1535732759880-bbd5c7265e3f?q=80&w=800'],
+            ARRAY['https://placehold.co/600x400/png?text=Rainy+Site'],
             '{"Column_01": "completed"}'
         );
 

@@ -1,38 +1,57 @@
-import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF, OrbitControls, Environment, Stage } from '@react-three/drei';
+import React, { useRef, useMemo, useState, useEffect } from 'react';
+import { Canvas, useThree, useLoader } from '@react-three/fiber';
+import { useGLTF, OrbitControls, Stage } from '@react-three/drei';
 import * as THREE from 'three';
+import { IFCLoader } from 'web-ifc-three/IFCLoader';
 
 interface BimViewerProps {
-    modelUrl: string;
-    progressUpdate?: Record<string, string>; // { "nodeName": "completed" | "in_progress" }
+    modelUrl: string; // Default can be empty loop
+    progressUpdate?: Record<string, string>;
     autoRotate?: boolean;
 }
 
 const statusColors = {
-    completed: new THREE.Color('#22c55e'), // Green-500
-    in_progress: new THREE.Color('#3b82f6'), // Blue-500
-    not_started: new THREE.Color('#94a3b8'), // Slate-400
-    default: new THREE.Color('#cbd5e1')      // Slate-300
+    completed: new THREE.Color('#22c55e'),
+    in_progress: new THREE.Color('#3b82f6'),
+    not_started: new THREE.Color('#94a3b8'),
+    default: new THREE.Color('#cbd5e1')
 };
 
-function Model({ url, progressUpdate }: { url: string; progressUpdate?: Record<string, string> }) {
-    const { scene } = useGLTF(url);
+function Model({ url, progressUpdate, file }: { url?: string; file?: File; progressUpdate?: Record<string, string> }) {
+    const [object, setObject] = useState<THREE.Object3D | null>(null);
 
-    // Clone scene to avoid mutating cached model if reused
-    const clonedScene = useMemo(() => scene.clone(), [scene]);
+    // Load GLB/GLTF
+    const { scene: gltfScene } = useGLTF(url && url.endsWith('.glb') ? url : '', true) as any || { scene: null };
 
-    // Apply colors based on progress
+    // Load IFC
+    useEffect(() => {
+        if (file) {
+            const ifcLoader = new IFCLoader();
+            ifcLoader.ifcManager.setWasmPath('/'); // Look in public/
+            const ifcURL = URL.createObjectURL(file);
+            ifcLoader.load(ifcURL, (ifcModel) => {
+                setObject(ifcModel);
+            });
+            return () => URL.revokeObjectURL(ifcURL);
+        } else if (url && url.endsWith('.glb') && gltfScene) {
+            setObject(gltfScene.clone());
+        }
+    }, [url, file, gltfScene]);
+
+    // Apply colors
     useMemo(() => {
-        if (!progressUpdate) return;
+        if (!object || !progressUpdate) return;
 
-        clonedScene.traverse((child) => {
+        object.traverse((child) => {
             if ((child as THREE.Mesh).isMesh) {
                 const mesh = child as THREE.Mesh;
-                const status = progressUpdate[mesh.name] || progressUpdate[mesh.userData.name];
+                // IFC often puts ID in userData, or name might be expressID
+                // Simplified matching logic:
+                const status = progressUpdate[mesh.name] ||
+                    progressUpdate[mesh.userData.name] ||
+                    progressUpdate[mesh.uuid]; // Fallback
 
                 if (status) {
-                    // Create a new material to avoid affecting other instances
                     const material = new THREE.MeshStandardMaterial({
                         color: statusColors[status as keyof typeof statusColors] || statusColors.default,
                         metalness: 0.5,
@@ -42,19 +61,48 @@ function Model({ url, progressUpdate }: { url: string; progressUpdate?: Record<s
                 }
             }
         });
-    }, [clonedScene, progressUpdate]);
+    }, [object, progressUpdate]);
 
-    return <primitive object={clonedScene} />;
+    if (!object) return null;
+    return <primitive object={object} />;
 }
 
 const BimViewer: React.FC<BimViewerProps> = ({ modelUrl, progressUpdate, autoRotate = false }) => {
+    const [localFile, setLocalFile] = useState<File | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setLocalFile(file);
+        }
+    };
+
     return (
-        <div className="w-full h-full min-h-[500px] bg-slate-100 rounded-xl overflow-hidden relative group">
+        <div className="w-full h-full min-h-[500px] bg-slate-900 rounded-xl overflow-hidden relative group">
+            {/* Toolbar */}
+            <div className="absolute top-4 left-4 z-10 flex gap-2">
+                <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="bg-white/90 backdrop-blur hover:bg-white text-slate-700 font-semibold py-1.5 px-3 rounded shadow text-xs flex items-center gap-2 transition-all"
+                >
+                    <span className="material-symbols-outlined text-[18px]">upload_file</span>
+                    Mở file IFC/GLB
+                </button>
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept=".ifc,.glb,.gltf"
+                    className="hidden"
+                />
+            </div>
+
             <Canvas shadows dpr={[1, 2]} camera={{ position: [50, 50, 50], fov: 50 }}>
                 <Stage environment="city" intensity={0.5} contactShadow={{ opacity: 0.4, blur: 2 }}>
-                    <Model url={modelUrl} progressUpdate={progressUpdate} />
+                    <Model url={localFile ? undefined : modelUrl} file={localFile || undefined} progressUpdate={progressUpdate} />
                 </Stage>
-                <OrbitControls makeDefault autoRotate={autoRotate} />
+                <OrbitControls makeDefault autoRotate={autoRotate && !localFile} />
             </Canvas>
 
             {/* Legend Overlay */}
@@ -75,7 +123,7 @@ const BimViewer: React.FC<BimViewerProps> = ({ modelUrl, progressUpdate, autoRot
             </div>
 
             <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow text-xs font-mono text-slate-600">
-                WebGL Powered
+                {localFile ? localFile.name : 'Demo Model'}
             </div>
         </div>
     );
