@@ -20,15 +20,16 @@ const exportOptions: ExportOption[] = [
     },
     {
         format: 'csv',
-        label: 'CSV (.csv)',< br /> icon: 'description',
-    description: 'Xuất dữ liệu dạng văn bản đơn giản, phù hợp với hầu hết ứng dụng'
-  },
-{
-    format: 'pdf',
+        label: 'CSV (.csv)',
+        icon: 'description',
+        description: 'Xuất dữ liệu dạng văn bản đơn giản, phù hợp với hầu hết ứng dụng'
+    },
+    {
+        format: 'pdf',
         label: 'PDF (.pdf)',
-            icon: 'picture_as_pdf',
-                description: 'Xuất báo cáo định dạng PDF, sẵn sàng in ấn'
-}
+        icon: 'picture_as_pdf',
+        description: 'Xuất báo cáo định dạng PDF, sẵn sàng in ấn'
+    }
 ];
 
 // Export to Excel
@@ -226,8 +227,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                             key={option.format}
                             onClick={() => setSelectedFormat(option.format)}
                             className={`w-full flex items-start gap-4 p-4 rounded-lg border-2 transition-all ${selectedFormat === option.format
-                                    ? 'border-primary bg-primary/5'
-                                    : 'border-slate-100 hover:border-slate-200'
+                                ? 'border-primary bg-primary/5'
+                                : 'border-slate-100 hover:border-slate-200'
                                 }`}
                         >
                             <div className={`p-2 rounded-lg ${selectedFormat === option.format ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600'
