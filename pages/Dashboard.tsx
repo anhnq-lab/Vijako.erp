@@ -4,6 +4,7 @@ import {
   ReferenceLine, Legend, Bar, ScatterChart, Scatter, YAxis, CartesianGrid, ZAxis, Cell
 } from 'recharts';
 import ProjectMap from '../src/components/Dashboard/ProjectMap';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 // --- Data Simulation ---
 
@@ -276,38 +277,40 @@ export default function Dashboard() {
               </div>
 
               <div className="flex-1 p-4 relative text-xs">
-                <ResponsiveContainer width="100%" height="100%">
-                  {activeChart === 'finance' ? (
-                    <ComposedChart data={financeData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                      <defs>
-                        <linearGradient id="colorPlan" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#1f3f89" stopOpacity={0.1} />
-                          <stop offset="95%" stopColor="#1f3f89" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tickMargin={10} />
-                      <YAxis axisLine={false} tickLine={false} />
-                      <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
-                      <Legend verticalAlign="top" height={36} iconType="circle" />
-                      <Area name="Kế hoạch (PV)" type="monotone" dataKey="plan" stroke="#1f3f89" strokeWidth={3} fillOpacity={1} fill="url(#colorPlan)" />
-                      <Bar name="Chi phí thực (AC)" dataKey="cost" fill="#EF4444" barSize={20} radius={[4, 4, 0, 0]} opacity={0.8} />
-                      <Line name="Giá trị đạt được (EV)" type="monotone" dataKey="ev" stroke="#FACC15" strokeWidth={3} dot={{ r: 4, fill: '#FACC15', strokeWidth: 2, stroke: '#fff' }} />
-                      <ReferenceLine x="T6" stroke="#94a3b8" strokeDasharray="3 3" label={{ position: 'top', value: 'Hiện tại', fill: '#94a3b8', fontSize: 10 }} />
-                    </ComposedChart>
-                  ) : (
-                    <ComposedChart data={resourceData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tickMargin={10} />
-                      <YAxis yAxisId="left" orientation="left" stroke="#07883d" axisLine={false} tickLine={false} label={{ value: 'Công nhân', angle: -90, position: 'insideLeft', fill: '#07883d', opacity: 0.5 }} />
-                      <YAxis yAxisId="right" orientation="right" stroke="#1f3f89" axisLine={false} tickLine={false} label={{ value: 'Máy móc', angle: 90, position: 'insideRight', fill: '#1f3f89', opacity: 0.5 }} />
-                      <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
-                      <Legend verticalAlign="top" height={36} iconType="circle" />
-                      <Bar yAxisId="left" name="Công nhân (Người)" dataKey="workers" fill="#07883d" barSize={30} radius={[4, 4, 0, 0]} />
-                      <Line yAxisId="right" name="Máy móc (Thiết bị)" type="monotone" dataKey="machines" stroke="#1f3f89" strokeWidth={3} dot={{ r: 4, fill: '#1f3f89', strokeWidth: 2, stroke: '#fff' }} />
-                    </ComposedChart>
-                  )}
-                </ResponsiveContainer>
+                <ErrorBoundary fallback={<div className="p-10 text-center text-slate-400">Không thể hiển thị biểu đồ.</div>}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    {activeChart === 'finance' ? (
+                      <ComposedChart data={financeData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                        <defs>
+                          <linearGradient id="colorPlan" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#1f3f89" stopOpacity={0.1} />
+                            <stop offset="95%" stopColor="#1f3f89" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tickMargin={10} />
+                        <YAxis axisLine={false} tickLine={false} />
+                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
+                        <Legend verticalAlign="top" height={36} iconType="circle" />
+                        <Area name="Kế hoạch (PV)" type="monotone" dataKey="plan" stroke="#1f3f89" strokeWidth={3} fillOpacity={1} fill="url(#colorPlan)" />
+                        <Bar name="Chi phí thực (AC)" dataKey="cost" fill="#EF4444" barSize={20} radius={[4, 4, 0, 0]} opacity={0.8} />
+                        <Line name="Giá trị đạt được (EV)" type="monotone" dataKey="ev" stroke="#FACC15" strokeWidth={3} dot={{ r: 4, fill: '#FACC15', strokeWidth: 2, stroke: '#fff' }} />
+                        <ReferenceLine x="T6" stroke="#94a3b8" strokeDasharray="3 3" label={{ position: 'top', value: 'Hiện tại', fill: '#94a3b8', fontSize: 10 }} />
+                      </ComposedChart>
+                    ) : (
+                      <ComposedChart data={resourceData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis dataKey="name" axisLine={false} tickLine={false} tickMargin={10} />
+                        <YAxis yAxisId="left" orientation="left" stroke="#07883d" axisLine={false} tickLine={false} label={{ value: 'Công nhân', angle: -90, position: 'insideLeft', fill: '#07883d', opacity: 0.5 }} />
+                        <YAxis yAxisId="right" orientation="right" stroke="#1f3f89" axisLine={false} tickLine={false} label={{ value: 'Máy móc', angle: 90, position: 'insideRight', fill: '#1f3f89', opacity: 0.5 }} />
+                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
+                        <Legend verticalAlign="top" height={36} iconType="circle" />
+                        <Bar yAxisId="left" name="Công nhân (Người)" dataKey="workers" fill="#07883d" barSize={30} radius={[4, 4, 0, 0]} />
+                        <Line yAxisId="right" name="Máy móc (Thiết bị)" type="monotone" dataKey="machines" stroke="#1f3f89" strokeWidth={3} dot={{ r: 4, fill: '#1f3f89', strokeWidth: 2, stroke: '#fff' }} />
+                      </ComposedChart>
+                    )}
+                  </ResponsiveContainer>
+                </ErrorBoundary>
               </div>
             </div>
 
@@ -353,7 +356,9 @@ export default function Dashboard() {
 
           {/* 4. Project Map Section */}
           <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden h-[450px]">
-            <ProjectMap />
+            <ErrorBoundary fallback={<div className="flex flex-col items-center justify-center h-full bg-slate-50 text-slate-400 gap-2 font-bold"><span className="material-symbols-outlined text-[48px]">map</span> Bản đồ hiện không khả dụng.</div>}>
+              <ProjectMap />
+            </ErrorBoundary>
           </div>
         </div>
       </div>
