@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, Line, ComposedChart,
   ReferenceLine, Legend, Bar, ScatterChart, Scatter, YAxis, CartesianGrid, ZAxis, Cell
 } from 'recharts';
 import ProjectMap from '../src/components/Dashboard/ProjectMap';
 import ErrorBoundary from '../components/ErrorBoundary';
+import { projectService } from '../src/services/projectService';
+import { Project } from '../types';
 
 // --- Data Simulation ---
 
@@ -182,8 +184,21 @@ const RiskTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-export default function Dashboard() {
+const Dashboard = () => {
   const [activeChart, setActiveChart] = useState<'finance' | 'manpower'>('finance');
+  const [projects, setProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const data = await projectService.getAllProjects();
+        setProjects(data);
+      } catch (error) {
+        console.error("Error fetching projects for dashboard:", error);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   return (
     <>
@@ -357,7 +372,7 @@ export default function Dashboard() {
           {/* 4. Project Map Section */}
           <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden h-[450px]">
             <ErrorBoundary fallback={<div className="flex flex-col items-center justify-center h-full bg-slate-50 text-slate-400 gap-2 font-bold"><span className="material-symbols-outlined text-[48px]">map</span> Bản đồ hiện không khả dụng.</div>}>
-              <ProjectMap />
+              <ProjectMap projects={projects} />
             </ErrorBoundary>
           </div>
         </div>
