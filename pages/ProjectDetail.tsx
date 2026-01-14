@@ -4,6 +4,7 @@ import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Ce
 import { projectService } from '../src/services/projectService';
 import { financeService } from '../src/services/financeService';
 import { Project, WBSItem, ProjectIssue, ProjectBudget, Contract } from '../types';
+import ProjectGantt from '../components/ProjectGantt';
 
 // Mock Chart Data (Keep for visual until backend supports time-series)
 const costData = [
@@ -130,6 +131,7 @@ export default function ProjectDetail() {
     const [issues, setIssues] = useState<ProjectIssue[]>([]);
     const [budget, setBudget] = useState<ProjectBudget[]>([]);
     const [contracts, setContracts] = useState<Contract[]>([]);
+    const [wbsView, setWbsView] = useState<'list' | 'gantt'>('list');
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -347,29 +349,52 @@ export default function ProjectDetail() {
                         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                                 <h3 className="font-bold text-slate-700">Cấu trúc phân chia công việc (WBS)</h3>
-                                <button className="text-xs font-bold text-primary bg-white border border-primary/20 px-3 py-1.5 rounded hover:bg-primary/5 transition-colors">
-                                    + Thêm công việc
-                                </button>
+                                <div className="flex gap-2">
+                                    <div className="flex bg-white border border-slate-200 rounded-lg p-1">
+                                        <button
+                                            onClick={() => setWbsView('list')}
+                                            className={`px-3 py-1 flex items-center gap-1 text-xs font-bold rounded ${wbsView === 'list' ? 'bg-primary text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                        >
+                                            <span className="material-symbols-outlined text-[16px]">list</span> List
+                                        </button>
+                                        <button
+                                            onClick={() => setWbsView('gantt')}
+                                            className={`px-3 py-1 flex items-center gap-1 text-xs font-bold rounded ${wbsView === 'gantt' ? 'bg-primary text-white shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                                        >
+                                            <span className="material-symbols-outlined text-[16px]">calendar_month</span> Gantt
+                                        </button>
+                                    </div>
+                                    <button className="text-xs font-bold text-primary bg-white border border-primary/20 px-3 py-1.5 rounded hover:bg-primary/5 transition-colors">
+                                        + Thêm công việc
+                                    </button>
+                                </div>
                             </div>
-                            <table className="w-full text-left">
-                                <thead className="bg-white text-xs text-slate-500 uppercase font-semibold border-b border-slate-100">
-                                    <tr>
-                                        <th className="px-4 py-3 w-1/3">Hạng mục công việc</th>
-                                        <th className="px-4 py-3 w-32">Tiến độ (%)</th>
-                                        <th className="px-4 py-3">Bắt đầu</th>
-                                        <th className="px-4 py-3">Kết thúc</th>
-                                        <th className="px-4 py-3">Trạng thái</th>
-                                        <th className="px-4 py-3">Phụ trách</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {wbs.length > 0 ? wbs.map((item) => (
-                                        <WBSItemRow key={item.id} item={item} />
-                                    )) : (
-                                        <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500">Chưa có dữ liệu WBS.</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
+
+                            {wbsView === 'list' ? (
+                                <table className="w-full text-left">
+                                    <thead className="bg-white text-xs text-slate-500 uppercase font-semibold border-b border-slate-100">
+                                        <tr>
+                                            <th className="px-4 py-3 w-1/3">Hạng mục công việc</th>
+                                            <th className="px-4 py-3 w-32">Tiến độ (%)</th>
+                                            <th className="px-4 py-3">Bắt đầu</th>
+                                            <th className="px-4 py-3">Kết thúc</th>
+                                            <th className="px-4 py-3">Trạng thái</th>
+                                            <th className="px-4 py-3">Phụ trách</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {wbs.length > 0 ? wbs.map((item) => (
+                                            <WBSItemRow key={item.id} item={item} />
+                                        )) : (
+                                            <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500">Chưa có dữ liệu WBS.</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <div className="p-4">
+                                    <ProjectGantt items={wbs} />
+                                </div>
+                            )}
                         </div>
                     )}
 
