@@ -7,6 +7,8 @@ import { financeService, Contract, BankGuarantee, PaymentRequest, CashFlowData }
 import { biddingService } from '../src/services/biddingService';
 import { projectService } from '../src/services/projectService';
 import { Project, BiddingPackage } from '../types';
+import { InvoiceScanModal } from '../components/InvoiceScanModal';
+import { ExtractedInvoice } from '../src/services/invoiceService';
 
 // --- Enhanced Data ---
 
@@ -527,29 +529,53 @@ export default function Finance() {
     const [isBiddingDetailModalOpen, setIsBiddingDetailModalOpen] = useState(false);
     const [selectedBidding, setSelectedBidding] = useState<BiddingPackage | null>(null);
 
+    // AI Scan Invoice Modal state
+    const [isInvoiceScanModalOpen, setIsInvoiceScanModalOpen] = useState(false);
+
+    const [error, setError] = useState<string | null>(null);
+
     useEffect(() => {
         fetchData();
     }, []);
 
     const fetchData = async () => {
         setLoading(true);
+        setError(null);
         try {
+            // Helper to handle individual promises
+            const wrap = async <T,>(p: Promise<T>, name: string): Promise<T | null> => {
+                try {
+                    return await p;
+                } catch (err) {
+                    console.error(`Failed to fetch ${name}:`, err);
+                    setError(prev => (prev ? `${prev}, ${name}` : `Lỗi tải: ${name}`));
+                    return null;
+                }
+            };
+
             const [cData, bData, bgData, prData, cfData, pData] = await Promise.all([
-                financeService.getAllContracts(),
-                biddingService.getAllPackages(),
-                financeService.getAllBankGuarantees(),
-                financeService.getAllPaymentRequests(),
-                financeService.getCashFlowData(),
-                projectService.getAllProjects()
+                wrap(financeService.getAllContracts(), 'Hợp đồng'),
+                wrap(biddingService.getAllPackages(), 'Gói thầu'),
+                wrap(financeService.getAllBankGuarantees(), 'Bảo lãnh'),
+                wrap(financeService.getAllPaymentRequests(), 'Yêu cầu thanh toán'),
+                wrap(financeService.getCashFlowData(), 'Dòng tiền'),
+                wrap(projectService.getAllProjects(), 'Dự án')
             ]);
-            setContracts(cData);
-            setBiddingPackages(bData);
-            setBankGuarantees(bgData);
-            setPaymentRequests(prData);
-            setCashFlowRecords(cfData);
-            setProjects(pData);
-        } catch (error) {
-            console.error('Failed to fetch finance data', error);
+
+            if (cData) setContracts(cData);
+            if (bData) setBiddingPackages(bData);
+            if (bgData) setBankGuarantees(bgData);
+            if (prData) setPaymentRequests(prData);
+            if (cfData) setCashFlowRecords(cfData);
+            if (pData) setProjects(pData);
+
+            // If all failed, it's likely a connection issue
+            if (!cData && !bData && !bgData && !prData && !cfData && !pData) {
+                setError('Không thể kết nối với Supabase. Vui lòng kiểm tra biến môi trường hoặc kết nối mạng.');
+            }
+        } catch (err: any) {
+            console.error('Critical failure in fetchData', err);
+            setError('Lỗi hệ thống nghiêm trọng: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -665,6 +691,31 @@ export default function Finance() {
         }
     };
 
+    const handleSaveScannedInvoice = async (data: ExtractedInvoice & { project_id: string }) => {
+        try {
+            // Create a new contract record for the invoice
+            // In a real system, this might go to an 'Invoices' or 'Expenses' table
+            // Given the current schema, we'll store it in 'contracts' to reflect in budget/financials
+            await financeService.createContract({
+                contract_code: data.invoice_code || `INV-${Date.now().toString().slice(-6)}`,
+                partner_name: data.vendor_name,
+                project_id: data.project_id,
+                value: data.amount,
+                paid_amount: data.amount, // Assume paid if it's an invoice being scanned
+                retention_amount: 0,
+                status: 'completed',
+                type: data.type,
+                budget_category: data.suggested_budget_category
+            });
+
+            fetchData();
+            alert('Đã lưu hóa đơn vào hệ thống!');
+        } catch (error) {
+            console.error('Error saving scanned invoice:', error);
+            alert('Lỗi khi lưu hóa đơn');
+        }
+    };
+
     return (
         <div className="flex flex-col h-full bg-background-light">
             <header className="bg-white border-b border-slate-100 px-8 py-5 flex justify-between items-center shrink-0 shadow-sm z-10">
@@ -675,6 +726,12 @@ export default function Finance() {
                 <div className="flex gap-3">
                     <button className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-slate-50 transition-colors">
                         <span className="material-symbols-outlined text-[20px]">print</span> Báo cáo
+                    </button>
+                    <button
+                        onClick={() => setIsInvoiceScanModalOpen(true)}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all active:scale-95"
+                    >
+                        <span className="material-symbols-outlined text-[20px]">auto_awesome</span> Quét hóa đơn AI
                     </button>
                     <button
                         onClick={() => setIsAddModalOpen(true)}
@@ -695,6 +752,22 @@ export default function Finance() {
                         <StatCard title="Dư nợ Phải trả (AP)" value="42.8 Tỷ" sub="Đến hạn thanh toán tuần này: 5.2 Tỷ" icon="outbound" color="bg-red-50 text-red-600" />
                         <StatCard title="Dòng tiền mặt (Cash)" value="125.4 Tỷ" sub="Khả dụng: 85.4 Tỷ" icon="savings" color="bg-green-50 text-green-600" />
                     </div>
+
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
+                            <span className="material-symbols-outlined shrink-0 text-red-600">error</span>
+                            <div className="flex-1">
+                                <p className="text-sm font-bold">Lỗi kết nối dữ liệu</p>
+                                <p className="text-xs opacity-80">{error}</p>
+                            </div>
+                            <button
+                                onClick={() => fetchData()}
+                                className="px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 transition-colors"
+                            >
+                                Thử lại
+                            </button>
+                        </div>
+                    )}
 
                     {/* Advanced Analysis Section */}
                     <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
@@ -1071,6 +1144,13 @@ export default function Finance() {
                 pkg={selectedBidding}
                 onDelete={handleDeleteBidding}
                 onPublish={handlePublishBidding}
+            />
+
+            <InvoiceScanModal
+                isOpen={isInvoiceScanModalOpen}
+                onClose={() => setIsInvoiceScanModalOpen(false)}
+                onSave={handleSaveScannedInvoice}
+                projects={projects}
             />
         </div>
     );

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { alertService } from '../src/services/alertService';
 import { Alert, AlertType, AlertSeverity } from '../types';
 
@@ -29,11 +30,12 @@ const AlertIcon = ({ type }: { type: AlertType }) => {
 };
 
 export default function Alerts() {
+    const navigate = useNavigate();
     const [alerts, setAlerts] = useState<Alert[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<AlertType | 'all'>('all');
-
     const [scanning, setScanning] = useState(false);
+    const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
 
     useEffect(() => {
         loadAlerts();
@@ -74,6 +76,17 @@ export default function Alerts() {
     };
 
     const filteredAlerts = filter === 'all' ? alerts : alerts.filter(a => a.type === filter);
+
+    const handleGoToDetail = (alert: Alert) => {
+        if (alert.source_type === 'contract') {
+            navigate('/finance');
+        } else if (alert.source_type === 'document' || alert.type === 'document') {
+            navigate('/documents');
+        } else if (alert.project_id) {
+            navigate(`/projects/${alert.project_id}`);
+        }
+        setSelectedAlert(null);
+    };
 
     return (
         <div className="flex flex-col h-full bg-[#f8fafc]">
@@ -160,7 +173,8 @@ export default function Alerts() {
                             {filteredAlerts.map((alert) => (
                                 <div
                                     key={alert.id}
-                                    className={`bg-white p-6 rounded-2xl border transition-all group flex gap-5 items-start ${alert.is_read ? 'border-slate-100 opacity-80' : 'border-slate-200 shadow-sm hover:shadow-lg hover:border-primary/30 ring-inset ring-primary/5 hover:ring-2'
+                                    onClick={() => setSelectedAlert(alert)}
+                                    className={`bg-white p-6 rounded-2xl border transition-all group flex gap-5 items-start cursor-pointer ${alert.is_read ? 'border-slate-100 opacity-80' : 'border-slate-200 shadow-sm hover:shadow-lg hover:border-primary/30 ring-inset ring-primary/5 hover:ring-2'
                                         }`}
                                 >
                                     <div className={`size-12 rounded-2xl shrink-0 flex items-center justify-center ${alert.severity === 'critical' ? 'bg-red-50' :
@@ -213,6 +227,83 @@ export default function Alerts() {
                     )}
                 </div>
             </div>
+
+            {/* Alert Detail Modal */}
+            {selectedAlert && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-8">
+                            <div className="flex justify-between items-start mb-6">
+                                <div className="flex items-center gap-4">
+                                    <div className={`size-14 rounded-2xl flex items-center justify-center ${selectedAlert.severity === 'critical' ? 'bg-red-50' :
+                                        selectedAlert.severity === 'high' ? 'bg-orange-50' : 'bg-blue-50'
+                                        }`}>
+                                        <AlertIcon type={selectedAlert.type} />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <SeverityBadge severity={selectedAlert.severity} />
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{selectedAlert.type}</span>
+                                        </div>
+                                        <h3 className="text-xl font-black text-slate-900 leading-tight">{selectedAlert.title}</h3>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setSelectedAlert(null)}
+                                    className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"
+                                >
+                                    <span className="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                                    <p className="text-slate-600 leading-relaxed font-medium">{selectedAlert.description}</p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dự án</p>
+                                        <p className="text-sm font-bold text-slate-900 truncate">{selectedAlert.project_name || 'Hệ thống'}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Thời gian thông báo</p>
+                                        <p className="text-sm font-bold text-slate-900">{new Date(selectedAlert.created_at).toLocaleString('vi-VN')}</p>
+                                    </div>
+                                    {selectedAlert.due_date && (
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Hạn xử lý</p>
+                                            <p className="text-sm font-bold text-red-600">{new Date(selectedAlert.due_date).toLocaleString('vi-VN')}</p>
+                                        </div>
+                                    )}
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Trạng thái</p>
+                                        <p className={`text-sm font-bold ${selectedAlert.is_read ? 'text-slate-400' : 'text-primary'}`}>
+                                            {selectedAlert.is_read ? 'Đã đọc' : 'Mới'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                            <button
+                                onClick={() => setSelectedAlert(null)}
+                                className="px-6 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-all"
+                            >
+                                Đóng
+                            </button>
+                            <button
+                                onClick={() => handleGoToDetail(selectedAlert)}
+                                className="px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 shadow-lg shadow-primary/20 flex items-center gap-2 group transition-all"
+                            >
+                                <span className="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                                Đi đến chi tiết
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
