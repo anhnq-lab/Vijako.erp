@@ -28,7 +28,7 @@ function Model({ url, progressUpdate, file }: { url?: string; file?: File; progr
         if (file) {
             const ifcLoader = new IFCLoader();
             // Point to public directory where we copied the wasm files
-            ifcLoader.ifcManager.setWasmPath('./');
+            ifcLoader.ifcManager.setWasmPath('/');
 
             const ifcURL = URL.createObjectURL(file);
             ifcLoader.load(
