@@ -1,17 +1,49 @@
--- Seed Diary Data for Project P-005 (Trường Tiểu học Tiên Sơn)
+-- 1. SCHMEA: Create daily_logs table if not exists
+CREATE TABLE IF NOT EXISTS public.daily_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
+    weather JSONB,
+    manpower_total INTEGER DEFAULT 0,
+    work_content TEXT,
+    issues TEXT,
+    images TEXT[],
+    progress_update JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
+-- Enable RLS
+ALTER TABLE public.daily_logs ENABLE ROW LEVEL SECURITY;
+
+-- Create policies (if they don't exist - simplistic check by dropping common ones first or just ignoring error, 
+-- but for migration script better to use DO block or simple policy creation)
+DROP POLICY IF EXISTS "Enable read access for all users" ON public.daily_logs;
+CREATE POLICY "Enable read access for all users" ON public.daily_logs FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Enable insert access for all users" ON public.daily_logs;
+CREATE POLICY "Enable insert access for all users" ON public.daily_logs FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Enable update access for all users" ON public.daily_logs;
+CREATE POLICY "Enable update access for all users" ON public.daily_logs FOR UPDATE USING (true);
+
+DROP POLICY IF EXISTS "Enable delete access for all users" ON public.daily_logs;
+CREATE POLICY "Enable delete access for all users" ON public.daily_logs FOR DELETE USING (true);
+
+
+-- 2. SEED DATA for Project P-005
 DO $$
 DECLARE
     v_project_id UUID;
 BEGIN
-    -- 1. Get Project ID (P-005 is Tienson)
+    -- Get Project ID (P-005 is Tienson)
     SELECT id INTO v_project_id FROM public.projects WHERE code = 'P-005' LIMIT 1;
 
     IF v_project_id IS NOT NULL THEN
         
-        DELETE FROM public.daily_logs WHERE project_id = v_project_id; -- Clear logging history to avoid dupes
+        DELETE FROM public.daily_logs WHERE project_id = v_project_id; -- Clear logging history
 
-        -- Log 1: Today (Cloudy, finishing MEP)
+        -- Log 1: Today
         INSERT INTO public.daily_logs (project_id, date, weather, manpower_total, work_content, issues, images, progress_update)
         VALUES (
             v_project_id,
@@ -24,7 +56,7 @@ BEGIN
             '{"Wall_01": "completed", "Floor_01": "completed"}'
         );
 
-        -- Log 2: Yesterday (Sunny, good progress)
+        -- Log 2: Yesterday
         INSERT INTO public.daily_logs (project_id, date, weather, manpower_total, work_content, issues, images, progress_update)
         VALUES (
             v_project_id,
@@ -37,7 +69,7 @@ BEGIN
             '{"Floor_01": "completed"}'
         );
 
-        -- Log 3: 2 Days ago (Rain, indoor work only)
+        -- Log 3: 2 Days ago
         INSERT INTO public.daily_logs (project_id, date, weather, manpower_total, work_content, issues, images, progress_update)
         VALUES (
             v_project_id,
@@ -48,19 +80,6 @@ BEGIN
             'Mưa lớn ảnh hưởng tiến độ sơn ngoài nhà',
             ARRAY['https://images.unsplash.com/photo-1535732759880-bbd5c7265e3f?q=80&w=800'],
             '{"Column_01": "completed"}'
-        );
-
-        -- Log 4: 3 Days ago (Sunny)
-        INSERT INTO public.daily_logs (project_id, date, weather, manpower_total, work_content, issues, images, progress_update)
-        VALUES (
-            v_project_id,
-            CURRENT_DATE - INTERVAL '3 days',
-            '{"temp": 33, "condition": "Nắng gắt", "humidity": 55}',
-            50,
-            E'- Đổ bê tông lanh tô cửa sổ\n- Lắp dựng giàn giáo hoàn thiện mặt đứng chính\n- Nhập vật tư sơn nước đợt 2',
-            NULL,
-            NULL,
-            '{"Column_01": "in_progress"}'
         );
 
     END IF;
