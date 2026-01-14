@@ -26,7 +26,8 @@ const ContractModal: React.FC<ContractModalProps> = ({
         paid_amount: 0,
         retention_amount: 0,
         status: 'active',
-        type: contractType
+        type: contractType,
+        budget_category: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -42,7 +43,8 @@ const ContractModal: React.FC<ContractModalProps> = ({
                 paid_amount: existingContract.paid_amount || 0,
                 retention_amount: existingContract.retention_amount || 0,
                 status: existingContract.status || 'active',
-                type: existingContract.type || contractType
+                type: existingContract.type || contractType,
+                budget_category: existingContract.budget_category || ''
             });
         } else {
             // Reset form for new contract
@@ -53,7 +55,8 @@ const ContractModal: React.FC<ContractModalProps> = ({
                 paid_amount: 0,
                 retention_amount: 0,
                 status: 'active',
-                type: contractType
+                type: contractType,
+                budget_category: ''
             });
         }
     }, [existingContract, contractType, isOpen]);
@@ -157,6 +160,29 @@ const ContractModal: React.FC<ContractModalProps> = ({
                         />
                     </div>
 
+                    {/* Budget Category - Only for expense contracts */}
+                    {contractType === 'expense' && (
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-600 mb-1">
+                                Khoản mục Ngân sách liên quan
+                            </label>
+                            <select
+                                name="budget_category"
+                                value={formData.budget_category}
+                                onChange={handleChange}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none text-sm"
+                            >
+                                <option value="">-- Chọn khoản mục --</option>
+                                <option value="Vật tư (Materials)">Vật tư (Materials)</option>
+                                <option value="Nhân công (Labor)">Nhân công (Labor)</option>
+                                <option value="Máy thi công (Equipment)">Máy thi công (Equipment)</option>
+                                <option value="Chi phí quản lý (Overhead)">Chi phí quản lý (Overhead)</option>
+                                <option value="Chi phí khác (Other)">Chi phí khác (Other)</option>
+                            </select>
+                            <p className="text-[10px] text-slate-400 mt-1">HĐ này sẽ tính vào "Đã cam kết" của khoản mục được chọn</p>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-3 gap-4">
                         <div>
                             <label className="block text-xs font-semibold text-slate-600 mb-1">Giá trị HĐ</label>
@@ -204,8 +230,8 @@ const ContractModal: React.FC<ContractModalProps> = ({
                             type="submit"
                             disabled={loading}
                             className={`px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors ${contractType === 'revenue'
-                                    ? 'bg-blue-600 hover:bg-blue-700'
-                                    : 'bg-orange-600 hover:bg-orange-700'
+                                ? 'bg-blue-600 hover:bg-blue-700'
+                                : 'bg-orange-600 hover:bg-orange-700'
                                 } disabled:opacity-50`}
                         >
                             {loading ? 'Đang lưu...' : (isEditMode ? 'Cập nhật' : 'Tạo mới')}

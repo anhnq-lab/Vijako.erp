@@ -29,6 +29,7 @@ export interface Contract {
   retention_amount: number;
   status: 'active' | 'completed' | 'terminated';
   type?: 'revenue' | 'expense';
+  budget_category?: string; // Link to budget category for auto-calculation
   is_risk?: boolean;
 }
 

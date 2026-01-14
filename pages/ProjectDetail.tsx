@@ -802,14 +802,34 @@ export default function ProjectDetail() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {budget.length > 0 ? budget.map(item => (
-                                                    <BudgetRow
-                                                        key={item.id}
-                                                        item={item}
-                                                        onEdit={openEditBudgetModal}
-                                                        onDelete={handleDeleteBudgetItem}
-                                                    />
-                                                )) : (
+                                                {budget.length > 0 ? budget.map(item => {
+                                                    // Auto-calculate Committed and Actual from expense contracts
+                                                    const linkedContracts = expenseContracts.filter(
+                                                        c => c.budget_category === item.category
+                                                    );
+                                                    const calculatedCommitted = linkedContracts.reduce(
+                                                        (sum, c) => sum + (c.value || 0), 0
+                                                    );
+                                                    const calculatedActual = linkedContracts.reduce(
+                                                        (sum, c) => sum + (c.paid_amount || 0), 0
+                                                    );
+
+                                                    // Use calculated values if contracts exist, otherwise use manual values
+                                                    const displayItem = {
+                                                        ...item,
+                                                        committed_amount: calculatedCommitted > 0 ? calculatedCommitted : item.committed_amount,
+                                                        actual_amount: calculatedActual > 0 ? calculatedActual : item.actual_amount
+                                                    };
+
+                                                    return (
+                                                        <BudgetRow
+                                                            key={item.id}
+                                                            item={displayItem}
+                                                            onEdit={openEditBudgetModal}
+                                                            onDelete={handleDeleteBudgetItem}
+                                                        />
+                                                    );
+                                                }) : (
                                                     <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500">Chưa có dữ liệu ngân sách.</td></tr>
                                                 )}
                                             </tbody>
