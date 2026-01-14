@@ -399,21 +399,24 @@ export default function ProjectDetail() {
                     )}
 
                     {activeTab === 'budget' && (
-                        <div className="space-y-6">
-                            {/* Contracts Section */}
+                        <div className="space-y-8">
+                            {/* Revenue Contracts (A-B) */}
                             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                                    <h3 className="font-bold text-slate-700">Danh sách Hợp đồng</h3>
-                                    <button className="text-xs font-bold text-primary bg-white border border-primary/20 px-3 py-1.5 rounded hover:bg-primary/5 transition-colors">
-                                        + Thêm Hợp đồng
+                                <div className="p-4 bg-blue-50/50 border-b border-blue-100 flex justify-between items-center">
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-blue-600">domain_add</span>
+                                        <h3 className="font-bold text-slate-800">Hợp đồng với Chủ Đầu Tư (Đầu ra)</h3>
+                                    </div>
+                                    <button className="text-xs font-bold text-blue-600 bg-white border border-blue-200 px-3 py-1.5 rounded hover:bg-blue-50 transition-colors">
+                                        + Thêm HĐ Chủ đầu tư
                                     </button>
                                 </div>
                                 <table className="w-full text-left">
                                     <thead className="bg-white text-xs text-slate-500 uppercase font-semibold border-b border-slate-100">
                                         <tr>
                                             <th className="px-4 py-3">Mã HĐ</th>
-                                            <th className="px-4 py-3">Đối tác</th>
-                                            <th className="px-4 py-3 text-right">Giá trị HĐ (VNĐ)</th>
+                                            <th className="px-4 py-3">Chủ đầu tư</th>
+                                            <th className="px-4 py-3 text-right">Giá trị HĐ</th>
                                             <th className="px-4 py-3 text-right">Đã thanh toán</th>
                                             <th className="px-4 py-3 text-right">Giữ lại</th>
                                             <th className="px-4 py-3 text-right">Tiến độ TT</th>
@@ -421,11 +424,50 @@ export default function ProjectDetail() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {contracts.length > 0 ? contracts.map(contract => (
-                                            <ContractRow key={contract.id} contract={contract} />
-                                        )) : (
-                                            <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">Chưa có dữ liệu hợp đồng.</td></tr>
-                                        )}
+                                        {contracts.filter(c => c.type === 'revenue' || c.contract_code.includes('TS-001')).length > 0 ?
+                                            contracts.filter(c => c.type === 'revenue' || c.contract_code.includes('TS-001')).map(contract => (
+                                                <ContractRow key={contract.id} contract={contract} />
+                                            )) : (
+                                                contracts.some(c => !c.type && c.contract_code.includes('TS-001')) ?
+                                                    contracts.filter(c => c.contract_code.includes('TS-001')).map(contract => (
+                                                        <ContractRow key={contract.id} contract={contract} />
+                                                    )) :
+                                                    <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">Chưa có hợp đồng chủ đầu tư.</td></tr>
+                                            )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Expense Contracts (B-B) */}
+                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
+                                <div className="p-4 bg-orange-50/50 border-b border-orange-100 flex justify-between items-center">
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-orange-600">engineering</span>
+                                        <h3 className="font-bold text-slate-800">Hợp đồng Thầu phụ & Nhà cung cấp (Đầu vào)</h3>
+                                    </div>
+                                    <button className="text-xs font-bold text-orange-600 bg-white border border-orange-200 px-3 py-1.5 rounded hover:bg-orange-50 transition-colors">
+                                        + Thêm HĐ Thầu phụ
+                                    </button>
+                                </div>
+                                <table className="w-full text-left">
+                                    <thead className="bg-white text-xs text-slate-500 uppercase font-semibold border-b border-slate-100">
+                                        <tr>
+                                            <th className="px-4 py-3">Mã HĐ</th>
+                                            <th className="px-4 py-3">Đối tác</th>
+                                            <th className="px-4 py-3 text-right">Giá trị HĐ</th>
+                                            <th className="px-4 py-3 text-right">Đã thanh toán</th>
+                                            <th className="px-4 py-3 text-right">Giữ lại</th>
+                                            <th className="px-4 py-3 text-right">Tiến độ TT</th>
+                                            <th className="px-4 py-3 text-right">Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {contracts.filter(c => c.type === 'expense' || (c.type !== 'revenue' && !c.contract_code.includes('TS-001'))).length > 0 ?
+                                            contracts.filter(c => c.type === 'expense' || (c.type !== 'revenue' && !c.contract_code.includes('TS-001'))).map(contract => (
+                                                <ContractRow key={contract.id} contract={contract} />
+                                            )) : (
+                                                <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">Chưa có hợp đồng thầu phụ.</td></tr>
+                                            )}
                                     </tbody>
                                 </table>
                             </div>

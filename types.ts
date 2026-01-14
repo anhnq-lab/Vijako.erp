@@ -28,6 +28,7 @@ export interface Contract {
   paid_amount: number;
   retention_amount: number;
   status: 'active' | 'completed' | 'terminated';
+  type?: 'revenue' | 'expense';
   is_risk?: boolean;
 }
 
