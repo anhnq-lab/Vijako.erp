@@ -355,6 +355,42 @@ const ContractCard = ({ code, partner, value, paid, retention, warning, status, 
                     </button>
                 </div>
             </div>
+            <AddGuaranteeModal
+                isOpen={isAddGuaranteeModalOpen}
+                onClose={() => setIsAddGuaranteeModalOpen(false)}
+                onAdd={handleAddGuarantee}
+                projects={projects}
+            />
+
+            <GuaranteeDetailModal
+                isOpen={isGuaranteeDetailModalOpen}
+                onClose={() => setIsGuaranteeDetailModalOpen(false)}
+                guarantee={selectedGuarantee}
+                onDelete={handleDeleteGuarantee}
+            />
+
+            <PaymentDetailModal
+                isOpen={isPaymentDetailModalOpen}
+                onClose={() => setIsPaymentDetailModalOpen(false)}
+                payment={selectedPayment}
+                onApprove={handleApprovePayment}
+                onReject={handleRejectPayment}
+            />
+
+            <AddBiddingModal
+                isOpen={isAddBiddingModalOpen}
+                onClose={() => setIsAddBiddingModalOpen(false)}
+                onAdd={handleAddBidding}
+                projects={projects}
+            />
+
+            <BiddingDetailModal
+                isOpen={isBiddingDetailModalOpen}
+                onClose={() => setIsBiddingDetailModalOpen(false)}
+                pkg={selectedBidding}
+                onDelete={handleDeleteBidding}
+                onPublish={handlePublishBidding}
+            />
         </div>
     );
 }

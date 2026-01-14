@@ -8,6 +8,9 @@ import ProjectDetail from './pages/ProjectDetail';
 import Finance from './pages/Finance';
 import SupplyChain from './pages/SupplyChain';
 import HRM from './pages/HRM';
+import Documents from './pages/Documents';
+import Alerts from './pages/Alerts';
+import Recruitment from './pages/Recruitment';
 
 const SidebarItem = ({ to, icon, label, active, count }: { to: string; icon: string; label: string; active: boolean; count?: number }) => (
   <Link
