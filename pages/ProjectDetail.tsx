@@ -10,6 +10,8 @@ import ContractModal from '../components/ContractModal';
 import BudgetModal from '../components/BudgetModal';
 import DiaryFeed from '../components/DiaryFeed';
 import BimViewer from '../components/BimViewer';
+import ErrorBoundary from '../components/ErrorBoundary';
+import { Suspense } from 'react';
 
 // Mock Chart Data (Keep for visual until backend supports time-series)
 const costData = [
@@ -882,17 +884,31 @@ export default function ProjectDetail() {
                                         </div>
                                     </div>
                                     <div className="flex-1 bg-slate-900 relative">
-                                        <BimViewer
-                                            modelUrl="/models/sample_structure.glb"
-                                            autoRotate={true}
-                                            progressUpdate={{
-                                                "Column_01": "completed",
-                                                "Column_02": "completed",
-                                                "Floor_01": "completed",
-                                                "Wall_01": "in_progress",
-                                                "Beam_01": "in_progress"
-                                            }}
-                                        />
+                                        <ErrorBoundary fallback={
+                                            <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                                                <span className="material-symbols-outlined text-4xl mb-2">3d_rotation</span>
+                                                <p>Không thể tải mô hình 3D.</p>
+                                                <p className="text-xs">Vui lòng kiểm tra file model.</p>
+                                            </div>
+                                        }>
+                                            <Suspense fallback={
+                                                <div className="flex items-center justify-center h-full text-white">
+                                                    Đang tải mô hình...
+                                                </div>
+                                            }>
+                                                <BimViewer
+                                                    modelUrl="/models/sample_structure.glb"
+                                                    autoRotate={true}
+                                                    progressUpdate={{
+                                                        "Column_01": "completed",
+                                                        "Column_02": "completed",
+                                                        "Floor_01": "completed",
+                                                        "Wall_01": "in_progress",
+                                                        "Beam_01": "in_progress"
+                                                    }}
+                                                />
+                                            </Suspense>
+                                        </ErrorBoundary>
 
                                         {/* Overlay Controls */}
                                         <div className="absolute bottom-4 right-4 flex gap-2">
