@@ -130,6 +130,8 @@ const ProjectGantt: React.FC<ProjectGanttProps> = ({ items }) => {
                     // Find original item to get WBS code or use index
                     const originalItem = items.find(item => (item.id || `task-${i}`) === task.id);
                     const wbsCode = originalItem?.wbs_code || `${i + 1}`;
+                    const level = originalItem?.level || 0;
+                    const paddingLeft = 16 + (level * 20); // Basic indentation
 
                     return (
                         <div
@@ -157,7 +159,7 @@ const ProjectGantt: React.FC<ProjectGanttProps> = ({ items }) => {
                             </div>
                             <div style={{
                                 flex: 1,
-                                paddingLeft: '16px',
+                                paddingLeft: `${paddingLeft}px`,
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
