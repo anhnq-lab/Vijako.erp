@@ -3,26 +3,13 @@ import {
     ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
     PieChart, Pie, Cell, Area
 } from 'recharts';
-import { financeService, Contract } from '../src/services/financeService';
+import { financeService, Contract, BankGuarantee, PaymentRequest, CashFlowData } from '../src/services/financeService';
 import { biddingService } from '../src/services/biddingService';
 import { BiddingPackage } from '../types';
 
 // --- Enhanced Data ---
 
-const cashFlowData = [
-    { name: 'T1', thu: 45, chi: 30, net: 15 },
-    { name: 'T2', thu: 52, chi: 48, net: 19 },
-    { name: 'T3', thu: 38, chi: 45, net: 12 },
-    { name: 'T4', thu: 65, chi: 50, net: 27 },
-    { name: 'T5', thu: 80, chi: 60, net: 47 },
-    { name: 'T6', thu: 95, chi: 85, net: 57 },
-    { name: 'T7', thu: 110, chi: 90, net: 77 },
-    { name: 'T8', thu: 105, chi: 88, net: 94 },
-    { name: 'T9', thu: 125, chi: 95, net: 124 },
-    { name: 'T10', thu: 90, chi: 80, net: 134 },
-    { name: 'T11', thu: 140, chi: 110, net: 164 },
-    { name: 'T12', thu: 160, chi: 120, net: 204 },
-];
+// --- Constants (Still useful for structure) ---
 
 const costStructureData = [
     { name: 'Vật tư (Materials)', value: 45, color: '#1f3f89' },
@@ -218,6 +205,9 @@ export default function Finance() {
     const [activeTab, setActiveTab] = useState('contracts');
     const [contracts, setContracts] = useState<Contract[]>([]);
     const [biddingPackages, setBiddingPackages] = useState<BiddingPackage[]>([]);
+    const [bankGuarantees, setBankGuarantees] = useState<BankGuarantee[]>([]);
+    const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
+    const [cashFlowRecords, setCashFlowRecords] = useState<CashFlowData[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -227,12 +217,18 @@ export default function Finance() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [cData, bData] = await Promise.all([
+            const [cData, bData, bgData, prData, cfData] = await Promise.all([
                 financeService.getAllContracts(),
-                biddingService.getAllPackages()
+                biddingService.getAllPackages(),
+                financeService.getAllBankGuarantees(),
+                financeService.getAllPaymentRequests(),
+                financeService.getCashFlowData()
             ]);
             setContracts(cData);
             setBiddingPackages(bData);
+            setBankGuarantees(bgData);
+            setPaymentRequests(prData);
+            setCashFlowRecords(cfData);
         } catch (error) {
             console.error('Failed to fetch finance data', error);
         } finally {
@@ -294,7 +290,7 @@ export default function Finance() {
                             </div>
                             <div className="flex-1 w-full min-h-0">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <ComposedChart data={cashFlowData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                    <ComposedChart data={cashFlowRecords} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
                                         <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
@@ -448,9 +444,20 @@ export default function Finance() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <GuaranteeRow code="BL-PER-001" type="Bảo lãnh thực hiện HĐ" project="The Nine Tower" bank="BIDV Cầu Giấy" value="12.5 Tỷ" expiry="30/12/2024" />
-                                        <GuaranteeRow code="BL-ADV-005" type="Bảo lãnh tạm ứng" project="Sun Urban City" bank="Vietinbank" value="45.0 Tỷ" expiry="15/11/2023" status="warning" />
-                                        <GuaranteeRow code="BL-WAR-002" type="Bảo lãnh bảo hành" project="Aeon Mall Huế" bank="Techcombank" value="5.2 Tỷ" expiry="01/06/2025" />
+                                        {bankGuarantees.length > 0 ? bankGuarantees.map(bg => (
+                                            <GuaranteeRow
+                                                key={bg.id}
+                                                code={bg.code}
+                                                type={bg.type}
+                                                project={bg.project_name || 'N/A'}
+                                                bank={bg.bank_name}
+                                                value={(bg.value / 1000000000).toFixed(1) + ' Tỷ'}
+                                                expiry={new Date(bg.expiry_date).toLocaleDateString('vi-VN')}
+                                                status={bg.status}
+                                            />
+                                        )) : (
+                                            <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500 font-bold">Chưa có bảo lãnh nào.</td></tr>
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
@@ -501,9 +508,20 @@ export default function Finance() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <PaymentRequestRow id="PAY-882" sub="Bê tông Việt Úc" project="Vijako Tower" amount="120.000.000 ₫" date="14/10/2023" status="pending" />
-                                                <PaymentRequestRow id="PAY-881" sub="Cốp pha An Phát" project="The Nine" amount="45.000.000 ₫" date="13/10/2023" status="pending" blocked />
-                                                <PaymentRequestRow id="PAY-880" sub="Thép Hòa Phát" project="Vijako Tower" amount="850.000.000 ₫" date="10/10/2023" status="approved" />
+                                                {paymentRequests.length > 0 ? paymentRequests.map(pr => (
+                                                    <PaymentRequestRow
+                                                        key={pr.id}
+                                                        id={pr.code}
+                                                        sub={pr.partner_name || 'N/A'}
+                                                        project={pr.project_name || 'N/A'}
+                                                        amount={pr.amount.toLocaleString() + ' ₫'}
+                                                        date={new Date(pr.submission_date).toLocaleDateString('vi-VN')}
+                                                        status={pr.status === 'paid' ? 'approved' : pr.status} // Map paid to approved color for now or add more statuses
+                                                        blocked={pr.is_blocked}
+                                                    />
+                                                )) : (
+                                                    <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500 font-bold">Chưa có yêu cầu thanh toán nào.</td></tr>
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>

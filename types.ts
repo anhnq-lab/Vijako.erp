@@ -221,3 +221,36 @@ export interface BiddingQuote {
   score?: number;
   status: 'submitted' | 'under_review' | 'awarded' | 'rejected';
 }
+
+export interface BankGuarantee {
+  id: string;
+  code: string;
+  type: string;
+  project_id: string;
+  project_name?: string;
+  bank_name: string;
+  value: number;
+  expiry_date: string;
+  status: 'active' | 'warning' | 'expired' | 'released';
+}
+
+export interface PaymentRequest {
+  id: string;
+  code: string;
+  contract_id: string;
+  partner_name?: string;
+  project_id: string;
+  project_name?: string;
+  amount: number;
+  submission_date: string;
+  status: 'pending' | 'under_review' | 'approved' | 'paid' | 'rejected';
+  is_blocked: boolean;
+  block_reason?: string;
+}
+
+export interface CashFlowData {
+  name: string;
+  thu: number;
+  chi: number;
+  net: number;
+}
