@@ -378,30 +378,42 @@ export default function ProjectList() {
             </div>
 
             {/* Main Header Area */}
-            <div className="px-10 py-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-                <div className="flex-1 space-y-4">
-                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-1">Cơ sở hạ tầng & Tài sản</p>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Danh mục Dự án</h1>
+            <div className="px-10 py-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="space-y-2">
+                    <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em] mb-0.5">Cơ sở hạ tầng & Tài sản</p>
+                    <h1 className="text-2xl font-black text-slate-900 tracking-tight">Danh mục Dự án</h1>
 
-                    <div className="relative w-full max-w-md group">
-                        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-premium">search</span>
+                    <div className="relative w-64 group">
+                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary text-[18px] transition-premium">search</span>
                         <input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
+                            className="w-full pl-10 pr-4 py-2 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
                             placeholder="Nhập tên dự án..."
                         />
                     </div>
                 </div>
 
-                <div className="flex gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
-                    <LuxuryStatCard title="Công trường hoạt động" value={projectList.filter(p => p.status === 'active').length} icon="apartment" color="bg-primary" gradient="bg-primary" />
-                    <LuxuryStatCard title="Tỷ lệ tăng trưởng" value="+12.5%" icon="trending_up" color="bg-emerald" gradient="bg-emerald" />
+                <div className="flex gap-3 w-full md:w-auto h-14 overflow-x-auto pb-1 md:pb-0 items-center">
+                    <div className="flex bg-white p-3 rounded-2xl border border-slate-100 shadow-sm items-center gap-3 h-full px-4">
+                        <span className="material-symbols-outlined text-primary text-[20px]">apartment</span>
+                        <div>
+                            <p className="text-[8px] text-slate-400 font-black uppercase tracking-widest">Đang thi công</p>
+                            <p className="text-sm font-black text-slate-900">{projectList.filter(p => p.status === 'active').length}</p>
+                        </div>
+                    </div>
+                    <div className="flex bg-white p-3 rounded-2xl border border-slate-100 shadow-sm items-center gap-3 h-full px-4">
+                        <span className="material-symbols-outlined text-emerald text-[20px]">trending_up</span>
+                        <div>
+                            <p className="text-[8px] text-slate-400 font-black uppercase tracking-widest">Tăng trưởng</p>
+                            <p className="text-sm font-black text-slate-900">+12.5%</p>
+                        </div>
+                    </div>
                     <button
                         onClick={() => { setCurrentProject(null); setIsEditModalOpen(true); }}
-                        className="px-8 py-3 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-premium hover:shadow-lg transition-premium flex items-center gap-2 shrink-0 h-[72px]"
+                        className="px-6 h-full bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-premium hover:shadow-lg transition-premium flex items-center gap-2"
                     >
-                        <span className="material-symbols-outlined text-[20px]">add</span>
+                        <span className="material-symbols-outlined text-[18px]">add</span>
                         <span>Tạo dự án mới</span>
                     </button>
                 </div>
