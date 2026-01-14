@@ -5,7 +5,8 @@ import {
 } from 'recharts';
 import { financeService, Contract, BankGuarantee, PaymentRequest, CashFlowData } from '../src/services/financeService';
 import { biddingService } from '../src/services/biddingService';
-import { BiddingPackage } from '../types';
+import { projectService } from '../src/services/projectService';
+import { Project, BiddingPackage } from '../types';
 
 // --- Enhanced Data ---
 
@@ -28,7 +29,157 @@ const debtAgingData = [
 
 // --- Sub-Components ---
 
-const ContractCard = ({ code, partner, value, paid, retention, warning, status }: any) => {
+const ContractDetailModal = ({ isOpen, onClose, contract }: { isOpen: boolean, onClose: () => void, contract: Contract | null }) => {
+    if (!isOpen || !contract) return null;
+    return (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
+                <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <div>
+                        <h3 className="font-black text-slate-900 text-xl">Chi tiết Hợp đồng</h3>
+                        <p className="text-sm text-slate-500 font-mono">{contract.contract_code}</p>
+                    </div>
+                    <button onClick={onClose} className="size-10 rounded-full flex items-center justify-center hover:bg-slate-200 transition-colors text-slate-400 hover:text-slate-600">
+                        <span className="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div className="p-8 grid grid-cols-2 gap-8">
+                    <div className="space-y-6">
+                        <div>
+                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Đối tác / Nhà thầu</p>
+                            <p className="font-bold text-slate-900 text-lg">{contract.partner_name}</p>
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Giá trị Hợp đồng</p>
+                            <p className="font-black text-primary text-2xl">{(contract.value || 0).toLocaleString()} ₫</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-green-50 p-4 rounded-xl border border-green-100">
+                                <p className="text-[10px] text-green-600 font-black uppercase mb-1">Đã thanh toán</p>
+                                <p className="font-bold text-green-900">{(contract.paid_amount || 0).toLocaleString()} ₫</p>
+                            </div>
+                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                <p className="text-[10px] text-slate-400 font-black uppercase mb-1">Giữ lại (Retention)</p>
+                                <p className="font-bold text-slate-900">{(contract.retention_amount || 0).toLocaleString()} ₫</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+                        <div>
+                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">Trạng thái & Rủi ro</p>
+                            <div className="flex flex-wrap gap-2">
+                                <span className={`px-3 py-1.5 rounded-full text-xs font-black border ${contract.status === 'active' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-slate-200 text-slate-600 border-slate-300'}`}>
+                                    {contract.status === 'active' ? 'ĐANG HIỆU LỰC' : 'ĐÃ THANH LÝ'}
+                                </span>
+                                {contract.is_risk && (
+                                    <span className="px-3 py-1.5 rounded-full text-xs font-black bg-red-100 text-red-700 border border-red-200 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-sm">warning</span> CÓ RỦI RO
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        <div className="pt-4 border-t border-slate-200">
+                            <p className="text-xs text-slate-500 italic">"Hợp đồng đang trong giai đoạn thanh toán đợt cuối. Cần kiểm tra hồ sơ hoàn công trước khi giải ngân phần giữ lại."</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="px-8 py-5 border-t border-slate-50 flex justify-end gap-3 bg-slate-50/30">
+                    <button onClick={onClose} className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 font-black text-sm rounded-xl hover:bg-slate-50 transition-all">Đóng</button>
+                    <button className="px-6 py-2.5 bg-primary text-white font-black text-sm rounded-xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">Sửa thông tin</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const AddContractModal = ({ isOpen, onClose, onAdd, projects }: { isOpen: boolean, onClose: () => void, onAdd: (data: any) => void, projects: Project[] }) => {
+    const [formData, setFormData] = useState({
+        contract_code: '',
+        partner_name: '',
+        project_id: '',
+        value: 0,
+        paid_amount: 0,
+        retention_amount: 0,
+        status: 'active',
+        is_risk: false
+    });
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
+                <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <h3 className="font-black text-slate-900 text-xl">Thêm Hợp đồng mới</h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors"><span className="material-symbols-outlined">close</span></button>
+                </div>
+                <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                    <div>
+                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Mã Hợp đồng</label>
+                        <input
+                            type="text"
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold"
+                            placeholder="Ví dụ: CT-2024-001"
+                            value={formData.contract_code}
+                            onChange={(e) => setFormData({ ...formData, contract_code: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Đối tác / Nhà thầu</label>
+                        <input
+                            type="text"
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold"
+                            placeholder="Tên công ty hoặc cá nhân"
+                            value={formData.partner_name}
+                            onChange={(e) => setFormData({ ...formData, partner_name: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Thuộc Dự án</label>
+                        <select
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold"
+                            value={formData.project_id}
+                            onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
+                        >
+                            <option value="">-- Chọn dự án --</option>
+                            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Giá trị (VNĐ)</label>
+                        <input
+                            type="number"
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold"
+                            value={formData.value}
+                            onChange={(e) => setFormData({ ...formData, value: Number(e.target.value) })}
+                        />
+                    </div>
+                    <div className="flex items-center gap-3 bg-red-50 p-3 rounded-xl border border-red-100">
+                        <input
+                            type="checkbox"
+                            className="size-4 text-primary border-slate-300 rounded focus:ring-primary"
+                            checked={formData.is_risk}
+                            onChange={(e) => setFormData({ ...formData, is_risk: e.target.checked })}
+                        />
+                        <span className="text-sm font-bold text-red-700">Đánh dấu hợp đồng có rủi ro</span>
+                    </div>
+                </div>
+                <div className="px-6 py-5 border-t border-slate-50 flex justify-end gap-3 bg-slate-50/30">
+                    <button onClick={onClose} className="px-6 py-2.5 text-slate-600 font-black text-sm hover:bg-slate-100 rounded-xl transition-all">Hủy</button>
+                    <button
+                        onClick={() => onAdd(formData)}
+                        disabled={!formData.contract_code || !formData.project_id}
+                        className="px-8 py-2.5 bg-primary text-white font-black text-sm rounded-xl hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Lưu Hợp đồng
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const ContractCard = ({ code, partner, value, paid, retention, warning, status, onViewDetail }: any) => {
     const paidPercent = Math.round((paid / value) * 100);
     return (
         <div className={`bg-white rounded-xl p-5 border ${warning ? 'border-orange-200 shadow-[0_0_15px_rgba(251,146,60,0.15)] ring-1 ring-orange-100' : 'border-slate-100 shadow-sm'} flex flex-col hover:-translate-y-1 transition-transform duration-300`}>
@@ -66,7 +217,10 @@ const ContractCard = ({ code, partner, value, paid, retention, warning, status }
                         <p className="text-slate-400">Giữ lại (Retention)</p>
                         <p className="font-bold text-slate-700">{retention.toLocaleString()} ₫</p>
                     </div>
-                    <button className="text-xs bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold px-3 py-1.5 rounded transition-colors shadow-sm">
+                    <button
+                        onClick={onViewDetail}
+                        className="text-xs bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold px-3 py-1.5 rounded transition-colors shadow-sm"
+                    >
                         Chi tiết
                     </button>
                 </div>
@@ -208,7 +362,13 @@ export default function Finance() {
     const [bankGuarantees, setBankGuarantees] = useState<BankGuarantee[]>([]);
     const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
     const [cashFlowRecords, setCashFlowRecords] = useState<CashFlowData[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Modal states
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
 
     useEffect(() => {
         fetchData();
@@ -217,23 +377,40 @@ export default function Finance() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [cData, bData, bgData, prData, cfData] = await Promise.all([
+            const [cData, bData, bgData, prData, cfData, pData] = await Promise.all([
                 financeService.getAllContracts(),
                 biddingService.getAllPackages(),
                 financeService.getAllBankGuarantees(),
                 financeService.getAllPaymentRequests(),
-                financeService.getCashFlowData()
+                financeService.getCashFlowData(),
+                projectService.getAllProjects()
             ]);
             setContracts(cData);
             setBiddingPackages(bData);
             setBankGuarantees(bgData);
             setPaymentRequests(prData);
             setCashFlowRecords(cfData);
+            setProjects(pData);
         } catch (error) {
             console.error('Failed to fetch finance data', error);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleAddContract = async (data: any) => {
+        try {
+            await financeService.createContract(data);
+            setIsAddModalOpen(false);
+            fetchData();
+        } catch (error) {
+            alert('Lỗi khi lưu hợp đồng');
+        }
+    };
+
+    const handleViewDetail = (contract: Contract) => {
+        setSelectedContract(contract);
+        setIsDetailModalOpen(true);
     };
 
     return (
@@ -247,7 +424,10 @@ export default function Finance() {
                     <button className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-slate-50 transition-colors">
                         <span className="material-symbols-outlined text-[20px]">print</span> Báo cáo
                     </button>
-                    <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95">
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95"
+                    >
                         <span className="material-symbols-outlined text-[20px]">add</span> Tạo hợp đồng mới
                     </button>
                 </div>
@@ -267,7 +447,7 @@ export default function Finance() {
                     {/* Advanced Analysis Section */}
                     <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
                         {/* Cash Flow - Composed Chart */}
-                        <div className="xl:col-span-8 bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col h-[400px]">
+                        <div className="xl:col-span-8 bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col min-h-[400px]">
                             <div className="flex justify-between items-center mb-6">
                                 <div>
                                     <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
@@ -307,7 +487,7 @@ export default function Finance() {
                         </div>
 
                         {/* AI Insight & Cost Structure */}
-                        <div className="xl:col-span-4 flex flex-col gap-6 h-[400px]">
+                        <div className="xl:col-span-4 flex flex-col gap-6 min-h-[400px]">
                             {/* AI Card */}
                             <div className="flex-1">
                                 <AIFinancialInsight />
@@ -391,11 +571,15 @@ export default function Finance() {
                                             retention={contract.retention_amount}
                                             status={contract.status}
                                             warning={contract.is_risk}
+                                            onViewDetail={() => handleViewDetail(contract)}
                                         />
                                     ))
                                 )}
 
-                                <div className="border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400 p-6 hover:border-primary hover:text-primary cursor-pointer transition-colors bg-slate-50/50 group min-h-[200px]">
+                                <div
+                                    onClick={() => setIsAddModalOpen(true)}
+                                    className="border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400 p-6 hover:border-primary hover:text-primary cursor-pointer transition-colors bg-slate-50/50 group min-h-[200px]"
+                                >
                                     <span className="material-symbols-outlined text-[40px] mb-2 group-hover:scale-110 transition-transform">add_circle</span>
                                     <span className="text-sm font-bold">Thêm Hợp đồng mới</span>
                                 </div>
@@ -538,9 +722,9 @@ export default function Finance() {
                                                 <span className="material-symbols-outlined text-primary">receipt_long</span>
                                                 <h4 className="font-bold text-slate-900 text-sm">Work Acceptance Generator</h4>
                                             </div>
-                                            <p className="text-xs text-slate-600 mb-3 leading-relaxed relative z-10">
+                                            <div className="text-xs text-slate-600 mb-3 leading-relaxed relative z-10">
                                                 Hệ thống tự động tạo Biên bản nghiệm thu dựa trên Nhật ký thi công tuần này.
-                                            </p>
+                                            </div>
                                             <button className="w-full py-2 bg-primary text-white rounded text-xs font-bold shadow-sm hover:bg-primary/90 relative z-10">
                                                 Tạo 12 Biên bản (Draft)
                                             </button>
@@ -566,6 +750,19 @@ export default function Finance() {
                     </div>
                 </div>
             </div>
+
+            <AddContractModal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onAdd={handleAddContract}
+                projects={projects}
+            />
+
+            <ContractDetailModal
+                isOpen={isDetailModalOpen}
+                onClose={() => setIsDetailModalOpen(false)}
+                contract={selectedContract}
+            />
         </div>
-    )
+    );
 }
