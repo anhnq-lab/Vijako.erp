@@ -34,12 +34,9 @@ export const financeService = {
     },
 
     async createContract(contract: Omit<Contract, 'id'>): Promise<Contract | null> {
-        // Remove budget_category if it might not exist in DB schema
-        const { budget_category, ...dbContract } = contract as any;
-
         const { data, error } = await supabase
             .from('contracts')
-            .insert(dbContract)
+            .insert(contract)
             .select()
             .single();
 
@@ -67,12 +64,9 @@ export const financeService = {
     },
 
     async updateContract(id: string, updates: Partial<Contract>): Promise<Contract | null> {
-        // Remove budget_category if it might not exist in DB schema
-        const { budget_category, ...dbUpdates } = updates as any;
-
         const { data, error } = await supabase
             .from('contracts')
-            .update(dbUpdates)
+            .update(updates)
             .eq('id', id)
             .select()
             .single();

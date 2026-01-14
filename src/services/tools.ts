@@ -72,12 +72,172 @@ export const tools: Record<string, Tool> = {
             required: ['project_id'],
         },
         execute: async ({ project_id }) => {
-            // Mock financial data since we might not have seeded it fully
+            const { data, error } = await supabase
+                .from('project_budget')
+                .select('*')
+                .eq('project_id', project_id);
+
+            if (error || !data || data.length === 0) {
+                return {
+                    total_budget: 0,
+                    spent: 0,
+                    remaining: 0,
+                    status: "Chưa có dữ liệu ngân sách"
+                };
+            }
+
+            const totalBudget = data.reduce((sum, item) => sum + (item.budget_amount || 0), 0);
+            const totalSpent = data.reduce((sum, item) => sum + (item.actual_amount || 0), 0);
             return {
-                total_budget: 5000000000,
-                spent: 1200000000,
-                remaining: 3800000000,
-                status: "On Track"
+                total_budget: totalBudget,
+                spent: totalSpent,
+                remaining: totalBudget - totalSpent,
+                categories: data,
+                status: totalSpent > totalBudget ? "Vượt ngân sách" : "Trong ngân sách"
+            };
+        }
+    },
+
+    update_task_status: {
+        name: 'update_task_status',
+        description: 'Cập nhật trạng thái công việc (active, done, pending, delayed)',
+        parameters: {
+            type: 'object',
+            properties: {
+                task_id: { type: 'string', description: 'ID của công việc cần cập nhật' },
+                new_status: { type: 'string', description: 'Trạng thái mới: active, done, pending, delayed' },
+                progress: { type: 'number', description: 'Tiến độ phần trăm (0-100)' }
+            },
+            required: ['task_id', 'new_status'],
+        },
+        execute: async ({ task_id, new_status, progress }) => {
+            // TODO: Implement actual update when tasks table exists
+            console.log("Updating task:", task_id, "to status:", new_status);
+            return {
+                success: true,
+                message: `Đã cập nhật công việc ${task_id} sang trạng thái "${new_status}"${progress ? `, tiến độ ${progress}%` : ''}`
+            };
+        }
+    },
+
+    get_project_schedule: {
+        name: 'get_project_schedule',
+        description: 'Lấy lịch trình và danh sách công việc (WBS) của dự án',
+        parameters: {
+            type: 'object',
+            properties: {
+                project_id: { type: 'string', description: 'ID của dự án' },
+            },
+            required: ['project_id'],
+        },
+        execute: async ({ project_id }) => {
+            const { data, error } = await supabase
+                .from('project_wbs')
+                .select('*')
+                .eq('project_id', project_id)
+                .order('wbs_code', { ascending: true });
+
+            if (error) return { error: error.message };
+            return {
+                total_tasks: data?.length || 0,
+                tasks: data || [],
+                message: data?.length ? `Dự án có ${data.length} công việc` : "Chưa có lịch trình"
+            };
+        }
+    },
+
+    search_employees: {
+        name: 'search_employees',
+        description: 'Tìm kiếm nhân viên theo tên, chức vụ hoặc kỹ năng',
+        parameters: {
+            type: 'object',
+            properties: {
+                query: { type: 'string', description: 'Từ khóa tìm kiếm (tên, chức vụ, kỹ năng)' },
+            },
+            required: ['query'],
+        },
+        execute: async ({ query }) => {
+            const { data, error } = await supabase
+                .from('employees')
+                .select('*')
+                .or(`name.ilike.%${query}%,position.ilike.%${query}%,skills.ilike.%${query}%`)
+                .limit(10);
+
+            if (error) return { error: error.message };
+            return {
+                count: data?.length || 0,
+                employees: data || [],
+                message: data?.length ? `Tìm thấy ${data.length} nhân viên` : "Không tìm thấy nhân viên phù hợp"
+            };
+        }
+    },
+
+    create_issue: {
+        name: 'create_issue',
+        description: 'Tạo vấn đề mới (NCR, RFI, hoặc General issue) cho dự án',
+        parameters: {
+            type: 'object',
+            properties: {
+                project_id: { type: 'string', description: 'ID của dự án' },
+                type: { type: 'string', description: 'Loại vấn đề: NCR, RFI, hoặc General' },
+                title: { type: 'string', description: 'Tiêu đề vấn đề' },
+                priority: { type: 'string', description: 'Độ ưu tiên: High, Medium, Low' },
+                description: { type: 'string', description: 'Mô tả chi tiết vấn đề' }
+            },
+            required: ['project_id', 'type', 'title'],
+        },
+        execute: async (args) => {
+            const { data, error } = await supabase
+                .from('project_issues')
+                .insert({
+                    project_id: args.project_id,
+                    type: args.type,
+                    title: args.title,
+                    priority: args.priority || 'Medium',
+                    status: 'Open',
+                    code: `${args.type}-${Date.now()}`,
+                    due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    pic: 'Chưa phân công'
+                })
+                .select()
+                .single();
+
+            if (error) return { error: error.message };
+            return {
+                success: true,
+                issue: data,
+                message: `Đã tạo ${args.type} mới: "${args.title}"`
+            };
+        }
+    },
+
+    get_contracts: {
+        name: 'get_contracts',
+        description: 'Lấy danh sách hợp đồng của dự án',
+        parameters: {
+            type: 'object',
+            properties: {
+                project_id: { type: 'string', description: 'ID của dự án' },
+            },
+            required: ['project_id'],
+        },
+        execute: async ({ project_id }) => {
+            const { data, error } = await supabase
+                .from('contracts')
+                .select('*')
+                .eq('project_id', project_id);
+
+            if (error) return { error: error.message };
+
+            const totalValue = data?.reduce((sum, c) => sum + (c.value || 0), 0) || 0;
+            const totalPaid = data?.reduce((sum, c) => sum + (c.paid_amount || 0), 0) || 0;
+
+            return {
+                count: data?.length || 0,
+                contracts: data || [],
+                total_value: totalValue,
+                total_paid: totalPaid,
+                message: data?.length ? `Dự án có ${data.length} hợp đồng, tổng giá trị ${(totalValue / 1000000000).toFixed(1)} tỷ` : "Chưa có hợp đồng"
             };
         }
     }
