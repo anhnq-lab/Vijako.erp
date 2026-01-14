@@ -884,13 +884,7 @@ export default function ProjectDetail() {
                                         </div>
                                     </div>
                                     <div className="flex-1 bg-slate-900 relative">
-                                        <ErrorBoundary fallback={
-                                            <div className="flex flex-col items-center justify-center h-full text-slate-400">
-                                                <span className="material-symbols-outlined text-4xl mb-2">3d_rotation</span>
-                                                <p>Không thể tải mô hình 3D.</p>
-                                                <p className="text-xs">Vui lòng kiểm tra file model.</p>
-                                            </div>
-                                        }>
+                                        <ErrorBoundary>
                                             <Suspense fallback={
                                                 <div className="flex items-center justify-center h-full text-white">
                                                     Đang tải mô hình...

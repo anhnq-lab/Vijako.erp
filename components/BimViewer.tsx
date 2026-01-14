@@ -27,11 +27,26 @@ function Model({ url, progressUpdate, file }: { url?: string; file?: File; progr
     useEffect(() => {
         if (file) {
             const ifcLoader = new IFCLoader();
-            ifcLoader.ifcManager.setWasmPath('/'); // Look in public/
+            // Point to public directory where we copied the wasm files
+            ifcLoader.ifcManager.setWasmPath('./');
+
             const ifcURL = URL.createObjectURL(file);
-            ifcLoader.load(ifcURL, (ifcModel) => {
-                setObject(ifcModel);
-            });
+            ifcLoader.load(
+                ifcURL,
+                (ifcModel) => {
+                    setObject(ifcModel);
+                },
+                (progress) => {
+                    // console.log('Loading IFC:', progress);
+                },
+                (error) => {
+                    console.error('Error loading IFC:', error);
+                    // Force ErrorBoundary to catch
+                    // Note: Async errors in event handlers aren't caught by ErrorBoundary automatically usually, 
+                    // but we can log it visible to user or set state
+                    alert(`Không thể tải file IFC: ${error instanceof Error ? error.message : 'Lỗi không xác định'}`);
+                }
+            );
             return () => URL.revokeObjectURL(ifcURL);
         } else if (url && url.endsWith('.glb') && gltfScene) {
             setObject(gltfScene.clone());
