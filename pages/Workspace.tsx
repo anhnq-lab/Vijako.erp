@@ -4,7 +4,12 @@ import {
 } from 'recharts';
 import { workspaceService, UserTask } from '../src/services/workspaceService';
 import { alertService } from '../src/services/alertService';
-import { Alert } from '../types';
+import { projectService } from '../src/services/projectService';
+import { diaryService } from '../src/services/diaryService';
+import { supplyChainService } from '../src/services/supplyChainService';
+import { documentService } from '../src/services/documentService';
+import { Alert, Project, Vendor } from '../types';
+import { showToast } from '../src/components/ui/Toast';
 
 // --- Types & Mock Data ---
 interface Approval {
@@ -158,6 +163,51 @@ const QuickAction = ({ icon, label, color, onClick }: any) => (
         <span className="text-xs font-bold text-slate-600 group-hover:text-slate-900 text-center">{label}</span>
     </button>
 )
+
+// --- Modal Components ---
+
+interface ModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    title: string;
+    children: React.ReactNode;
+    onConfirm?: () => void;
+    confirmLabel?: string;
+    isLoading?: boolean;
+}
+
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, onConfirm, confirmLabel = 'Lưu', isLoading }) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose}></div>
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                    <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+                    <button onClick={onClose} className="size-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors">
+                        <span className="material-symbols-outlined text-slate-400">close</span>
+                    </button>
+                </div>
+                <div className="p-6 max-h-[70vh] overflow-y-auto">
+                    {children}
+                </div>
+                <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                    <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors">Hủy</button>
+                    {onConfirm && (
+                        <button
+                            onClick={onConfirm}
+                            disabled={isLoading}
+                            className="px-6 py-2 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary-light shadow-premium transition-premium flex items-center gap-2 disabled:opacity-50"
+                        >
+                            {isLoading && <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>}
+                            {confirmLabel}
+                        </button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const NoteWidget = () => {
     const [note, setNote] = useState("");
@@ -315,17 +365,38 @@ export default function Workspace() {
     const [isCheckedIn, setIsCheckedIn] = useState(false);
     const [checkInTime, setCheckInTime] = useState<string | null>(null);
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [vendors, setVendors] = useState<Vendor[]>([]);
+    const [activeProject, setActiveProject] = useState<Project | null>(null);
+
+    // AI Task States
+    const [activeQuickAction, setActiveQuickAction] = useState<null | 'diary' | 'report' | 'item' | 'upload'>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Form States
+    const [diaryForm, setDiaryForm] = useState({ temp: 32, condition: 'Sunny', work: '', issues: '' });
+    const [issueForm, setIssueForm] = useState({ title: '', type: 'General' as const, priority: 'Medium' as const });
+    const [supplyForm, setSupplyForm] = useState({ vendorId: '', items: '', amount: 0 });
+    const [uploadFile, setUploadFile] = useState<File | null>(null);
 
     // --- Data Fetching ---
     useEffect(() => {
         const fetchData = async () => {
-            const [taskList, alerts, checkIn] = await Promise.all([
+            const [taskList, alerts, checkIn, projectList, vendorList] = await Promise.all([
                 workspaceService.getTasks(),
                 alertService.getAllAlerts(),
-                workspaceService.getCheckInStatus()
+                workspaceService.getCheckInStatus(),
+                projectService.getAllProjects(),
+                supplyChainService.getAllVendors()
             ]);
 
             setTasks(taskList);
+            setProjects(projectList);
+            setVendors(vendorList);
+
+            // Find current project (Vijako Tower)
+            const vijako = projectList.find(p => p.code === 'P-001');
+            if (vijako) setActiveProject(vijako);
 
             // Map Alerts to Approvals if they are of type 'approval' or 'contract'
             const mappedApprovals = (alerts || [])
@@ -400,6 +471,98 @@ export default function Workspace() {
             } else {
                 setIsCheckedIn(false);
             }
+        }
+    };
+
+    const handleDiarySubmit = async () => {
+        if (!activeProject) return;
+        setIsSubmitting(true);
+        try {
+            await diaryService.createLog({
+                project_id: activeProject.id,
+                date: new Date().toISOString().split('T')[0],
+                weather: { temp: diaryForm.temp, condition: diaryForm.condition, humidity: 60 },
+                manpower_total: 120, // Example
+                work_content: diaryForm.work,
+                issues: diaryForm.issues,
+                status: 'Draft',
+                images: [],
+                progress_update: {}
+            });
+            showToast.success("Đã lưu nhật ký thi công tạm tính");
+            setActiveQuickAction(null);
+            setDiaryForm({ temp: 32, condition: 'Sunny', work: '', issues: '' });
+        } catch (e) {
+            showToast.error("Lỗi khi lưu nhật ký");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleIssueSubmit = async () => {
+        if (!activeProject) return;
+        setIsSubmitting(true);
+        try {
+            await projectService.createProjectIssue({
+                project_id: activeProject.id,
+                code: `ISSUE-${Date.now().toString().slice(-4)}`,
+                title: issueForm.title,
+                type: issueForm.type,
+                priority: issueForm.priority,
+                status: 'Open',
+                due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                pic: 'Nguyễn Văn An'
+            });
+            showToast.success("Đã báo cáo sự cố thành công");
+            setActiveQuickAction(null);
+            setIssueForm({ title: '', type: 'General', priority: 'Medium' });
+        } catch (e) {
+            showToast.error("Lỗi khi báo cáo sự cố");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleSupplySubmit = async () => {
+        if (!activeProject || !supplyForm.vendorId) return;
+        setIsSubmitting(true);
+        try {
+            await supplyChainService.createOrder({
+                po_number: `PO-${Date.now().toString().slice(-6)}`,
+                vendor_id: supplyForm.vendorId,
+                items_summary: supplyForm.items,
+                total_amount: supplyForm.amount,
+                delivery_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                status: 'Pending',
+                location: activeProject.location || 'Công trường'
+            });
+            showToast.success("Đã gửi yêu cầu vật tư");
+            setActiveQuickAction(null);
+            setSupplyForm({ vendorId: '', items: '', amount: 0 });
+        } catch (e) {
+            showToast.error("Lỗi khi gửi yêu cầu");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleUploadSubmit = async () => {
+        if (!activeProject || !uploadFile) return;
+        setIsSubmitting(true);
+        try {
+            await documentService.uploadDocument(
+                activeProject.id,
+                uploadFile,
+                { status: 'WIP', category: 'General' },
+                'Nguyễn Văn An'
+            );
+            showToast.success("Đã tải tài liệu lên CDE");
+            setActiveQuickAction(null);
+            setUploadFile(null);
+        } catch (e) {
+            showToast.error("Lỗi khi tải lên");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -637,12 +800,134 @@ export default function Workspace() {
                         <div>
                             <h3 className="text-sm font-bold text-slate-900 mb-3 uppercase tracking-wider">Tác vụ nhanh</h3>
                             <div className="grid grid-cols-2 gap-3">
-                                <QuickAction icon="edit_note" label="Nhật ký" color="bg-blue-100 text-blue-600" onClick={() => alert("Mở form Nhật ký thi công")} />
-                                <QuickAction icon="add_a_photo" label="Báo cáo" color="bg-red-100 text-red-600" onClick={() => alert("Mở form Báo cáo sự cố")} />
-                                <QuickAction icon="inventory_2" label="Vật tư" color="bg-orange-100 text-orange-600" onClick={() => alert("Mở Yêu cầu vật tư")} />
-                                <QuickAction icon="upload_file" label="Upload" color="bg-green-100 text-green-600" onClick={() => alert("Mở Upload CDE")} />
+                                <QuickAction icon="edit_note" label="Nhật ký" color="bg-blue-100 text-blue-600" onClick={() => setActiveQuickAction('diary')} />
+                                <QuickAction icon="add_a_photo" label="Báo cáo" color="bg-red-100 text-red-600" onClick={() => setActiveQuickAction('report')} />
+                                <QuickAction icon="inventory_2" label="Vật tư" color="bg-orange-100 text-orange-600" onClick={() => setActiveQuickAction('item')} />
+                                <QuickAction icon="upload_file" label="Upload" color="bg-green-100 text-green-600" onClick={() => setActiveQuickAction('upload')} />
                             </div>
                         </div>
+
+                        {/* Modals for Quick Actions */}
+                        <Modal
+                            isOpen={activeQuickAction === 'diary'}
+                            onClose={() => setActiveQuickAction(null)}
+                            title="Viết Nhật ký thi công"
+                            onConfirm={handleDiarySubmit}
+                            isLoading={isSubmitting}
+                        >
+                            <div className="space-y-4">
+                                <div className="flex gap-4">
+                                    <div className="flex-1">
+                                        <label className="text-xs font-bold text-slate-500 uppercase">Nhiệt độ (°C)</label>
+                                        <input type="number" value={diaryForm.temp} onChange={e => setDiaryForm({ ...diaryForm, temp: parseInt(e.target.value) })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm mt-1" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="text-xs font-bold text-slate-500 uppercase">Thời tiết</label>
+                                        <select value={diaryForm.condition} onChange={e => setDiaryForm({ ...diaryForm, condition: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm mt-1">
+                                            <option value="Sunny">Nắng đẹp</option>
+                                            <option value="Rainy">Mưa</option>
+                                            <option value="Cloudy">Nhiều mây</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Nội dung thi công</label>
+                                    <textarea placeholder="Nhập tóm tắt công việc trong ngày..." value={diaryForm.work} onChange={e => setDiaryForm({ ...diaryForm, work: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm mt-1 h-32"></textarea>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Vấn đề & Phát sinh</label>
+                                    <input placeholder="Nhập vấn đề (nếu có)..." value={diaryForm.issues} onChange={e => setDiaryForm({ ...diaryForm, issues: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm mt-1" />
+                                </div>
+                            </div>
+                        </Modal>
+
+                        <Modal
+                            isOpen={activeQuickAction === 'report'}
+                            onClose={() => setActiveQuickAction(null)}
+                            title="Báo cáo sự cố / Vấn đề"
+                            onConfirm={handleIssueSubmit}
+                            isLoading={isSubmitting}
+                        >
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Tiêu đề sự cố</label>
+                                    <input placeholder="Tên ngắn gọn của vấn đề..." value={issueForm.title} onChange={e => setIssueForm({ ...issueForm, title: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm mt-1" />
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="flex-1">
+                                        <label className="text-xs font-bold text-slate-500 uppercase">Loại</label>
+                                        <select value={issueForm.type} onChange={e => setIssueForm({ ...issueForm, type: e.target.value as any })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm mt-1">
+                                            <option value="General">Chung</option>
+                                            <option value="NCR">Chất lượng (NCR)</option>
+                                            <option value="RFI">Yêu cầu thông tin (RFI)</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="text-xs font-bold text-slate-500 uppercase">Mức độ</label>
+                                        <select value={issueForm.priority} onChange={e => setIssueForm({ ...issueForm, priority: e.target.value as any })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm mt-1">
+                                            <option value="Low">Thấp</option>
+                                            <option value="Medium">Trung bình</option>
+                                            <option value="High">Cao</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <p className="text-[10px] text-slate-400">Sự cố sẽ được gửi tới Ban QLDA và lưu vào hồ sơ dự án.</p>
+                            </div>
+                        </Modal>
+
+                        <Modal
+                            isOpen={activeQuickAction === 'item'}
+                            onClose={() => setActiveQuickAction(null)}
+                            title="Yêu cầu vật tư / PO"
+                            onConfirm={handleSupplySubmit}
+                            isLoading={isSubmitting}
+                        >
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Nhà cung cấp / Đội thi công</label>
+                                    <select value={supplyForm.vendorId} onChange={e => setSupplyForm({ ...supplyForm, vendorId: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm mt-1">
+                                        <option value="">Chọn nhà cung cấp...</option>
+                                        {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Hạng mục vật tư</label>
+                                    <input placeholder="VD: Thép D20, Bê tông R7..." value={supplyForm.items} onChange={e => setSupplyForm({ ...supplyForm, items: e.target.value })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm mt-1" />
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Giá trị dự kiến (VNĐ)</label>
+                                    <input type="number" value={supplyForm.amount} onChange={e => setSupplyForm({ ...supplyForm, amount: parseInt(e.target.value) })} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm mt-1" />
+                                </div>
+                            </div>
+                        </Modal>
+
+                        <Modal
+                            isOpen={activeQuickAction === 'upload'}
+                            onClose={() => setActiveQuickAction(null)}
+                            title="Tải lên CDE (Hồ sơ dự án)"
+                            onConfirm={handleUploadSubmit}
+                            isLoading={isSubmitting}
+                            confirmLabel="Tải lên"
+                        >
+                            <div className="space-y-4">
+                                <div
+                                    className="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center hover:border-primary/50 transition-colors cursor-pointer group"
+                                    onClick={() => document.getElementById('quick-upload')?.click()}
+                                >
+                                    <input
+                                        id="quick-upload"
+                                        type="file"
+                                        className="hidden"
+                                        onChange={e => setUploadFile(e.target.files?.[0] || null)}
+                                    />
+                                    <span className="material-symbols-outlined text-[48px] text-slate-300 group-hover:text-primary transition-colors mb-2">cloud_upload</span>
+                                    <p className="text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors">
+                                        {uploadFile ? uploadFile.name : 'Chọn file hoặc kéo thả vào đây'}
+                                    </p>
+                                    <p className="text-xs text-slate-400 mt-1">PDF, DWG, DOCX, XLSX (Max 50MB)</p>
+                                </div>
+                            </div>
+                        </Modal>
 
                         {/* Mini Calendar (New) */}
                         <MiniCalendar />

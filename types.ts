@@ -55,6 +55,7 @@ export interface WBSItem {
 
 export interface ProjectIssue {
   id: string;
+  project_id: string;
   code: string;
   type: 'NCR' | 'RFI' | 'General';
   title: string;
