@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, CartesianGrid, YAxis } from 'recharts';
 import { projectService } from '../src/services/projectService';
 import { financeService } from '../src/services/financeService';
+import { importService } from '../src/services/importService'; // New Import
 import { Project, WBSItem, ProjectIssue, ProjectBudget, Contract } from '../types';
 import ProjectGantt from '../components/ProjectGantt';
 
@@ -133,6 +134,34 @@ export default function ProjectDetail() {
     const [contracts, setContracts] = useState<Contract[]>([]);
     const [wbsView, setWbsView] = useState<'list' | 'gantt'>('list');
     const [loading, setLoading] = useState(true);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    const handleImportClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (confirm('Import sẽ thay thế dữ liệu hiện tại. Bạn có chắc không?')) {
+            try {
+                // setLoading(true); // Optional: show loading overlay
+                const items = await importService.parseExcelSchedule(file);
+                // Assign new IDs if needed or keep from service
+                setWbs(items);
+                alert(`Đã import thành công ${items.length} đầu việc!`);
+            } catch (error: any) {
+                console.error(error);
+                alert('Lỗi khi đọc file: ' + (error.message || 'Unknown error'));
+            } finally {
+                // setLoading(false);
+                if (fileInputRef.current) fileInputRef.current.value = '';
+            }
+        } else {
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
 
     useEffect(() => {
         if (id) {
@@ -364,6 +393,19 @@ export default function ProjectDetail() {
                                             <span className="material-symbols-outlined text-[16px]">calendar_month</span> Gantt
                                         </button>
                                     </div>
+                                    <button
+                                        onClick={handleImportClick}
+                                        className="text-xs font-bold text-slate-600 bg-white border border-slate-300 px-3 py-1.5 rounded hover:bg-slate-50 transition-colors flex items-center gap-1"
+                                    >
+                                        <span className="material-symbols-outlined text-[16px]">upload_file</span> Import Excel
+                                    </button>
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleFileChange}
+                                        className="hidden"
+                                        accept=".xlsx, .xls"
+                                    />
                                     <button className="text-xs font-bold text-primary bg-white border border-primary/20 px-3 py-1.5 rounded hover:bg-primary/5 transition-colors">
                                         + Thêm công việc
                                     </button>
