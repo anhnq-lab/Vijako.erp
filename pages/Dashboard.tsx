@@ -9,7 +9,7 @@ import { projectService } from '../src/services/projectService';
 import { riskService } from '../src/services/riskService';
 import { Project, RiskMatrixData } from '../types';
 
-// Finance & EVM Data
+// Dữ liệu Tài chính & EVM
 const financeData = [
   { name: 'T1', plan: 10, cost: 8, ev: 9 },
   { name: 'T2', plan: 25, cost: 20, ev: 22 },
@@ -23,11 +23,11 @@ const financeData = [
 ];
 
 const fallbackRiskData: RiskMatrixData[] = [
-  { x: 20, y: 20, z: 40, name: 'The Nine', status: 'Low', color: '#10b981' },
-  { x: 60, y: 60, z: 360, name: 'Foxconn BG', status: 'Medium', color: '#f59e0b' },
-  { x: 100, y: 100, z: 1000, name: 'Sun Urban', status: 'Critical', color: '#ef4444' },
-  { x: 80, y: 60, z: 480, name: 'Aeon Mall', status: 'High', color: '#f97316' },
-  { x: 40, y: 80, z: 320, name: 'Mỹ Thuận 2', status: 'Medium', color: '#3b82f6' },
+  { x: 20, y: 20, z: 40, name: 'The Nine', status: 'Thấp', color: '#10b981' },
+  { x: 60, y: 60, z: 360, name: 'Foxconn BG', status: 'Trung bình', color: '#f59e0b' },
+  { x: 100, y: 100, z: 1000, name: 'Sun Urban', status: 'Nghiêm trọng', color: '#ef4444' },
+  { x: 80, y: 60, z: 480, name: 'Aeon Mall', status: 'Cao', color: '#f97316' },
+  { x: 40, y: 80, z: 320, name: 'Mỹ Thuận 2', status: 'Trung bình', color: '#3b82f6' },
 ];
 
 const PremiumStatCard = ({ title, value, unit, change, type, icon, subValue, note }: any) => {
@@ -132,28 +132,28 @@ export default function Dashboard() {
 
   return (
     <div className="flex-1 flex flex-col min-w-0 bg-background-light overflow-hidden">
-      {/* Premium Sticky Header */}
+      {/* Header Premium */}
       <header className="h-20 glass border-b border-slate-200/50 flex items-center justify-between px-10 z-20 sticky top-0">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Executive Dashboard</h2>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-0.5">Vijako Headquarters / Command Center</p>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Bảng điều hành Tổng hợp</h2>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-0.5">Vijako Headquarters / Trung tâm Chỉ huy</p>
         </div>
 
         <div className="flex items-center gap-4">
           <div className="hidden xl:flex items-center gap-6 bg-slate-200/50 px-6 py-2 rounded-2xl border border-white/50">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black text-slate-400 uppercase">Steel</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase">Thép</span>
               <span className="text-sm font-black text-slate-900">14.2K</span>
               <span className="text-[10px] text-red-500 font-bold">↑ 1.2%</span>
             </div>
             <div className="w-px h-4 bg-slate-300"></div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black text-slate-400 uppercase">Cement</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase">Xi măng</span>
               <span className="text-sm font-black text-slate-900">1.4K</span>
               <span className="text-[10px] text-emerald font-bold">↓ 0.5%</span>
             </div>
           </div>
-          <button className="px-6 py-2.5 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-premium hover:scale-105 transition-premium">Export Report</button>
+          <button className="px-6 py-2.5 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-premium hover:scale-105 transition-premium">Xuất báo cáo</button>
         </div>
       </header>
 
@@ -163,33 +163,33 @@ export default function Dashboard() {
           {/* AI Header */}
           <AICommandHeader />
 
-          {/* Key Stats Matrix */}
+          {/* Ma trận Chỉ số chính */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
             <PremiumStatCard
-              title="YTD Revenue"
+              title="Doanh thu YTD"
               value="120.5" unit="Tỷ"
               change="+12.4%" type="success" icon="payments"
               subValue="78%"
               note="Đạt 78% kế hoạch năm (Thặng dư 1.2 Tỷ)"
             />
             <PremiumStatCard
-              title="Safety & Risks"
-              value="03" unit="Alerts"
-              change="Priority" type="alert" icon="security"
+              title="An toàn & Rủi ro"
+              value="03" unit="Cảnh báo"
+              change="Ưu tiên" type="alert" icon="security"
               subValue="85%"
               note="1 Sự cố ATLĐ mức độ 1 tại Dự án ABC"
             />
             <PremiumStatCard
-              title="Liquid Assets"
+              title="Tài sản Khả dụng"
               value="45.8" unit="Tỷ"
               change="-2.5%" type="warning" icon="account_balance_wallet"
               subValue="40%"
               note="Phủ được 1.5 tháng chi phí vận hành"
             />
             <PremiumStatCard
-              title="Total Site Force"
-              value="1,245" unit="Staff"
-              change="Peak" type="primary" icon="groups"
+              title="Tổng Nhân lực"
+              value="1,245" unit="Người"
+              change="Cao điểm" type="primary" icon="groups"
               subValue="95%"
               note="92% Công suất huy động tối đa"
             />
@@ -199,18 +199,18 @@ export default function Dashboard() {
             <div className="xl:col-span-8 bg-white rounded-[40px] border border-slate-200 shadow-glass overflow-hidden h-[550px] flex flex-col">
               <div className="p-8 pb-4 flex justify-between items-center">
                 <div>
-                  <h3 className="text-xl font-black text-slate-900 tracking-tight">Financial Performance (EVM)</h3>
-                  <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Real-time Project Auditing</p>
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight">Hiệu quả Tài chính (EVM)</h3>
+                  <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Kiểm toán dự án thời gian thực</p>
                 </div>
                 <div className="flex bg-slate-100 p-1.5 rounded-2xl">
                   <button
                     onClick={() => setActiveChart('finance')}
                     className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-premium ${activeChart === 'finance' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
-                  >Finance</button>
+                  >Tài chính</button>
                   <button
                     onClick={() => setActiveChart('manpower')}
                     className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-premium ${activeChart === 'manpower' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
-                  >Manpower</button>
+                  >Nhân lực</button>
                 </div>
               </div>
               <div className="flex-1 p-8">
@@ -226,9 +226,10 @@ export default function Dashboard() {
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} />
                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} />
                     <Tooltip contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }} />
-                    <Area type="monotone" dataKey="plan" stroke="#1d4ed8" fillOpacity={1} fill="url(#colorPV)" strokeWidth={4} />
-                    <Bar dataKey="cost" fill="#ef4444" barSize={12} radius={[6, 6, 0, 0]} />
-                    <Line type="monotone" dataKey="ev" stroke="#f59e0b" strokeWidth={4} dot={{ r: 6, fill: '#f59e0b', strokeWidth: 0 }} />
+                    <Area type="monotone" name="Kế hoạch (PV)" dataKey="plan" stroke="#1d4ed8" fillOpacity={1} fill="url(#colorPV)" strokeWidth={4} />
+                    <Bar dataKey="cost" name="Chi phí (AC)" fill="#ef4444" barSize={12} radius={[6, 6, 0, 0]} />
+                    <Line type="monotone" name="Giá trị đạt được (EV)" dataKey="ev" stroke="#f59e0b" strokeWidth={4} dot={{ r: 6, fill: '#f59e0b', strokeWidth: 0 }} />
+                    <Legend verticalAlign="top" height={36} />
                   </ComposedChart>
                 </ResponsiveContainer>
               </div>
@@ -236,18 +237,18 @@ export default function Dashboard() {
 
             <div className="xl:col-span-4 bg-white rounded-[40px] border border-slate-200 shadow-glass overflow-hidden h-[550px] flex flex-col relative">
               <div className="p-8">
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">Risk Matrix Map</h3>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Impact vs Probability</p>
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">Ma trận Rủi ro</h3>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Ảnh hưởng vs Xác suất</p>
               </div>
               <div className="flex-1 p-4 relative">
                 <div className="absolute inset-8 border-l border-b border-slate-100/50"></div>
                 <ResponsiveContainer width="100%" height="100%">
                   <ScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 10 }}>
-                    <XAxis type="number" dataKey="x" domain={[0, 100]} hide />
-                    <YAxis type="number" dataKey="y" domain={[0, 100]} hide />
+                    <XAxis type="number" dataKey="x" name="Xác suất" domain={[0, 100]} hide />
+                    <YAxis type="number" dataKey="y" name="Ảnh hưởng" domain={[0, 100]} hide />
                     <ZAxis type="number" dataKey="z" range={[400, 2000]} />
                     <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                    <Scatter data={riskData}>
+                    <Scatter name="Dự án" data={riskData}>
                       {riskData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
                       ))}
@@ -256,13 +257,13 @@ export default function Dashboard() {
                 </ResponsiveContainer>
               </div>
               <div className="p-8 flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-100">
-                <span>Low Exposure</span>
-                <span>Critical Zone</span>
+                <span>Rủi ro thấp</span>
+                <span>Vùng nguy hiểm</span>
               </div>
             </div>
           </div>
 
-          {/* Project Map */}
+          {/* Bản đồ Dự án */}
           <div className="bg-white rounded-[40px] border border-slate-200 shadow-glass overflow-hidden h-[500px] group">
             <ProjectMap projects={projects} />
           </div>

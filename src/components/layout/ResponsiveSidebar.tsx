@@ -74,7 +74,7 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isOpen, on
                             <h1 className="text-xl font-black tracking-tighter text-slate-900 leading-none">
                                 VIJAKO
                             </h1>
-                            <p className="text-[10px] font-bold tracking-[0.2em] text-emerald uppercase mt-1">Enterprise</p>
+                            <p className="text-[10px] font-bold tracking-[0.2em] text-emerald uppercase mt-1">Hệ Thống Quản Trị</p>
                         </div>
                     </div>
 
@@ -90,7 +90,7 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isOpen, on
                 {/* Navigation */}
                 <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar">
                     <div className="px-4 mb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                        Executive
+                        ĐIỀU HÀNH TỔNG HỢP
                     </div>
                     <SidebarItem
                         to="/"
@@ -102,18 +102,18 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isOpen, on
                     <SidebarItem
                         to="/workspace"
                         icon="person"
-                        label="Dashboard Cá nhân"
+                        label="Không gian cá nhân"
                         active={path === '/workspace'}
                         onClick={onClose}
                     />
 
                     <div className="px-4 mt-8 mb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                        Management
+                        QUẢN LÝ VẬN HÀNH
                     </div>
                     <SidebarItem
                         to="/projects"
                         icon="domain"
-                        label="Dự án Công trình"
+                        label="Dự án & Công trình"
                         active={path === '/projects' || path.startsWith('/projects/')}
                         onClick={onClose}
                     />
@@ -141,18 +141,18 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isOpen, on
                     <SidebarItem
                         to="/hrm"
                         icon="badge"
-                        label="Nhân lực & Đào tạo"
+                        label="Nhân sự & Đào tạo"
                         active={path === '/hrm'}
                         onClick={onClose}
                     />
 
                     <div className="px-4 mt-8 mb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                        Resources
+                        NGUỒN LỰC HỆ THỐNG
                     </div>
                     <SidebarItem
                         to="/documents"
                         icon="cloud_done"
-                        label="Hồ sơ Tài liệu (CDE)"
+                        label="Kho Hồ sơ (CDE)"
                         active={path === '/documents'}
                         onClick={onClose}
                     />
@@ -167,7 +167,7 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isOpen, on
                     <SidebarItem
                         to="/system"
                         icon="settings"
-                        label="Hệ thống"
+                        label="Cài đặt hệ thống"
                         active={path === '/system'}
                         onClick={onClose}
                     />

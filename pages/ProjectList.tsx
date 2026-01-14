@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { projectService } from '../src/services/projectService';
 import { Project } from '../types';
 
-// --- Premium Stat Card ---
+// --- Thẻ Thống kê Cao cấp ---
 const LuxuryStatCard = ({ title, value, icon, color, gradient }: any) => (
     <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-glass hover:shadow-premium transition-premium group relative overflow-hidden flex items-center gap-4">
         <div className={`absolute -right-4 -top-4 size-24 opacity-5 blur-2xl rounded-full ${gradient}`}></div>
@@ -20,7 +20,7 @@ const LuxuryStatCard = ({ title, value, icon, color, gradient }: any) => (
 const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project; onEdit: (p: Project) => void; onDelete: (id: string) => void }) => {
     return (
         <div className="group bg-white rounded-[40px] border border-slate-200 shadow-glass hover:shadow-premium transition-premium flex flex-col overflow-hidden relative">
-            {/* Image Header */}
+            {/* Ảnh nền tiêu đề */}
             <div className="relative h-56 overflow-hidden">
                 <img
                     src={project.avatar || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format&fit=crop'}
@@ -29,21 +29,21 @@ const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project; onEd
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60"></div>
 
-                {/* Badges */}
+                {/* Nhãn trạng thái */}
                 <div className="absolute top-4 left-4 flex gap-2">
                     <span className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-[10px] font-black text-white uppercase tracking-widest shadow-xl">
-                        {project.type || 'Construction'}
+                        {project.type || 'Công trình'}
                     </span>
                 </div>
 
                 <div className={`absolute top-4 right-4 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl backdrop-blur-md border ${project.status === 'active' ? 'bg-emerald/20 text-emerald-400 border-emerald-400/30' :
-                        project.status === 'completed' ? 'bg-blue-500/20 text-blue-400 border-blue-400/30' :
-                            'bg-red-500/20 text-red-400 border-red-400/30'
+                    project.status === 'completed' ? 'bg-blue-500/20 text-blue-400 border-blue-400/30' :
+                        'bg-red-500/20 text-red-400 border-red-400/30'
                     }`}>
-                    {project.status === 'active' ? 'Construction' : 'Finished'}
+                    {project.status === 'active' ? 'Đang thi công' : 'Đã hoàn thành'}
                 </div>
 
-                {/* Floating Content */}
+                {/* Thông tin nổi lên */}
                 <div className="absolute bottom-6 left-6 right-6">
                     <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] mb-1 font-mono">{project.code}</p>
                     <Link to={`/projects/${project.id}`} className="text-xl font-black text-white tracking-tight leading-tight hover:underline line-clamp-2 drop-shadow-lg">
@@ -52,28 +52,28 @@ const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project; onEd
                 </div>
             </div>
 
-            {/* Content Body */}
+            {/* Nội dung chính */}
             <div className="p-6 flex-1 flex flex-col">
                 <div className="space-y-4 mb-6">
                     <div className="flex items-center gap-3">
                         <div className="size-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
                             <span className="material-symbols-outlined text-[18px]">location_on</span>
                         </div>
-                        <span className="text-xs font-bold text-slate-600 truncate">{project.location || 'Vietnam Coast'}</span>
+                        <span className="text-xs font-bold text-slate-600 truncate">{project.location || 'Việt Nam'}</span>
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="size-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
                             <span className="material-symbols-outlined text-[18px]">person</span>
                         </div>
-                        <span className="text-xs font-bold text-slate-900">PM: {project.manager || 'Admin'}</span>
+                        <span className="text-xs font-bold text-slate-900">PM: {project.manager || 'Quản trị viên'}</span>
                     </div>
                 </div>
 
-                {/* Progress Indicators */}
+                {/* Tiến độ */}
                 <div className="space-y-4 mt-auto">
                     <div>
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Efficiency</span>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hiệu suất thực tế</span>
                             <span className="text-xs font-black text-primary">{project.progress}%</span>
                         </div>
                         <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
@@ -129,16 +129,16 @@ export default function ProjectList() {
 
     return (
         <div className="flex flex-col h-full bg-slate-50/50">
-            {/* Luxury Header */}
+            {/* Header Sang trọng */}
             <div className="px-10 py-8 bg-white border-b border-slate-200/50 flex flex-col gap-6">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <p className="text-[10px] font-black text-primary-accent uppercase tracking-[0.4em] mb-1">Infrastructure Assets</p>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tight">Portfolio</h1>
+                        <p className="text-[10px] font-black text-primary-accent uppercase tracking-[0.4em] mb-1">Cơ sở hạ tầng & Tài sản</p>
+                        <h1 className="text-4xl font-black text-slate-900 tracking-tight">Danh mục Dự án</h1>
                     </div>
                     <div className="flex gap-4">
-                        <LuxuryStatCard title="Active Sites" value={projectList.length} icon="apartment" color="bg-primary" gradient="bg-primary" />
-                        <LuxuryStatCard title="Growth Rate" value="+12.5%" icon="trending_up" color="bg-emerald" gradient="bg-emerald" />
+                        <LuxuryStatCard title="Công trường hoạt động" value={projectList.length} icon="apartment" color="bg-primary" gradient="bg-primary" />
+                        <LuxuryStatCard title="Tỷ lệ tăng trưởng" value="+12.5%" icon="trending_up" color="bg-emerald" gradient="bg-emerald" />
                     </div>
                 </div>
 
@@ -150,7 +150,7 @@ export default function ProjectList() {
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="w-full pl-12 pr-4 py-3 bg-slate-100/50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 focus:border-primary outline-none transition-premium"
-                                placeholder="Find construction units, codes or locations..."
+                                placeholder="Tìm kiếm đơn vị thi công, mã dự án hoặc địa điểm..."
                             />
                         </div>
                         <select
@@ -158,9 +158,9 @@ export default function ProjectList() {
                             onChange={(e) => setFilter(e.target.value)}
                             className="px-6 py-3 bg-white border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-600 outline-none focus:border-primary cursor-pointer hover:bg-slate-50 transition-premium shadow-sm"
                         >
-                            <option value="all">Status: Global</option>
-                            <option value="active">Contracted</option>
-                            <option value="completed">Operational</option>
+                            <option value="all">Trạng thái: Tất cả</option>
+                            <option value="active">Đang thực hiện</option>
+                            <option value="completed">Đã bàn giao</option>
                         </select>
                     </div>
 
@@ -171,7 +171,7 @@ export default function ProjectList() {
                         </div>
                         <button className="px-8 py-3 mesh-gradient text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-premium hover:opacity-90 transition-premium flex items-center gap-2">
                             <span className="material-symbols-outlined text-[20px]">add</span>
-                            <span>Add New Unit</span>
+                            <span>Thêm đơn vị mới</span>
                         </button>
                     </div>
                 </div>
@@ -182,7 +182,7 @@ export default function ProjectList() {
                     {loading ? (
                         <div className="flex flex-col items-center justify-center h-96">
                             <div className="size-16 border-4 border-slate-200 border-t-primary rounded-full animate-spin shadow-lg"></div>
-                            <p className="mt-8 text-slate-400 font-bold uppercase tracking-widest animate-pulse">Syncing Portfolio...</p>
+                            <p className="mt-8 text-slate-400 font-bold uppercase tracking-widest animate-pulse">Đang đồng bộ dữ liệu...</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">

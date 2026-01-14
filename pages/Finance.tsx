@@ -9,14 +9,14 @@ import { Project } from '../types';
 import { InvoiceScanModal } from '../components/InvoiceScanModal';
 import { Badge } from '../src/components/ui/CommonComponents';
 
-// --- Mock Data for fallback ---
+// --- Dữ liệu mô phỏng ---
 const costStructureData = [
-    { name: 'Jan', inflow: 4500, outflow: 3500 },
-    { name: 'Feb', inflow: 5200, outflow: 4800 },
-    { name: 'Mar', inflow: 4800, outflow: 5500 },
-    { name: 'Apr', inflow: 6100, outflow: 4200 },
-    { name: 'May', inflow: 5500, outflow: 5000 },
-    { name: 'Jun', inflow: 6700, outflow: 5800 },
+    { name: 'Th1', inflow: 4500, outflow: 3500 },
+    { name: 'Th2', inflow: 5200, outflow: 4800 },
+    { name: 'Th3', inflow: 4800, outflow: 5500 },
+    { name: 'Th4', inflow: 6100, outflow: 4200 },
+    { name: 'Th5', inflow: 5500, outflow: 5000 },
+    { name: 'Th6', inflow: 6700, outflow: 5800 },
 ];
 
 const PremiumStatCard = ({ title, value, sub, icon, color, trend }: any) => (
@@ -48,24 +48,24 @@ const AIFinancialInsight = () => (
                     <span className="material-symbols-outlined text-[20px] text-yellow-300 animate-pulse">auto_awesome</span>
                 </div>
                 <div>
-                    <h3 className="font-black text-lg tracking-tight">CFO Intelligence</h3>
-                    <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest">AI powered analysis</p>
+                    <h3 className="font-black text-lg tracking-tight">AI CFO Intelligence</h3>
+                    <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Phân tích bởi Trí tuệ nhân tạo</p>
                 </div>
             </div>
             <div className="space-y-4">
                 <div className="bg-white/10 border border-white/10 rounded-2xl p-4 backdrop-blur-md hover:bg-white/20 transition-premium cursor-pointer">
-                    <p className="text-[10px] text-emerald-300 font-black uppercase tracking-widest mb-1 leading-none">Cashflow Forecast</p>
+                    <p className="text-[10px] text-emerald-300 font-black uppercase tracking-widest mb-1 leading-none">Dự báo Dòng tiền</p>
                     <p className="text-sm font-medium leading-relaxed">Dự kiến thu <span className="text-emerald-400 font-bold">12.5 Tỷ</span> trong 30 ngày tới. Khả năng thanh khoản đạt <span className="text-emerald-400 font-bold">98%</span>.</p>
                 </div>
                 <div className="bg-white/10 border border-white/10 rounded-2xl p-4 backdrop-blur-md hover:bg-white/20 transition-premium cursor-pointer">
-                    <p className="text-[10px] text-yellow-300 font-black uppercase tracking-widest mb-1 leading-none">Risk Alert</p>
+                    <p className="text-[10px] text-yellow-300 font-black uppercase tracking-widest mb-1 leading-none">Cảnh báo Rủi ro</p>
                     <p className="text-sm font-medium leading-relaxed">Cần lưu ý 2 khoản thanh toán NCC quá hạn vào cuối tuần này.</p>
                 </div>
             </div>
         </div>
         <div className="relative z-10 mt-6 flex justify-between items-center">
-            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest italic">Updated 2m ago</span>
-            <button className="px-5 py-2 bg-white text-primary text-[10px] font-black rounded-xl hover:scale-105 transition-premium shadow-lg shadow-white/10 uppercase tracking-widest">Deep Analysis</button>
+            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest italic">Cập nhật 2 phút trước</span>
+            <button className="px-5 py-2 bg-white text-primary text-[10px] font-black rounded-xl hover:scale-105 transition-premium shadow-lg shadow-white/10 uppercase tracking-widest">Phân tích chuyên sâu</button>
         </div>
     </div>
 );
@@ -106,7 +106,7 @@ export default function Finance() {
             <div className="px-8 py-6 bg-white border-b border-slate-200/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-black text-primary-accent uppercase tracking-[0.3em]">Treasury & Payments</span>
+                        <span className="text-[10px] font-black text-primary-accent uppercase tracking-[0.3em]">Kho bạc & Thanh toán</span>
                     </div>
                     <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
                         Tài chính & Thanh toán
@@ -120,11 +120,11 @@ export default function Finance() {
                         className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-black hover:bg-slate-50 transition-premium shadow-sm hover:shadow-md"
                     >
                         <span className="material-symbols-outlined text-[20px] text-primary-accent">document_scanner</span>
-                        <span>Scan Invoice AI</span>
+                        <span>Quét Hóa đơn AI</span>
                     </button>
                     <button className="flex items-center gap-2 px-6 py-3 mesh-gradient text-white rounded-2xl text-sm font-black hover:opacity-90 shadow-premium transition-premium group">
                         <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-premium">add</span>
-                        <span>New Payment</span>
+                        <span>Thanh toán mới</span>
                     </button>
                 </div>
             </div>
@@ -135,25 +135,25 @@ export default function Finance() {
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                         <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
                             <PremiumStatCard
-                                title="Net Assets"
+                                title="Tài sản ròng"
                                 value="42.8B ₫"
-                                sub="+5.2% vs Last Month"
+                                sub="+5.2% so với tháng trước"
                                 icon="account_balance_wallet"
                                 color="bg-primary"
                                 trend={5.2}
                             />
                             <PremiumStatCard
-                                title="Monthly Revenue"
+                                title="Doanh thu tháng"
                                 value="12.5B ₫"
-                                sub="Target: 15.0B ₫"
+                                sub="Mục tiêu: 15.0B ₫"
                                 icon="show_chart"
                                 color="bg-emerald"
                                 trend={12.4}
                             />
                             <PremiumStatCard
-                                title="Operating Costs"
+                                title="Chi phí vận hành"
                                 value="9.8B ₫"
-                                sub="Vendor Debt: 3.4B ₫"
+                                sub="Nợ nhà thầu: 3.4B ₫"
                                 icon="output"
                                 color="bg-red-500"
                                 trend={-2.1}
@@ -168,8 +168,8 @@ export default function Finance() {
                     <div className="bg-white rounded-[40px] border border-slate-200 shadow-glass overflow-hidden">
                         <div className="flex border-b border-slate-100 p-2 bg-slate-50/50">
                             {[
-                                { id: 'cashflow', label: 'Cash Flow & Budget', icon: 'query_stats' },
-                                { id: 'payments', label: 'Transactions & Debt', icon: 'history' },
+                                { id: 'cashflow', label: 'Dòng tiền & Ngân sách', icon: 'query_stats' },
+                                { id: 'payments', label: 'Giao dịch & Công nợ', icon: 'history' },
                             ].map((tab) => (
                                 <button
                                     key={tab.id}
@@ -190,8 +190,8 @@ export default function Finance() {
                                 <div className="space-y-8">
                                     <div className="h-[400px] w-full relative">
                                         <div className="absolute top-0 left-0">
-                                            <h4 className="text-xl font-black text-slate-900 tracking-tight">Financial Trajectory</h4>
-                                            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Comparison: Inflow vs Outflow</p>
+                                            <h4 className="text-xl font-black text-slate-900 tracking-tight">Quỹ đạo Tài chính</h4>
+                                            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">So sánh: Dòng thu vs Dòng chi</p>
                                         </div>
                                         <ResponsiveContainer width="100%" height="100%">
                                             <AreaChart data={costStructureData} margin={{ top: 60, right: 10, left: -20, bottom: 0 }}>
@@ -211,15 +211,16 @@ export default function Finance() {
                                                 <Tooltip
                                                     contentStyle={{ borderRadius: '24px', border: 'none', padding: '16px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}
                                                 />
-                                                <Area type="monotone" dataKey="inflow" name="Inflow" stroke="#10b981" fillOpacity={1} fill="url(#colorIn)" strokeWidth={4} />
-                                                <Area type="monotone" dataKey="outflow" name="Outflow" stroke="#ef4444" fillOpacity={1} fill="url(#colorOut)" strokeWidth={4} />
+                                                <Area type="monotone" dataKey="inflow" name="Dòng thu" stroke="#10b981" fillOpacity={1} fill="url(#colorIn)" strokeWidth={4} />
+                                                <Area type="monotone" dataKey="outflow" name="Dòng chi" stroke="#ef4444" fillOpacity={1} fill="url(#colorOut)" strokeWidth={4} />
+                                                <Legend verticalAlign="top" height={36} />
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-slate-100">
                                         <div className="space-y-4">
-                                            <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Top Revenue Sources</h5>
+                                            <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nguồn thu chính</h5>
                                             <div className="space-y-3">
                                                 {[1, 2].map(i => (
                                                     <div key={i} className="flex justify-between items-center bg-slate-50/50 p-4 rounded-2xl hover:bg-slate-100 transition-premium cursor-pointer group">
@@ -235,7 +236,7 @@ export default function Finance() {
                                             </div>
                                         </div>
                                         <div className="space-y-4">
-                                            <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Top Cost Drivers</h5>
+                                            <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hạng mục chi chính</h5>
                                             <div className="space-y-3">
                                                 {[1, 2].map(i => (
                                                     <div key={i} className="flex justify-between items-center bg-slate-50/50 p-4 rounded-2xl hover:bg-slate-100 transition-premium cursor-pointer group">
@@ -260,11 +261,11 @@ export default function Finance() {
                                         <table className="w-full text-left">
                                             <thead>
                                                 <tr className="border-b border-slate-100">
-                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Operation Details</th>
-                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Project Origin</th>
-                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Amount (₫)</th>
-                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
-                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Action</th>
+                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Chi tiết Giao dịch</th>
+                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Dự án liên quan</th>
+                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Số tiền (₫)</th>
+                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Trạng thái</th>
+                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Thao tác</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-50">
@@ -272,12 +273,12 @@ export default function Finance() {
                                                     <tr key={req.id} className="hover:bg-slate-50/80 transition-premium group">
                                                         <td className="px-6 py-5">
                                                             <p className="font-black text-slate-900">{req.partner_name}</p>
-                                                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 italic">Ref: PAY_{req.id.slice(0, 8)}</p>
+                                                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 italic">Mã: PAY_{req.id.slice(0, 8)}</p>
                                                         </td>
                                                         <td className="px-6 py-5">
                                                             <div className="flex items-center gap-2">
                                                                 <div className="size-2 rounded-full bg-primary-accent"></div>
-                                                                <span className="text-sm font-bold text-slate-600">Trường Tiểu học Tiên Sơn</span>
+                                                                <span className="text-sm font-bold text-slate-600">Dự án trọng điểm</span>
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-5 text-right font-black text-slate-900 tracking-tight">
@@ -289,12 +290,12 @@ export default function Finance() {
                                                                     ? 'bg-emerald/10 text-emerald border border-emerald/20'
                                                                     : 'bg-blue-50 text-blue-600 border border-blue-100'
                                                                     }`}>
-                                                                    {req.status === 'paid' ? 'Paid' : 'In Review'}
+                                                                    {req.status === 'paid' ? 'Đã thanh toán' : 'Đang xử lý'}
                                                                 </span>
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-5 text-right">
-                                                            <button className="px-4 py-2 bg-white text-[10px] font-black text-primary border border-slate-200 rounded-xl hover:bg-primary hover:text-white hover:border-primary transition-premium shadow-sm">VIEW</button>
+                                                            <button className="px-4 py-2 bg-white text-[10px] font-black text-primary border border-slate-200 rounded-xl hover:bg-primary hover:text-white hover:border-primary transition-premium shadow-sm">XEM</button>
                                                         </td>
                                                     </tr>
                                                 )) : (
@@ -302,7 +303,7 @@ export default function Finance() {
                                                         <td colSpan={5} className="py-20 text-center">
                                                             <div className="inline-flex flex-col items-center">
                                                                 <span className="material-symbols-outlined text-slate-200 text-[64px] mb-4">payments</span>
-                                                                <p className="text-slate-400 font-bold">No transactions found</p>
+                                                                <p className="text-slate-400 font-bold">Không tìm thấy giao dịch nào</p>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -321,7 +322,7 @@ export default function Finance() {
                 isOpen={isInvoiceScanModalOpen}
                 onClose={() => setIsInvoiceScanModalOpen(false)}
                 onSave={(data) => {
-                    console.log('Saved Scanned Invoice:', data);
+                    console.log('Đã lưu hóa đơn quét được:', data);
                     setIsInvoiceScanModalOpen(false);
                 }}
                 projects={projects}
