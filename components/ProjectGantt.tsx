@@ -15,17 +15,17 @@ const ProjectGantt: React.FC<ProjectGanttProps> = ({ items }) => {
         const startDate = item.start_date ? new Date(item.start_date) : new Date();
         const endDate = item.end_date ? new Date(item.end_date) : new Date();
 
-        let color = '#cbd5e1'; // Default slate-300
+        let color = '#f1f5f9'; // Default slate-100
         let progressColor = '#64748b'; // Default slate-500
 
         if (item.status === 'done') {
-            color = '#bbf7d0'; // green-200
-            progressColor = '#22c55e'; // green-500
+            color = '#d1fae5'; // emerald-100
+            progressColor = '#10b981'; // emerald-500
         } else if (item.status === 'active') {
-            color = '#bfdbfe'; // blue-200
-            progressColor = '#3b82f6'; // blue-500
+            color = '#fef9c3'; // yellow-100
+            progressColor = '#eab308'; // yellow-500
         } else if (item.status === 'delayed') {
-            color = '#fecaca'; // red-200
+            color = '#fee2e2'; // red-100
             progressColor = '#ef4444'; // red-500
         }
 
@@ -57,8 +57,8 @@ const ProjectGantt: React.FC<ProjectGanttProps> = ({ items }) => {
     }
 
     return (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 overflow-hidden">
-            <div className="flex justify-between items-center mb-4">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 overflow-hidden">
+            <div className="flex justify-between items-center mb-6">
                 <h3 className="font-bold text-slate-700">Biểu đồ Gantt</h3>
                 <div className="flex bg-slate-100 p-1 rounded-lg">
                     <button
@@ -81,21 +81,22 @@ const ProjectGantt: React.FC<ProjectGanttProps> = ({ items }) => {
                     </button>
                 </div>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-6 px-6">
                 <Gantt
                     tasks={tasks}
                     viewMode={viewMode}
                     locale="vi"
-                    columnWidth={viewMode === ViewMode.Month ? 300 : 80} // Wider columns
-                    listCellWidth="200px" // Wider name column
-                    barFill={50} // 60% height (thinner bars)
+                    columnWidth={viewMode === ViewMode.Month ? 350 : 100} // Wider columns
+                    listCellWidth="300px" // Wider list column
+                    barFill={60}
                     barCornerRadius={4}
-                    rowHeight={50}
-                    projectBackgroundColor="#f1f5f9"
+                    rowHeight={55} // More breathy rows
+                    projectBackgroundColor="#f8fafc"
                     projectProgressColor="#475569"
                     projectProgressSelectedColor="#334155"
                     fontFamily="Inter, sans-serif"
                     fontSize="12px"
+                    todayColor="rgba(252, 211, 77, 0.1)"
                 />
             </div>
         </div>
