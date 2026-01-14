@@ -1,21 +1,26 @@
-
+import * as L from 'leaflet';
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, ScaleControl } from 'react-leaflet';
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix Leaflet icon issue
+// Fix Leaflet icon issue safely
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
-let DefaultIcon = L.icon({
+// Handle potential ESM default issues
+const Leaflet = (L as any).default || L;
+
+const DefaultIcon = Leaflet.icon({
     iconUrl: icon,
     shadowUrl: iconShadow,
     iconSize: [25, 41],
     iconAnchor: [12, 41]
 });
 
-L.Marker.prototype.options.icon = DefaultIcon;
+// Update prototype safely
+if (Leaflet.Marker && Leaflet.Marker.prototype && Leaflet.Marker.prototype.options) {
+    Leaflet.Marker.prototype.options.icon = DefaultIcon;
+}
 
 interface ProjectPoint {
     id: string;
@@ -59,7 +64,7 @@ const getStatusLabel = (status: string) => {
 };
 
 const createCustomIcon = (color: string) => {
-    return new L.DivIcon({
+    return new Leaflet.DivIcon({
         className: 'custom-div-icon',
         html: `<div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.3);"></div>`,
         iconSize: [14, 14],
