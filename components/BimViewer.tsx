@@ -1,6 +1,6 @@
 import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useThree, useLoader } from '@react-three/fiber';
-import { useGLTF, OrbitControls, Stage, Html } from '@react-three/drei';
+import { useGLTF, OrbitControls, Html, Center, Environment, GizmoHelper, GizmoViewport } from '@react-three/drei';
 import * as THREE from 'three';
 import { IFCLoader } from 'web-ifc-three/IFCLoader';
 
@@ -76,7 +76,9 @@ const IFCModel = ({ url, file, progressUpdate }: { url?: string; file?: File; pr
                 // await ifcLoader.ifcManager.useWebWorkers(true, '/web-ifc-worker.js'); // Only if we have worker
 
                 const onLoad = (ifcModel: THREE.Object3D) => {
-                    console.log('IFC Loaded successfully');
+                    console.log('IFC Loaded:', ifcModel);
+                    // Ensure matrix is updated
+                    ifcModel.updateMatrixWorld(true);
                     setModel(ifcModel);
                     setIsLoading(false);
                 };
@@ -87,22 +89,22 @@ const IFCModel = ({ url, file, progressUpdate }: { url?: string; file?: File; pr
                     setIsLoading(false);
                 };
 
-                const onProgress = (event: ProgressEvent) => {
-                    // console.log(`Loading: ${event.loaded} / ${event.total}`);
-                };
+                // const onProgress = (event: ProgressEvent) => {
+                //     // console.log(`Loading: ${event.loaded} / ${event.total}`);
+                // };
 
                 if (file) {
                     const ifcURL = URL.createObjectURL(file);
                     // Use a slightly different approach for file object to ensure array buffer is read correctly if needed,
                     // but cleaner is just passing the URL.
-                    ifcLoader.load(ifcURL, onLoad, onProgress, onError);
+                    ifcLoader.load(ifcURL, onLoad, undefined, onError);
 
                     // Cleanup
                     return () => {
                         URL.revokeObjectURL(ifcURL);
                     };
                 } else if (url) {
-                    ifcLoader.load(url, onLoad, onProgress, onError);
+                    ifcLoader.load(url, onLoad, undefined, onError);
                 } else {
                     setIsLoading(false);
                 }
@@ -200,10 +202,26 @@ const BimViewer: React.FC<BimViewerProps> = ({ modelUrl, progressUpdate, autoRot
             </div>
 
             <Canvas shadows dpr={[1, 2]} camera={{ position: [50, 50, 50], fov: 50 }}>
-                <Stage environment="city" intensity={0.5} contactShadow={{ opacity: 0.4, blur: 2 }}>
+                <ambientLight intensity={0.5} />
+                <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
+                <pointLight position={[-10, -10, -10]} />
+
+                <Environment preset="city" />
+
+                <group position={[0, -1, 0]}>
+                    <gridHelper args={[100, 100, 0x444444, 0x222222]} />
+                    <axesHelper args={[5]} />
+                </group>
+
+                <Center top>
                     <Model url={localFile ? undefined : modelUrl} file={localFile || undefined} progressUpdate={progressUpdate} />
-                </Stage>
+                </Center>
+
                 <OrbitControls makeDefault autoRotate={autoRotate && !localFile} />
+
+                <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
+                    <GizmoViewport axisColors={['#9d4b4b', '#2f7f4f', '#3b5b9d']} labelColor="white" />
+                </GizmoHelper>
             </Canvas>
 
             {/* Legend Overlay */}

@@ -5,7 +5,7 @@ import { projectService } from '../src/services/projectService';
 import { financeService } from '../src/services/financeService';
 import { diaryService } from '../src/services/diaryService';
 import { importService } from '../src/services/importService'; // New Import
-import { Project, WBSItem, ProjectIssue, ProjectBudget, Contract } from '../types';
+import { Project, WBSItem, ProjectIssue, ProjectBudget, Contract, ProjectDocument } from '../types';
 import ProjectGantt from '../components/ProjectGantt';
 import ContractModal from '../components/ContractModal';
 import BudgetModal from '../components/BudgetModal';
@@ -13,6 +13,7 @@ import DiaryFeed from '../components/DiaryFeed';
 import DiaryFormModal from '../components/DiaryFormModal'; // New Import
 import BimViewer from '../components/BimViewer';
 import ErrorBoundary from '../components/ErrorBoundary';
+import IssueModal from '../components/IssueModal'; // New Import
 import { Suspense } from 'react';
 
 // Mock Chart Data (Keep for visual until backend supports time-series)
@@ -183,16 +184,93 @@ export default function ProjectDetail() {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('overview');
 
+
     const [project, setProject] = useState<Project | null>(null);
     const [wbs, setWbs] = useState<WBSItem[]>([]);
     const [issues, setIssues] = useState<ProjectIssue[]>([]);
     const [budget, setBudget] = useState<ProjectBudget[]>([]);
     const [contracts, setContracts] = useState<Contract[]>([]);
+    const [documents, setDocuments] = useState<ProjectDocument[]>([]); // New State
     const [wbsView, setWbsView] = useState<'list' | 'gantt'>('list');
     const [loading, setLoading] = useState(true);
-    const [diaryRefreshKey, setDiaryRefreshKey] = useState(0); // Add this for refreshing feed
+    const [diaryRefreshKey, setDiaryRefreshKey] = useState(0);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const modelInputRef = React.useRef<HTMLInputElement>(null);
+    const docInputRef = React.useRef<HTMLInputElement>(null); // New Ref
+
+    // Issue Modal State
+    const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
+    const [editingIssue, setEditingIssue] = useState<ProjectIssue | null>(null);
+
+    const openAddIssueModal = () => {
+        setEditingIssue(null);
+        setIsIssueModalOpen(true);
+    };
+
+    const openEditIssueModal = (issue: ProjectIssue) => {
+        setEditingIssue(issue);
+        setIsIssueModalOpen(true);
+    };
+
+    const handleDeleteIssue = async (issue: ProjectIssue) => {
+        if (confirm(`Bạn có chắc muốn xóa sự cố "${issue.title}"?`)) {
+            try {
+                await projectService.deleteProjectIssue(issue.id);
+                if (id) {
+                    const issuesData = await projectService.getProjectIssues(id);
+                    setIssues(issuesData);
+                }
+            } catch (error) {
+                alert('Lỗi khi xóa sự cố');
+            }
+        }
+    };
+
+    const handleIssueSaved = async () => {
+        if (id) {
+            const issuesData = await projectService.getProjectIssues(id);
+            setIssues(issuesData);
+        }
+    };
+
+    // Document Handlers
+    const handleDocUploadClick = () => {
+        docInputRef.current?.click();
+    };
+
+    const handleDocFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file || !id) return;
+
+        try {
+            // setLoading(true); // Optional
+            await projectService.uploadProjectDocument(id, file);
+            alert('Upload tài liệu thành công!');
+            // Refresh
+            const docs = await projectService.getProjectDocuments(id);
+            setDocuments(docs);
+        } catch (error: any) {
+            console.error(error);
+            alert('Lỗi khi upload tài liệu: ' + (error.message || 'Unknown error'));
+        } finally {
+            if (docInputRef.current) docInputRef.current.value = '';
+        }
+    };
+
+    const handleDeleteDocument = async (doc: ProjectDocument) => {
+        if (confirm(`Bạn có chắc muốn xóa tài liệu "${doc.name}"?`)) {
+            try {
+                await projectService.deleteProjectDocument(doc.id, doc.url);
+                if (id) {
+                    const docs = await projectService.getProjectDocuments(id);
+                    setDocuments(docs);
+                }
+            } catch (error) {
+                alert('Lỗi khi xóa tài liệu');
+            }
+        }
+    };
+
 
     // Contract Modal State
     const [isContractModalOpen, setIsContractModalOpen] = useState(false);
@@ -425,12 +503,13 @@ export default function ProjectDetail() {
     const fetchProjectData = async (projectId: string) => {
         setLoading(true);
         try {
-            const [p, w, i, b, c] = await Promise.all([
+            const [p, w, i, b, c, d] = await Promise.all([
                 projectService.getProjectById(projectId),
                 projectService.getProjectWBS(projectId),
                 projectService.getProjectIssues(projectId),
                 projectService.getProjectBudget(projectId),
-                financeService.getContractsByProjectId(projectId)
+                financeService.getContractsByProjectId(projectId),
+                projectService.getProjectDocuments(projectId)
             ]);
 
             if (!p) {
@@ -443,6 +522,7 @@ export default function ProjectDetail() {
             setIssues(i);
             setBudget(b);
             setContracts(c);
+            setDocuments(d);
         } catch (err) {
             console.error('Failed to fetch project details', err);
         } finally {
@@ -696,8 +776,17 @@ export default function ProjectDetail() {
 
                         {activeTab === 'issues' && (
                             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                                    <h3 className="font-bold text-slate-700">Danh sách Sự cố & Rủi ro</h3>
+                                    <button
+                                        onClick={openAddIssueModal}
+                                        className="text-xs font-bold text-red-600 bg-white border border-red-200 px-3 py-1.5 rounded hover:bg-red-50 transition-colors"
+                                    >
+                                        + Thêm Sự cố
+                                    </button>
+                                </div>
                                 <table className="w-full text-left">
-                                    <thead className="bg-slate-50 text-xs text-slate-500 uppercase font-semibold border-b border-slate-200">
+                                    <thead className="bg-white text-xs text-slate-500 uppercase font-semibold border-b border-slate-100">
                                         <tr>
                                             <th className="px-4 py-3">Mã</th>
                                             <th className="px-4 py-3">Loại</th>
@@ -706,13 +795,56 @@ export default function ProjectDetail() {
                                             <th className="px-4 py-3">Hạn xử lý</th>
                                             <th className="px-4 py-3">PIC</th>
                                             <th className="px-4 py-3">Trạng thái</th>
+                                            <th className="px-4 py-3 text-right">Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {issues.length > 0 ? issues.map(issue => (
-                                            <IssueRow key={issue.id} issue={issue} />
+                                            <tr key={issue.id} className="border-b border-slate-50 hover:bg-slate-50 group">
+                                                <td className="px-4 py-3 font-mono text-xs text-slate-500">{issue.code}</td>
+                                                <td className="px-4 py-3">
+                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${issue.type === 'NCR' ? 'bg-red-100 text-red-700' : issue.type === 'RFI' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+                                                        {issue.type}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-sm font-medium text-slate-900">{issue.title}</td>
+                                                <td className="px-4 py-3">
+                                                    <span className={`flex items-center gap-1 text-[10px] font-bold ${issue.priority === 'High' ? 'text-red-600' : 'text-slate-500'}`}>
+                                                        {issue.priority === 'High' && <span className="material-symbols-outlined text-[12px]">priority_high</span>}
+                                                        {issue.priority}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-xs text-slate-500">{issue.due_date}</td>
+                                                <td className="px-4 py-3 text-xs font-bold text-slate-700">{issue.pic}</td>
+                                                <td className="px-4 py-3">
+                                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${issue.status === 'Open' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>{issue.status}</span>
+                                                </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button
+                                                            onClick={() => openEditIssueModal(issue)}
+                                                            className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                                                            title="Sửa"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[16px]">edit</span>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteIssue(issue)}
+                                                            className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                            title="Xóa"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[16px]">delete</span>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
                                         )) : (
-                                            <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">Không có sự cố nào.</td></tr>
+                                            <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-500">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <span className="material-symbols-outlined text-4xl text-slate-300">check_circle</span>
+                                                    <p>Không có sự cố nào cần xử lý</p>
+                                                </div>
+                                            </td></tr>
                                         )}
                                     </tbody>
                                 </table>
@@ -1068,9 +1200,65 @@ export default function ProjectDetail() {
                         )}
 
                         {activeTab === 'documents' && (
-                            <div className="flex flex-col items-center justify-center p-12 bg-white rounded-xl border border-slate-200 text-slate-400">
-                                <span className="material-symbols-outlined text-[48px] mb-2">folder_open</span>
-                                <p>Chức năng Quản lý Hồ sơ đang được phát triển...</p>
+                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                                    <h3 className="font-bold text-slate-700 flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-slate-500">folder_shared</span>
+                                        Hồ sơ & Tài liệu Dự án
+                                    </h3>
+                                    <div>
+                                        <button
+                                            onClick={handleDocUploadClick}
+                                            className="text-xs font-bold text-white bg-indigo-600 px-3 py-1.5 rounded hover:bg-indigo-700 transition-colors flex items-center gap-1 shadow-sm"
+                                        >
+                                            <span className="material-symbols-outlined text-[16px]">cloud_upload</span>
+                                            Upload Tài liệu
+                                        </button>
+                                        <input
+                                            type="file"
+                                            ref={docInputRef}
+                                            onChange={handleDocFileChange}
+                                            className="hidden"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4">
+                                    {documents.length > 0 ? documents.map(doc => (
+                                        <div key={doc.id} className="group relative bg-white border border-slate-200 rounded-lg p-3 hover:shadow-md transition-shadow">
+                                            <div className="flex items-start justify-between mb-2">
+                                                <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                                                    <span className="material-symbols-outlined">description</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleDeleteDocument(doc)}
+                                                    className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-opacity"
+                                                    title="Xóa file"
+                                                >
+                                                    <span className="material-symbols-outlined text-[18px]">close</span>
+                                                </button>
+                                            </div>
+                                            <p className="text-sm font-medium text-slate-900 truncate mb-1" title={doc.name}>{doc.name}</p>
+                                            <div className="flex justify-between items-center text-xs text-slate-500">
+                                                <span>{(doc.size / 1024).toFixed(0)} KB</span>
+                                                <span>{doc.type}</span>
+                                            </div>
+
+                                            <a
+                                                href={doc.url}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="absolute inset-0 z-0"
+                                            />
+                                        </div>
+                                    )) : (
+                                        <div className="col-span-full border-2 border-dashed border-slate-200 rounded-lg p-8 flex flex-col items-center justify-center text-slate-400">
+                                            <span className="material-symbols-outlined text-5xl mb-2 opacity-50">cloud_off</span>
+                                            <p>Chưa có tài liệu nào.</p>
+                                            <button onClick={handleDocUploadClick} className="text-indigo-600 font-bold hover:underline mt-2">Upload ngay</button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -1113,6 +1301,16 @@ export default function ProjectDetail() {
                     setDiaryRefreshKey(prev => prev + 1);
                 }}
                 projectId={id || ''}
+            />
+
+
+            {/* Issue Modal */}
+            <IssueModal
+                isOpen={isIssueModalOpen}
+                onClose={() => setIsIssueModalOpen(false)}
+                onSaved={handleIssueSaved}
+                projectId={id || ''}
+                existingIssue={editingIssue}
             />
         </>
     )

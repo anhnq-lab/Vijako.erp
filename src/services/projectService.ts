@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { Project, WBSItem, ProjectIssue, ProjectBudget } from '../../types';
+import { Project, WBSItem, ProjectIssue, ProjectBudget, ProjectDocument } from '../../types';
 
 export const projectService = {
     async getAllProjects(): Promise<Project[]> {
@@ -355,6 +355,154 @@ export const projectService = {
             return publicUrl;
         } catch (error) {
             console.error('Error in uploadProjectModel:', error);
+            throw error;
+        }
+    },
+
+    // --- Issues Management ---
+
+    async createProjectIssue(issue: Omit<ProjectIssue, 'id' | 'created_at'>): Promise<ProjectIssue | null> {
+        const { data, error } = await supabase
+            .from('project_issues')
+            .insert(issue)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error creating issue:', error);
+            throw error;
+        }
+
+        return data;
+    },
+
+    async updateProjectIssue(id: string, updates: Partial<ProjectIssue>): Promise<ProjectIssue | null> {
+        const { data, error } = await supabase
+            .from('project_issues')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error(`Error updating issue ${id}:`, error);
+            throw error;
+        }
+
+        return data;
+    },
+
+    async deleteProjectIssue(id: string): Promise<boolean> {
+        const { error } = await supabase
+            .from('project_issues')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error(`Error deleting issue ${id}:`, error);
+            throw error;
+        }
+
+        return true;
+    },
+
+    // --- Documents Management ---
+
+    async getProjectDocuments(projectId: string): Promise<ProjectDocument[]> {
+        const { data, error } = await supabase
+            .from('project_documents')
+            .select('*')
+            .eq('project_id', projectId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error(`Error fetching documents for project ${projectId}:`, error);
+            return [];
+        }
+
+        return data || [];
+    },
+
+    async uploadProjectDocument(projectId: string, file: File, uploadedBy?: string): Promise<ProjectDocument | null> {
+        try {
+            const fileExt = file.name.split('.').pop();
+            // Sanitize filename to avoid issues
+            const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+            const filePath = `${projectId}/docs/${Date.now()}_${sanitizedName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('project-files')
+                .upload(filePath, file);
+
+            if (uploadError) {
+                console.error('Error uploading document:', uploadError);
+                throw uploadError;
+            }
+
+            const { data: urlData } = supabase.storage
+                .from('project-files')
+                .getPublicUrl(filePath);
+
+            const documentData: Omit<ProjectDocument, 'id' | 'created_at'> = {
+                project_id: projectId,
+                name: file.name,
+                type: fileExt || 'unknown',
+                size: file.size,
+                url: urlData.publicUrl,
+                uploaded_by: uploadedBy || 'User'
+            };
+
+            const { data, error: dbError } = await supabase
+                .from('project_documents')
+                .insert(documentData)
+                .select()
+                .single();
+
+            if (dbError) {
+                console.error('Error saving document metadata:', dbError);
+                throw dbError;
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Error in uploadProjectDocument:', error);
+            throw error;
+        }
+    },
+
+    async deleteProjectDocument(id: string, url: string): Promise<boolean> {
+        try {
+            // 1. Delete from Storage (Extract path from URL if needed, but for now just delete DB record is safer if path parsing is complex)
+            // Ideally we should delete from storage too.
+            // formatting: .../project-files/projectId/docs/...
+
+            // Extract relative path from URL
+            const pathObj = url.split('/project-files/')[1];
+            if (pathObj) {
+                const { error: storageError } = await supabase.storage
+                    .from('project-files')
+                    .remove([pathObj]);
+
+                if (storageError) {
+                    console.warn('Error deleting file from storage:', storageError);
+                    // Continue to delete from DB anyway
+                }
+            }
+
+            // 2. Delete from DB
+            const { error } = await supabase
+                .from('project_documents')
+                .delete()
+                .eq('id', id);
+
+            if (error) {
+                console.error(`Error deleting document ${id}:`, error);
+                throw error;
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Error in deleteProjectDocument:', error);
             throw error;
         }
     }

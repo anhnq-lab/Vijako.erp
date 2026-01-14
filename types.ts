@@ -138,3 +138,14 @@ export interface DailyLog {
   created_at: string;
   updated_at: string;
 }
+
+export interface ProjectDocument {
+  id: string;
+  project_id: string;
+  name: string;
+  type: string;
+  size: number;
+  url: string;
+  uploaded_by?: string;
+  created_at: string;
+}
