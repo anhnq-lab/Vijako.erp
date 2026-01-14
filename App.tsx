@@ -9,6 +9,7 @@ import Finance from './pages/Finance';
 import SupplyChain from './pages/SupplyChain';
 import HRM from './pages/HRM';
 import Documents from './pages/Documents';
+import Recruitment from './pages/Recruitment';
 
 const SidebarItem = ({ to, icon, label, active, count }: { to: string; icon: string; label: string; active: boolean; count?: number }) => (
   <Link
@@ -57,6 +58,7 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
           <SidebarItem to="/finance" icon="account_balance_wallet" label="Tài chính & Hợp đồng" active={path === '/finance'} />
           <SidebarItem to="/supply" icon="inventory_2" label="Chuỗi Cung ứng" active={path === '/supply'} />
           <SidebarItem to="/hrm" icon="groups" label="Nhân sự & Đào tạo" active={path === '/hrm'} />
+          <SidebarItem to="/recruitment" icon="person_search" label="Tuyển dụng" active={path === '/recruitment'} />
 
           <div className="px-3 mt-6 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Công cụ</div>
           <SidebarItem to="/documents" icon="folder_open" label="Hồ sơ Tài liệu (CDE)" active={path === '/documents'} />
@@ -100,6 +102,7 @@ export default function App() {
           <Route path="/finance" element={<Finance />} />
           <Route path="/supply" element={<SupplyChain />} />
           <Route path="/hrm" element={<HRM />} />
+          <Route path="/recruitment" element={<Recruitment />} />
           <Route path="/documents" element={<Documents />} />
           {/* Placeholders for other routes */}
           <Route path="*" element={<div className="p-10 text-center text-slate-500">Đang phát triển...</div>} />

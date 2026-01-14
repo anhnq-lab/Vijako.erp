@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
-import { hrmService, Employee } from '../src/services/hrmService';
+import { hrmService } from '../src/services/hrmService';
+import { Employee } from '../types';
 
 // Data for Attendance
 const attendanceData = [
@@ -12,12 +13,6 @@ const attendanceData = [
     { day: 'T7', present: 130, absent: 15, late: 0 },
 ];
 
-const workforceData = [
-    { name: 'Kỹ sư/Giám sát', value: 45 },
-    { name: 'Công nhân lành nghề', value: 120 },
-    { name: 'Lao động phổ thông', value: 80 },
-    { name: 'Văn phòng', value: 30 },
-];
 const COLORS = ['#1f3f89', '#07883d', '#FACC15', '#64748b'];
 
 const EmployeeRow = ({ employee }: { employee: Employee }) => (
@@ -41,7 +36,7 @@ const EmployeeRow = ({ employee }: { employee: Employee }) => (
         </td>
         <td className="px-6 py-4">
             <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${employee.status === 'active' ? 'bg-green-50 text-green-700' :
-                    employee.status === 'leave' ? 'bg-orange-50 text-orange-700' : 'bg-slate-100 text-slate-500'
+                employee.status === 'leave' ? 'bg-orange-50 text-orange-700' : 'bg-slate-100 text-slate-500'
                 }`}>
                 {employee.status === 'active' ? 'Đang làm việc' : employee.status === 'leave' ? 'Nghỉ phép' : 'Vắng mặt'}
             </span>
@@ -88,6 +83,62 @@ export default function HRM() {
         }
     };
 
+    const handleCheckIn = async () => {
+        if (!navigator.geolocation) {
+            alert('Trình duyệt không hỗ trợ định vị GPS.');
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const { latitude, longitude } = position.coords;
+            try {
+                // Mocking current employee as the first one for demo purposes
+                // In real app, this would come from an auth context
+                const currentEmp = employees[0];
+                if (!currentEmp) return;
+
+                await hrmService.checkIn({
+                    employee_id: currentEmp.id,
+                    check_in: new Date().toISOString(),
+                    location_lat: latitude,
+                    location_lng: longitude,
+                    site_id: 'Vijako Tower'
+                });
+                alert('Điểm danh thành công!');
+                fetchEmployees(); // Refresh list
+            } catch (error) {
+                alert('Có lỗi xảy ra khi điểm danh.');
+            }
+        });
+    };
+
+    const workforceStats = React.useMemo(() => {
+        const counts = {
+            'Kỹ sư/Giám sát': 0,
+            'Công nhân lành nghề': 0,
+            'Lao động phổ thông': 0,
+            'Văn phòng': 0,
+        };
+
+        employees.forEach(emp => {
+            const role = emp.role.toLowerCase();
+            if (role.includes('kỹ sư') || role.includes('giám sát') || role.includes('chỉ huy') || role.includes('trắc đạc')) {
+                counts['Kỹ sư/Giám sát']++;
+            } else if (role.includes('công nhân')) {
+                counts['Công nhân lành nghề']++;
+            } else if (role.includes('lao động')) {
+                counts['Lao động phổ thông']++;
+            } else {
+                counts['Văn phòng']++;
+            }
+        });
+
+        return Object.entries(counts).map(([name, value]) => ({ name, value }));
+    }, [employees]);
+
+    const activeCount = employees.filter(e => e.status === 'active').length;
+    const leaveCount = employees.filter(e => e.status === 'leave').length;
+
     return (
         <div className="flex flex-col h-full bg-background-light">
             <header className="bg-white border-b border-slate-100 px-8 py-5 flex justify-between items-center shrink-0">
@@ -110,7 +161,7 @@ export default function HRM() {
 
                     {/* KPI Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <StatCard title="Tổng nhân sự" value={employees.length} sub={`Active: ${employees.filter(e => e.status === 'active').length}`} icon="groups" color="bg-blue-50 text-blue-600" />
+                        <StatCard title="Tổng nhân sự" value={employees.length} sub={`Đang làm việc: ${activeCount} | Nghỉ phép: ${leaveCount}`} icon="groups" color="bg-blue-50 text-blue-600" />
                         <StatCard title="Tỷ lệ chuyên cần" value="96.5%" sub="Thấp nhất vào Thứ 7" icon="event_available" color="bg-green-50 text-green-600" />
                         <StatCard title="Đào tạo & Cấp chứng chỉ" value="85%" sub="Nhân sự đạt chuẩn An toàn" icon="workspace_premium" color="bg-yellow-50 text-yellow-600" />
                         <StatCard title="Chi phí nhân sự (T10)" value="4.2 Tỷ" sub="Bao gồm lương & phúc lợi" icon="payments" color="bg-red-50 text-red-600" />
@@ -125,9 +176,17 @@ export default function HRM() {
                                     <h3 className="font-bold text-slate-900 flex items-center gap-2">
                                         <span className="material-symbols-outlined text-primary">location_on</span> Bản đồ chấm công (Live GPS)
                                     </h3>
-                                    <div className="flex items-center gap-2">
-                                        <span className="flex size-2 bg-green-500 rounded-full animate-pulse"></span>
-                                        <span className="text-xs font-bold text-slate-600">Real-time</span>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={handleCheckIn}
+                                            className="bg-primary text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-primary/90 shadow-sm flex items-center gap-1.5"
+                                        >
+                                            <span className="material-symbols-outlined text-[16px]">how_to_reg</span> Điểm danh ngay
+                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <span className="flex size-2 bg-green-500 rounded-full animate-pulse"></span>
+                                            <span className="text-xs font-bold text-slate-600">Real-time</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex-1 relative bg-slate-100 group">
@@ -176,7 +235,7 @@ export default function HRM() {
                                     <ResponsiveContainer width="100%" height="100%">
                                         <PieChart>
                                             <Pie
-                                                data={workforceData}
+                                                data={workforceStats}
                                                 cx="50%"
                                                 cy="50%"
                                                 innerRadius={60}
@@ -184,7 +243,7 @@ export default function HRM() {
                                                 paddingAngle={5}
                                                 dataKey="value"
                                             >
-                                                {workforceData.map((entry, index) => (
+                                                {workforceStats.map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                 ))}
                                             </Pie>
@@ -193,10 +252,10 @@ export default function HRM() {
                                     </ResponsiveContainer>
                                 </div>
                                 <div className="space-y-2 mt-2">
-                                    {workforceData.map((entry, index) => (
+                                    {workforceStats.map((entry, index) => (
                                         <div key={index} className="flex justify-between items-center text-xs">
                                             <div className="flex items-center gap-2">
-                                                <span className="size-2 rounded-full" style={{ backgroundColor: COLORS[index] }}></span>
+                                                <span className="size-2 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
                                                 <span className="text-slate-600">{entry.name}</span>
                                             </div>
                                             <span className="font-bold text-slate-900">{entry.value}</span>

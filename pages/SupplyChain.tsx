@@ -70,7 +70,7 @@ const OrderRow = ({ order }: { order: PurchaseOrder }) => {
     )
 }
 
-const InventoryItemRow = ({ item }: { item: InventoryItem }) => (
+const InventoryItemRow = ({ item, onOrderNow }: { item: InventoryItem; onOrderNow: (item: InventoryItem) => void }) => (
     <div className="bg-white border border-slate-100 rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow">
         <div className="flex items-center gap-4">
             <div className={`size-10 rounded-lg flex items-center justify-center ${item.status === 'Low' ? 'bg-red-50 text-red-600' : 'bg-slate-50 text-slate-600'}`}>
@@ -99,7 +99,10 @@ const InventoryItemRow = ({ item }: { item: InventoryItem }) => (
                     <div className={`h-full rounded-full ${item.status === 'Low' ? 'bg-red-500' : 'bg-primary'}`} style={{ width: `${Math.min((item.quantity / item.min_quantity) * 50, 100)}%` }}></div>
                 </div>
             </div>
-            <button className={`px-3 py-1.5 rounded text-xs font-bold ${item.status === 'Low' ? 'bg-red-50 text-red-600 border border-red-100 hover:bg-red-100' : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'}`}>
+            <button
+                onClick={() => onOrderNow(item)}
+                className={`px-3 py-1.5 rounded text-xs font-bold ${item.status === 'Low' ? 'bg-red-50 text-red-600 border border-red-100 hover:bg-red-100' : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+            >
                 {item.status === 'Low' ? 'Đặt hàng ngay' : 'Điều chuyển'}
             </button>
         </div>
@@ -125,6 +128,14 @@ export default function SupplyChain() {
     const [orders, setOrders] = useState<PurchaseOrder[]>([]);
     const [inventory, setInventory] = useState<InventoryItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isPOModalOpen, setIsPOModalOpen] = useState(false);
+    const [newPO, setNewPO] = useState({
+        vendor_id: '',
+        items_summary: '',
+        location: '',
+        total_amount: 0,
+        delivery_date: new Date().toISOString().split('T')[0]
+    });
 
     useEffect(() => {
         fetchData();
@@ -148,6 +159,36 @@ export default function SupplyChain() {
         }
     };
 
+    const handleCreatePO = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await supplyChainService.createOrder({
+                ...newPO,
+                po_number: `PO-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+                status: 'Pending'
+            } as any);
+            alert('Tạo đơn hàng thành công!');
+            setIsPOModalOpen(false);
+            fetchData();
+        } catch (error) {
+            alert('Có lỗi xảy ra khi tạo đơn hàng.');
+        }
+    };
+
+    const handleOrderNow = async (item: InventoryItem) => {
+        const amount = prompt(`Nhập số lượng muốn đặt thêm cho ${item.name} (${item.unit}):`, item.min_quantity.toString());
+        if (!amount) return;
+
+        try {
+            // In a real app, this would create a PO. For now, we update inventory directly for demo
+            await supplyChainService.updateInventoryQuantity(item.id, item.quantity + parseInt(amount));
+            alert('Đã cập nhật số lượng tồn kho!');
+            fetchData();
+        } catch (error) {
+            alert('Có lỗi xảy ra.');
+        }
+    };
+
     return (
         <div className="flex flex-col h-full bg-background-light">
             <header className="bg-white border-b border-slate-100 px-8 py-5 flex justify-between items-center shrink-0">
@@ -159,7 +200,10 @@ export default function SupplyChain() {
                     <button className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-slate-50">
                         <span className="material-symbols-outlined text-[20px]">qr_code_scanner</span> Quét Nhập/Xuất
                     </button>
-                    <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-primary/90 shadow-lg shadow-primary/20">
+                    <button
+                        onClick={() => setIsPOModalOpen(true)}
+                        className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-primary/90 shadow-lg shadow-primary/20"
+                    >
                         <span className="material-symbols-outlined text-[20px]">shopping_cart</span> Tạo Đơn hàng (PO)
                     </button>
                 </div>
@@ -289,7 +333,7 @@ export default function SupplyChain() {
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {inventory.length > 0 ? inventory.map(item => (
-                                                    <InventoryItemRow key={item.id} item={item} />
+                                                    <InventoryItemRow key={item.id} item={item} onOrderNow={handleOrderNow} />
                                                 )) : (
                                                     <p className="text-center text-slate-500 col-span-2">Không có dữ liệu tồn kho.</p>
                                                 )}
@@ -333,6 +377,84 @@ export default function SupplyChain() {
                     </div>
                 </div>
             </div>
+
+            {/* PO Modal */}
+            {isPOModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                                <span className="material-symbols-outlined text-primary">add_shopping_cart</span> Tạo đơn mua hàng mới
+                            </h3>
+                            <button onClick={() => setIsPOModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+                        <form onSubmit={handleCreatePO} className="p-6 space-y-4">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase">Nhà cung cấp</label>
+                                <select
+                                    required
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm"
+                                    value={newPO.vendor_id}
+                                    onChange={(e) => setNewPO({ ...newPO, vendor_id: e.target.value })}
+                                >
+                                    <option value="">Chọn nhà cung cấp...</option>
+                                    {vendors.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+                                </select>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase">Nội dung hàng hóa</label>
+                                <input
+                                    required
+                                    type="text"
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm"
+                                    placeholder="Ví dụ: Thép Hòa Phát D20 (10 tấn)"
+                                    value={newPO.items_summary}
+                                    onChange={(e) => setNewPO({ ...newPO, items_summary: e.target.value })}
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase">Giá trị (VNĐ)</label>
+                                    <input
+                                        required
+                                        type="number"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm"
+                                        value={newPO.total_amount}
+                                        onChange={(e) => setNewPO({ ...newPO, total_amount: parseInt(e.target.value) })}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase">Ngày giao hàng</label>
+                                    <input
+                                        required
+                                        type="date"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm"
+                                        value={newPO.delivery_date}
+                                        onChange={(e) => setNewPO({ ...newPO, delivery_date: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-500 uppercase">Địa điểm giao hàng</label>
+                                <input
+                                    required
+                                    type="text"
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm"
+                                    placeholder="Dự án Vijako Tower..."
+                                    value={newPO.location}
+                                    onChange={(e) => setNewPO({ ...newPO, location: e.target.value })}
+                                />
+                            </div>
+                            <div className="pt-4 flex gap-3">
+                                <button type="button" onClick={() => setIsPOModalOpen(false)} className="flex-1 px-4 py-2.5 rounded-lg border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50">Hủy</button>
+                                <button type="submit" className="flex-1 px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90 shadow-lg shadow-primary/20">Xác nhận PO</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

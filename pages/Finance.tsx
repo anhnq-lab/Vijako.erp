@@ -4,6 +4,8 @@ import {
     PieChart, Pie, Cell, Area
 } from 'recharts';
 import { financeService, Contract } from '../src/services/financeService';
+import { biddingService } from '../src/services/biddingService';
+import { BiddingPackage } from '../types';
 
 // --- Enhanced Data ---
 
@@ -98,7 +100,7 @@ const PaymentRequestRow = ({ id, sub, project, amount, date, status, blocked }: 
         <td className="px-4 py-3 text-xs text-slate-500">{date}</td>
         <td className="px-4 py-3">
             <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' :
-                    status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 'bg-red-50 text-red-700 border-red-200'
+                status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 'bg-red-50 text-red-700 border-red-200'
                 }`}>
                 {status === 'approved' ? 'Đã duyệt' : status === 'pending' ? 'Chờ duyệt' : 'Từ chối'}
             </span>
@@ -140,6 +142,30 @@ const GuaranteeRow = ({ code, type, project, bank, value, expiry, status }: any)
         </tr>
     )
 }
+
+const BiddingPackageRow = ({ pkg }: { pkg: BiddingPackage }) => (
+    <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+        <td className="px-4 py-3">
+            <p className="text-sm font-bold text-slate-900">{pkg.title}</p>
+            <p className="text-[10px] text-slate-500 font-mono italic">ID: {pkg.id.split('-')[0]}</p>
+        </td>
+        <td className="px-4 py-3 text-xs text-slate-600">
+            {pkg.budget ? `${(pkg.budget / 1000000000).toFixed(1)} Tỷ` : 'N/A'}
+        </td>
+        <td className="px-4 py-3 text-xs text-slate-500">{pkg.deadline}</td>
+        <td className="px-4 py-3">
+            <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${pkg.status === 'published' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                pkg.status === 'awarded' ? 'bg-green-50 text-green-700 border-green-200' :
+                    'bg-slate-50 text-slate-500 border-slate-200'
+                }`}>
+                {pkg.status === 'published' ? 'Đang mời thầu' : pkg.status === 'awarded' ? 'Đã có kết quả' : 'Bản nháp'}
+            </span>
+        </td>
+        <td className="px-4 py-3 text-right">
+            <button className="text-primary text-xs font-bold hover:underline">Xem hồ sơ</button>
+        </td>
+    </tr>
+);
 
 const StatCard = ({ title, value, sub, icon, color }: any) => (
     <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-start gap-4 hover:shadow-md transition-shadow">
@@ -191,18 +217,24 @@ const AIFinancialInsight = () => (
 export default function Finance() {
     const [activeTab, setActiveTab] = useState('contracts');
     const [contracts, setContracts] = useState<Contract[]>([]);
+    const [biddingPackages, setBiddingPackages] = useState<BiddingPackage[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchContracts();
+        fetchData();
     }, []);
 
-    const fetchContracts = async () => {
+    const fetchData = async () => {
+        setLoading(true);
         try {
-            const data = await financeService.getAllContracts();
-            setContracts(data);
+            const [cData, bData] = await Promise.all([
+                financeService.getAllContracts(),
+                biddingService.getAllPackages()
+            ]);
+            setContracts(cData);
+            setBiddingPackages(bData);
         } catch (error) {
-            console.error('Failed to fetch contracts', error);
+            console.error('Failed to fetch finance data', error);
         } finally {
             setLoading(false);
         }
@@ -328,19 +360,20 @@ export default function Finance() {
 
                     {/* Main Content Area with Tabs */}
                     <div>
-                        <div className="flex items-center gap-8 border-b border-slate-200 mb-6">
-                            {['contracts', 'guarantees', 'payables'].map(tab => (
+                        <div className="flex items-center gap-8 border-b border-slate-200 mb-6 font-bold text-sm">
+                            {['contracts', 'bidding', 'guarantees', 'payables'].map(tab => (
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
                                     className={`pb-3 text-sm font-bold border-b-2 transition-all capitalize ${activeTab === tab
-                                            ? 'border-primary text-primary'
-                                            : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
+                                        ? 'border-primary text-primary'
+                                        : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
                                         }`}
                                 >
                                     {tab === 'contracts' && 'Hợp đồng Đầu ra (A-B)'}
-                                    {tab === 'guarantees' && 'Quản lý Bảo lãnh (Bank Guarantees)'}
-                                    {tab === 'payables' && 'Thanh toán & Công nợ (Payables)'}
+                                    {tab === 'bidding' && 'Quản lý Đấu thầu (Bidding)'}
+                                    {tab === 'guarantees' && 'Bảo lãnh (Bank Guarantees)'}
+                                    {tab === 'payables' && 'Thanh toán & Công nợ'}
                                 </button>
                             ))}
                         </div>
@@ -370,6 +403,33 @@ export default function Finance() {
                                     <span className="material-symbols-outlined text-[40px] mb-2 group-hover:scale-110 transition-transform">add_circle</span>
                                     <span className="text-sm font-bold">Thêm Hợp đồng mới</span>
                                 </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'bidding' && (
+                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+                                    <h3 className="font-bold text-slate-900">Danh sách Gói thầu</h3>
+                                    <button className="bg-primary text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/90">Tạo gói thầu mới</button>
+                                </div>
+                                <table className="w-full text-left">
+                                    <thead className="bg-slate-50 text-[10px] text-slate-500 uppercase font-black tracking-widest">
+                                        <tr>
+                                            <th className="px-4 py-3">Tên Gói thầu</th>
+                                            <th className="px-4 py-3">Ngân sách dự kiến</th>
+                                            <th className="px-4 py-3">Hạn nộp hồ sơ</th>
+                                            <th className="px-4 py-3">Trạng thái</th>
+                                            <th className="px-4 py-3"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {biddingPackages.length > 0 ? biddingPackages.map(pkg => (
+                                            <BiddingPackageRow key={pkg.id} pkg={pkg} />
+                                        )) : (
+                                            <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-500 font-bold">Chưa có gói thầu nào.</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
                             </div>
                         )}
 

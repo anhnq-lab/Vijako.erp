@@ -152,3 +152,72 @@ export interface ProjectDocument {
   uploaded_by?: string;
   created_at: string;
 }
+
+export interface Employee {
+  id: string;
+  employee_code: string;
+  full_name: string;
+  role: string;
+  department: string;
+  site: string;
+  status: 'active' | 'leave' | 'inactive';
+  last_checkin?: string;
+  created_at?: string;
+}
+
+export interface Attendance {
+  id: string;
+  employee_id: string;
+  check_in: string;
+  check_out?: string;
+  location_lat?: number;
+  location_lng?: number;
+  site_id?: string;
+  status: 'present' | 'absent' | 'late' | 'leave';
+}
+
+export interface JobPosting {
+  id: string;
+  title: string;
+  department: string;
+  description?: string;
+  requirements?: string;
+  salary_range?: string;
+  start_date?: string;
+  end_date?: string;
+  status: 'open' | 'closed' | 'paused';
+  created_at?: string;
+}
+
+export interface JobApplication {
+  id: string;
+  job_id: string;
+  full_name: string;
+  email: string;
+  phone?: string;
+  cv_url?: string;
+  cover_letter?: string;
+  status: 'applied' | 'screening' | 'interviewing' | 'offered' | 'rejected';
+  applied_at?: string;
+}
+
+export interface BiddingPackage {
+  id: string;
+  project_id: string;
+  title: string;
+  description?: string;
+  budget?: number;
+  deadline?: string;
+  status: 'draft' | 'published' | 'closed' | 'awarded';
+}
+
+export interface BiddingQuote {
+  id: string;
+  package_id: string;
+  vendor_id: string;
+  vendor_name?: string;
+  price: number;
+  proposal_url?: string;
+  score?: number;
+  status: 'submitted' | 'under_review' | 'awarded' | 'rejected';
+}

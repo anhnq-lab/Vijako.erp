@@ -44,12 +44,41 @@ export const supplyChainService = {
         const { data, error } = await supabase
             .from('supply_chain_inventory')
             .select('*')
-            .order('status', { ascending: true }); // Low stock first (alphabetically L < N ?) No, 'Low' < 'Normal'. So Low first.
+            .order('status', { ascending: true });
 
         if (error) {
             console.error('Error fetching inventory:', error);
             throw error;
         }
         return data || [];
+    },
+
+    async createOrder(order: Omit<PurchaseOrder, 'id' | 'vendor_name'>) {
+        const { data, error } = await supabase
+            .from('supply_chain_orders')
+            .insert(order)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error creating order:', error);
+            throw error;
+        }
+        return data;
+    },
+
+    async updateInventoryQuantity(id: string, newQuantity: number) {
+        const { data, error } = await supabase
+            .from('supply_chain_inventory')
+            .update({ quantity: newQuantity })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error updating inventory:', error);
+            throw error;
+        }
+        return data;
     }
 };
