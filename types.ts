@@ -184,6 +184,8 @@ export interface Alert {
   id: string;
   project_id?: string;
   project_name?: string;
+  project_manager?: string;
+  project_code?: string;
   type: AlertType;
   severity: AlertSeverity;
   title: string;

@@ -7,15 +7,22 @@ interface InvoiceScanModalProps {
     onClose: () => void;
     onSave: (data: ExtractedInvoice & { project_id: string }) => void;
     projects: Project[];
+    defaultProjectId?: string;
 }
 
-export const InvoiceScanModal: React.FC<InvoiceScanModalProps> = ({ isOpen, onClose, onSave, projects }) => {
+export const InvoiceScanModal: React.FC<InvoiceScanModalProps> = ({ isOpen, onClose, onSave, projects, defaultProjectId }) => {
     const [file, setFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [scanning, setScanning] = useState(false);
     const [extractedData, setExtractedData] = useState<ExtractedInvoice | null>(null);
-    const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+    const [selectedProjectId, setSelectedProjectId] = useState<string>(defaultProjectId || '');
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    React.useEffect(() => {
+        if (defaultProjectId) {
+            setSelectedProjectId(defaultProjectId);
+        }
+    }, [defaultProjectId, isOpen]);
 
     if (!isOpen) return null;
 
@@ -214,9 +221,10 @@ export const InvoiceScanModal: React.FC<InvoiceScanModalProps> = ({ isOpen, onCl
                                         <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
                                             <p className="text-[10px] text-slate-400 font-black uppercase mb-1">Dự án áp dụng</p>
                                             <select
-                                                className="w-full bg-transparent font-bold text-slate-900 border-none p-0 focus:ring-0"
+                                                className={`w-full bg-transparent font-bold text-slate-900 border-none p-0 focus:ring-0 ${defaultProjectId ? 'opacity-60 cursor-not-allowed' : ''}`}
                                                 value={selectedProjectId}
                                                 onChange={(e) => setSelectedProjectId(e.target.value)}
+                                                disabled={!!defaultProjectId}
                                             >
                                                 <option value="">-- Chọn dự án --</option>
                                                 {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}

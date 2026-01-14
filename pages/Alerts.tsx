@@ -264,18 +264,28 @@ export default function Alerts() {
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dự án</p>
-                                        <p className="text-sm font-bold text-slate-900 truncate">{selectedAlert.project_name || 'Hệ thống'}</p>
+                                        <p className="text-sm font-bold text-slate-900 truncate">
+                                            {selectedAlert.project_name ? `${selectedAlert.project_name} (${selectedAlert.project_code})` : 'Hệ thống'}
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Giám đốc dự án</p>
+                                        <p className="text-sm font-bold text-slate-900 truncate">{selectedAlert.project_manager || 'N/A'}</p>
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Thời gian thông báo</p>
                                         <p className="text-sm font-bold text-slate-900">{new Date(selectedAlert.created_at).toLocaleString('vi-VN')}</p>
                                     </div>
-                                    {selectedAlert.due_date && (
-                                        <div className="space-y-1">
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Hạn xử lý</p>
-                                            <p className="text-sm font-bold text-red-600">{new Date(selectedAlert.due_date).toLocaleString('vi-VN')}</p>
-                                        </div>
-                                    )}
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Hạn xử lý</p>
+                                        <p className={`text-sm font-bold ${selectedAlert.due_date ? 'text-red-600' : 'text-slate-400'}`}>
+                                            {selectedAlert.due_date ? new Date(selectedAlert.due_date).toLocaleString('vi-VN') : 'Không có'}
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Loại cảnh báo</p>
+                                        <p className="text-sm font-bold text-slate-900 capitalize">{selectedAlert.type}</p>
+                                    </div>
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Trạng thái</p>
                                         <p className={`text-sm font-bold ${selectedAlert.is_read ? 'text-slate-400' : 'text-primary'}`}>

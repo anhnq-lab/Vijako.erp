@@ -10,7 +10,7 @@ export const alertService = {
             .from('alerts')
             .select(`
                 *,
-                projects:project_id (name, code)
+                projects:project_id (name, code, manager)
             `)
             .eq('is_dismissed', false)
             .order('created_at', { ascending: false });
@@ -22,7 +22,9 @@ export const alertService = {
 
         return (data || []).map((a: any) => ({
             ...a,
-            project_name: a.projects?.name
+            project_name: a.projects?.name,
+            project_code: a.projects?.code,
+            project_manager: a.projects?.manager
         }));
     },
 

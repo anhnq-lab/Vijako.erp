@@ -94,7 +94,7 @@ const ContractDetailModal = ({ isOpen, onClose, contract }: { isOpen: boolean, o
     );
 };
 
-const AddContractModal = ({ isOpen, onClose, onAdd, projects }: { isOpen: boolean, onClose: () => void, onAdd: (data: any) => void, projects: Project[] }) => {
+const AddContractModal = ({ isOpen, onClose, onAdd, projects, defaultType }: { isOpen: boolean, onClose: () => void, onAdd: (data: any) => void, projects: Project[], defaultType?: string }) => {
     const [formData, setFormData] = useState({
         contract_code: '',
         partner_name: '',
@@ -103,8 +103,15 @@ const AddContractModal = ({ isOpen, onClose, onAdd, projects }: { isOpen: boolea
         paid_amount: 0,
         retention_amount: 0,
         status: 'active',
-        is_risk: false
+        is_risk: false,
+        type: defaultType || 'revenue'
     });
+
+    useEffect(() => {
+        if (defaultType) {
+            setFormData(prev => ({ ...prev, type: defaultType }));
+        }
+    }, [defaultType, isOpen]);
 
     if (!isOpen) return null;
 
@@ -116,15 +123,28 @@ const AddContractModal = ({ isOpen, onClose, onAdd, projects }: { isOpen: boolea
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors"><span className="material-symbols-outlined">close</span></button>
                 </div>
                 <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-                    <div>
-                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Mã Hợp đồng</label>
-                        <input
-                            type="text"
-                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold"
-                            placeholder="Ví dụ: CT-2024-001"
-                            value={formData.contract_code}
-                            onChange={(e) => setFormData({ ...formData, contract_code: e.target.value })}
-                        />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Mã Hợp đồng</label>
+                            <input
+                                type="text"
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold"
+                                placeholder="CT-2024-001"
+                                value={formData.contract_code}
+                                onChange={(e) => setFormData({ ...formData, contract_code: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Loại Hợp đồng</label>
+                            <select
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-bold"
+                                value={formData.type}
+                                onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                            >
+                                <option value="revenue">Đầu ra (Chủ đầu tư)</option>
+                                <option value="expense">Đầu vào (Thầu phụ/NCC)</option>
+                            </select>
+                        </div>
                     </div>
                     <div>
                         <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Đối tác / Nhà thầu</label>
@@ -501,7 +521,7 @@ const AIFinancialInsight = () => (
 )
 
 export default function Finance() {
-    const [activeTab, setActiveTab] = useState('contracts');
+    const [activeTab, setActiveTab] = useState('revenue');
     const [contracts, setContracts] = useState<Contract[]>([]);
     const [biddingPackages, setBiddingPackages] = useState<BiddingPackage[]>([]);
     const [bankGuarantees, setBankGuarantees] = useState<BankGuarantee[]>([]);
@@ -862,7 +882,7 @@ export default function Finance() {
                     {/* Main Content Area with Tabs */}
                     <div>
                         <div className="flex items-center gap-8 border-b border-slate-200 mb-6 font-bold text-sm">
-                            {['contracts', 'bidding', 'guarantees', 'payables'].map(tab => (
+                            {['revenue', 'expense', 'bidding', 'guarantees', 'payables'].map(tab => (
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
@@ -871,7 +891,8 @@ export default function Finance() {
                                         : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
                                         }`}
                                 >
-                                    {tab === 'contracts' && 'Hợp đồng Đầu ra (A-B)'}
+                                    {tab === 'revenue' && 'Hợp đồng Đầu ra (A-B)'}
+                                    {tab === 'expense' && 'Hợp đồng Đầu vào (B-B / Thầu phụ)'}
                                     {tab === 'bidding' && 'Quản lý Đấu thầu (Bidding)'}
                                     {tab === 'guarantees' && 'Bảo lãnh (Bank Guarantees)'}
                                     {tab === 'payables' && 'Thanh toán & Công nợ'}
@@ -879,34 +900,43 @@ export default function Finance() {
                             ))}
                         </div>
 
-                        {activeTab === 'contracts' && (
+                        {(activeTab === 'revenue' || activeTab === 'expense') && (
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 {loading ? (
                                     <div className="col-span-full p-8 text-center text-slate-500">Đang tải hợp đồng...</div>
-                                ) : contracts.length === 0 ? (
-                                    <div className="col-span-full p-8 text-center text-slate-500">Chưa có hợp đồng nào.</div>
+                                ) : contracts.filter(c => (activeTab === 'revenue' ? (c.type === 'revenue' || !c.type) : (c.type === 'expense'))).length === 0 ? (
+                                    <div className="col-span-full p-8 text-center text-slate-500">
+                                        Chưa có hợp đồng {activeTab === 'revenue' ? 'đầu ra' : 'đầu vào'} nào.
+                                    </div>
                                 ) : (
-                                    contracts.map(contract => (
-                                        <ContractCard
-                                            key={contract.id}
-                                            code={contract.contract_code}
-                                            partner={contract.partner_name}
-                                            value={contract.value}
-                                            paid={contract.paid_amount}
-                                            retention={contract.retention_amount}
-                                            status={contract.status}
-                                            warning={contract.is_risk}
-                                            onViewDetail={() => handleViewDetail(contract)}
-                                        />
-                                    ))
+                                    contracts
+                                        .filter(c => (activeTab === 'revenue' ? (c.type === 'revenue' || !c.type) : (c.type === 'expense')))
+                                        .map(contract => (
+                                            <ContractCard
+                                                key={contract.id}
+                                                code={contract.contract_code}
+                                                partner={contract.partner_name}
+                                                value={contract.value}
+                                                paid={contract.paid_amount}
+                                                retention={contract.retention_amount}
+                                                status={contract.status}
+                                                warning={contract.is_risk}
+                                                onViewDetail={() => handleViewDetail(contract)}
+                                            />
+                                        ))
                                 )}
 
                                 <div
-                                    onClick={() => setIsAddModalOpen(true)}
+                                    onClick={() => {
+                                        // We can potentially pass a default type to the modal, 
+                                        // or let the modal handle it based on some state.
+                                        // For now, let's just open the modal.
+                                        setIsAddModalOpen(true);
+                                    }}
                                     className="border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400 p-6 hover:border-primary hover:text-primary cursor-pointer transition-colors bg-slate-50/50 group min-h-[200px]"
                                 >
                                     <span className="material-symbols-outlined text-[40px] mb-2 group-hover:scale-110 transition-transform">add_circle</span>
-                                    <span className="text-sm font-bold">Thêm Hợp đồng mới</span>
+                                    <span className="text-sm font-bold">Thêm Hợp đồng {activeTab === 'revenue' ? 'đầu ra' : 'đầu vào'}</span>
                                 </div>
                             </div>
                         )}
@@ -1101,6 +1131,7 @@ export default function Finance() {
                 onClose={() => setIsAddModalOpen(false)}
                 onAdd={handleAddContract}
                 projects={projects}
+                defaultType={activeTab === 'expense' ? 'expense' : 'revenue'}
             />
 
             <ContractDetailModal
