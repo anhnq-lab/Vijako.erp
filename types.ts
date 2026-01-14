@@ -34,6 +34,7 @@ export interface Contract {
 
 export interface WBSItem {
   id: string;
+  wbs_code?: string; // e.g. "1.1", "1.1.2"
   name: string;
   progress: number;
   level: number;
