@@ -64,9 +64,12 @@ export const financeService = {
     },
 
     async updateContract(id: string, updates: Partial<Contract>): Promise<Contract | null> {
+        // Remove budget_category if it might not exist in DB schema
+        const { budget_category, ...dbUpdates } = updates as any;
+
         const { data, error } = await supabase
             .from('contracts')
-            .update(updates)
+            .update(dbUpdates)
             .eq('id', id)
             .select()
             .single();
