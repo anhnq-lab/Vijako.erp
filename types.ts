@@ -2,12 +2,21 @@ export interface Project {
   id: string;
   code: string;
   name: string;
-  location: string;
-  manager: string;
-  progress: number;
-  planProgress: number;
+  location?: string;
+  manager?: string;
+  progress?: number;
+  plan_progress?: number;
   status: 'active' | 'pending' | 'completed' | 'delayed';
   avatar?: string;
+  // New fields
+  owner?: string;
+  type?: string;
+  package?: string;
+  start_date?: string;
+  end_date?: string;
+  description?: string;
+  area?: string;
+  budget?: number;
 }
 
 export interface Contract {

@@ -218,8 +218,55 @@ export default function ProjectDetail() {
                     {/* Render Content Based on Active Tab */}
                     {activeTab === 'overview' && (
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            {/* Project General Information Card */}
+                            <div className="lg:col-span-3 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2 border-b border-slate-100 pb-2">
+                                    <span className="material-symbols-outlined text-primary">info</span>
+                                    Thông tin dự án
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 text-sm">
+                                    <div className="space-y-3">
+                                        <div className="flex">
+                                            <span className="text-slate-500 min-w-[140px]">Chủ đầu tư:</span>
+                                            <span className="font-bold text-slate-900 uppercase">{project.owner || 'Đang cập nhật'}</span>
+                                        </div>
+                                        <div className="flex">
+                                            <span className="text-slate-500 min-w-[140px]">Lĩnh vực:</span>
+                                            <span className="font-bold text-slate-900">{project.type || 'Công trình dân dụng'}</span>
+                                        </div>
+                                        <div className="flex">
+                                            <span className="text-slate-500 min-w-[140px]">Gói thầu:</span>
+                                            <span className="font-bold text-slate-900">{project.package || 'Đang cập nhật'}</span>
+                                        </div>
+                                        <div className="flex">
+                                            <span className="text-slate-500 min-w-[140px]">Địa chỉ:</span>
+                                            <span className="font-bold text-slate-900">{project.location}</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <div className="flex">
+                                            <span className="text-slate-500 min-w-[140px]">Quy mô:</span>
+                                            <span className="font-bold text-slate-900">{project.description || 'Đang cập nhật'}</span>
+                                        </div>
+                                        <div className="flex">
+                                            <span className="text-slate-500 min-w-[140px]">Tổng diện tích:</span>
+                                            <span className="font-bold text-slate-900">{project.area || '--'}</span>
+                                        </div>
+                                        <div className="flex">
+                                            <span className="text-slate-500 min-w-[140px]">Tiến độ thi công:</span>
+                                            <span className="font-bold text-slate-900">{project.start_date || 'TBD'} - {project.end_date || 'TBD'}</span>
+                                        </div>
+                                        <div className="flex">
+                                            <span className="text-slate-500 min-w-[140px]">Tổng thầu:</span>
+                                            <span className="font-bold text-primary">VIJAKO</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Financial Health Chart */}
                             <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+
                                 <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
                                     <span className="material-symbols-outlined text-primary">monitoring</span>
                                     Biểu đồ Sức khỏe Tài chính (Cost Performance)
