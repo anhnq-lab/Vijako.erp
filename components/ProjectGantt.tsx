@@ -182,7 +182,7 @@ const ProjectGantt: React.FC<ProjectGanttProps> = ({ items }) => {
                 <div className="flex justify-between items-start mb-2">
                     <h4 className="font-bold text-slate-800 text-sm leading-tight flex-1 mr-4">{task.name}</h4>
                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${task.progress === 100 ? 'bg-emerald-100 text-emerald-700' :
-                            task.progress > 0 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'
+                        task.progress > 0 ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'
                         }`}>
                         {task.progress}%
                     </span>
@@ -212,8 +212,8 @@ const ProjectGantt: React.FC<ProjectGanttProps> = ({ items }) => {
     }
 
     return (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 overflow-hidden">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 overflow-hidden min-h-[800px] flex flex-col">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 shrink-0">
                 <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
                     <span className="material-symbols-outlined text-indigo-600">calendar_month</span>
                     Biểu đồ Gantt
@@ -224,8 +224,8 @@ const ProjectGantt: React.FC<ProjectGanttProps> = ({ items }) => {
                     <button
                         onClick={() => setViewMode(ViewMode.Day)}
                         className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${viewMode === ViewMode.Day
-                                ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5'
-                                : 'text-slate-500 hover:text-slate-700'
+                            ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5'
+                            : 'text-slate-500 hover:text-slate-700'
                             }`}
                     >
                         Ngày
@@ -233,8 +233,8 @@ const ProjectGantt: React.FC<ProjectGanttProps> = ({ items }) => {
                     <button
                         onClick={() => setViewMode(ViewMode.Week)}
                         className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${viewMode === ViewMode.Week
-                                ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5'
-                                : 'text-slate-500 hover:text-slate-700'
+                            ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5'
+                            : 'text-slate-500 hover:text-slate-700'
                             }`}
                     >
                         Tuần
@@ -242,8 +242,8 @@ const ProjectGantt: React.FC<ProjectGanttProps> = ({ items }) => {
                     <button
                         onClick={() => setViewMode(ViewMode.Month)}
                         className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${viewMode === ViewMode.Month
-                                ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5'
-                                : 'text-slate-500 hover:text-slate-700'
+                            ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-black/5'
+                            : 'text-slate-500 hover:text-slate-700'
                             }`}
                     >
                         Tháng
@@ -251,7 +251,7 @@ const ProjectGantt: React.FC<ProjectGanttProps> = ({ items }) => {
                 </div>
             </div>
 
-            <div className="overflow-hidden border border-slate-200 rounded-lg">
+            <div className="overflow-hidden border border-slate-200 rounded-lg flex-1">
                 <Gantt
                     tasks={tasks}
                     viewMode={viewMode}
