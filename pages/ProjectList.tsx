@@ -17,6 +17,105 @@ const LuxuryStatCard = ({ title, value, icon, color, gradient }: any) => (
     </div>
 );
 
+// --- Modal thêm/sửa dự án ---
+const ProjectModal = ({ isOpen, onClose, onSave, project }: { isOpen: boolean, onClose: () => void, onSave: (p: any) => void, project?: Project | null }) => {
+    const [formData, setFormData] = useState<Partial<Project>>({
+        name: '', code: '', location: '', manager: '', type: 'Dân dụng', status: 'active', progress: 0, plan_progress: 0
+    });
+
+    useEffect(() => {
+        if (project) setFormData(project);
+        else setFormData({ name: '', code: '', location: '', manager: '', type: 'Dân dụng', status: 'active', progress: 0, plan_progress: 0 });
+    }, [project, isOpen]);
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <div className="bg-white rounded-[40px] w-full max-w-2xl overflow-hidden shadow-premium animate-in fade-in zoom-in duration-300">
+                <div className="px-10 py-8 border-b border-slate-100 flex justify-between items-center">
+                    <div>
+                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">{project ? 'Cập nhật Dự án' : 'Thêm Dự án mới'}</h2>
+                        <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Thông tin vận hành dự án</p>
+                    </div>
+                    <button onClick={onClose} className="size-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-red-500 transition-premium">
+                        <span className="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div className="p-10 grid grid-cols-2 gap-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                    <div className="col-span-2 space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tên Dự án</label>
+                        <input
+                            className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
+                            value={formData.name}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mã Dự án</label>
+                        <input
+                            className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
+                            value={formData.code}
+                            onChange={e => setFormData({ ...formData, code: e.target.value })}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Loại hình</label>
+                        <select
+                            className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
+                            value={formData.type}
+                            onChange={e => setFormData({ ...formData, type: e.target.value })}
+                        >
+                            <option>Dân dụng</option>
+                            <option>Công nghiệp</option>
+                            <option>Hạ tầng</option>
+                            <option>Đô thị</option>
+                        </select>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Điểm thi công</label>
+                        <input
+                            className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
+                            value={formData.location}
+                            onChange={e => setFormData({ ...formData, location: e.target.value })}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Chỉ huy trưởng (PM)</label>
+                        <input
+                            className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
+                            value={formData.manager}
+                            onChange={e => setFormData({ ...formData, manager: e.target.value })}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tiến độ KH (%)</label>
+                        <input
+                            type="number"
+                            className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
+                            value={formData.plan_progress}
+                            onChange={e => setFormData({ ...formData, plan_progress: Number(e.target.value) })}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sản lượng TT (%)</label>
+                        <input
+                            type="number"
+                            className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
+                            value={formData.progress}
+                            onChange={e => setFormData({ ...formData, progress: Number(e.target.value) })}
+                        />
+                    </div>
+                </div>
+                <div className="px-10 py-8 bg-slate-50 border-t border-slate-100 flex justify-end gap-4">
+                    <button onClick={onClose} className="px-8 py-3 rounded-2xl text-xs font-black uppercase text-slate-500 hover:bg-slate-200 transition-premium">Hủy bỏ</button>
+                    <button onClick={() => onSave(formData)} className="px-8 py-3 mesh-gradient text-white rounded-2xl text-xs font-black uppercase shadow-premium hover:opacity-90 transition-premium">Lưu thông tin</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project; onEdit: (p: Project) => void; onDelete: (id: string) => void }) => {
     return (
         <div className="group bg-white rounded-[40px] border border-slate-200 shadow-glass hover:shadow-premium transition-premium flex flex-col overflow-hidden relative">
@@ -69,15 +168,27 @@ const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project; onEd
                     </div>
                 </div>
 
-                {/* Tiến độ */}
+                {/* Thanh Tiến độ và Sản lượng */}
                 <div className="space-y-4 mt-auto">
+                    {/* Thanh Tiến độ Kế hoạch */}
                     <div>
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hiệu suất thực tế</span>
-                            <span className="text-xs font-black text-primary">{project.progress}%</span>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tiến độ kế hoạch</span>
+                            <span className="text-xs font-black text-emerald">{project.plan_progress || 0}%</span>
                         </div>
                         <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${project.progress}%` }}></div>
+                            <div className="h-full bg-emerald rounded-full transition-all duration-1000" style={{ width: `${project.plan_progress || 0}%` }}></div>
+                        </div>
+                    </div>
+
+                    {/* Thanh Sản lượng Thực tế */}
+                    <div>
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sản lượng thực hiện</span>
+                            <span className="text-xs font-black text-primary">{project.progress || 0}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${project.progress || 0}%` }}></div>
                         </div>
                     </div>
 
@@ -111,6 +222,9 @@ export default function ProjectList() {
     const [search, setSearch] = useState('');
     const [filter, setFilter] = useState('all');
 
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [currentProject, setCurrentProject] = useState<Project | null>(null);
+
     const fetchProjects = async () => {
         setLoading(true);
         try {
@@ -120,43 +234,23 @@ export default function ProjectList() {
             const mockProjects: Project[] = [
                 {
                     id: '1', code: 'PRJ-2024-001', name: 'Trường Tiểu học Tiên Sơn', location: 'Sóc Sơn, Hà Nội',
-                    manager: 'Nguyễn Văn An', progress: 65, status: 'active', type: 'Dân dụng',
+                    manager: 'Nguyễn Văn An', progress: 65, plan_progress: 75, status: 'active', type: 'Dân dụng',
                     avatar: 'https://images.unsplash.com/photo-1541829070764-84a7d30dee3f?q=80&w=800'
                 },
                 {
                     id: '2', code: 'PRJ-2024-002', name: 'Nhà máy Foxconn Bắc Giang', location: 'KCN Quang Châu, Bắc Giang',
-                    manager: 'Trần Đức Bình', progress: 40, status: 'active', type: 'Công nghiệp',
+                    manager: 'Trần Đức Bình', progress: 40, plan_progress: 50, status: 'active', type: 'Công nghiệp',
                     avatar: 'https://images.unsplash.com/photo-1565008480292-22621ec41da7?q=80&w=800'
                 },
                 {
                     id: '3', code: 'PRJ-2024-003', name: 'Sun Urban City Hà Nam', location: 'Phủ Lý, Hà Nam',
-                    manager: 'Lê Thị Mai', progress: 15, status: 'active', type: 'Đô thị',
+                    manager: 'Lê Thị Mai', progress: 15, plan_progress: 20, status: 'active', type: 'Đô thị',
                     avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800'
                 },
                 {
                     id: '4', code: 'PRJ-2023-010', name: 'Aeon Mall Hải Phòng', location: 'Lê Chân, Hải Phòng',
-                    manager: 'Phạm Hồng Quân', progress: 100, status: 'completed', type: 'Thương mại',
+                    manager: 'Phạm Hồng Quân', progress: 100, plan_progress: 100, status: 'completed', type: 'Thương mại',
                     avatar: 'https://images.unsplash.com/photo-1519494026892-80bbd2d3fd0d?q=80&w=800'
-                },
-                {
-                    id: '5', code: 'PRJ-2024-005', name: 'Cầu Mỹ Thuận 2', location: 'Tiền Giang - Vĩnh Long',
-                    manager: 'Hoàng Văn Thái', progress: 85, status: 'active', type: 'Hạ tầng',
-                    avatar: 'https://images.unsplash.com/photo-1513828583688-c52646db42da?q=80&w=800'
-                },
-                {
-                    id: '6', code: 'PRJ-2024-008', name: 'Chung cư The Nine', location: 'Phạm Văn Đồng, Hà Nội',
-                    manager: 'Đỗ Tiến Đạt', progress: 95, status: 'active', type: 'Dân dụng',
-                    avatar: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=800'
-                },
-                {
-                    id: '7', code: 'PRJ-2024-009', name: 'Tòa nhà TechnoPark Ocean Park', location: 'Gia Lâm, Hà Nội',
-                    manager: 'Vũ Anh Tuấn', progress: 100, status: 'completed', type: 'Văn phòng',
-                    avatar: 'https://images.unsplash.com/photo-1503387762-592dea58ef23?q=80&w=800'
-                },
-                {
-                    id: '8', code: 'PRJ-2024-012', name: 'Khu nghỉ dưỡng InterContinental', location: 'Phú Quốc, Kiên Giang',
-                    manager: 'Trịnh Kim Liên', progress: 55, status: 'active', type: 'Nghỉ dưỡng',
-                    avatar: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?q=80&w=800'
                 }
             ];
 
@@ -169,6 +263,39 @@ export default function ProjectList() {
     };
 
     useEffect(() => { fetchProjects(); }, []);
+
+    const handleSaveProject = async (projectData: any) => {
+        try {
+            if (projectData.id) {
+                await projectService.updateProject(projectData.id, projectData);
+            } else {
+                await projectService.createProject(projectData);
+            }
+            setIsEditModalOpen(false);
+            fetchProjects();
+        } catch (error) {
+            console.error('Error saving project:', error);
+            // Fallback for demo if no backend
+            if (projectData.id) {
+                setProjectList(prev => prev.map(p => p.id === projectData.id ? projectData : p));
+            } else {
+                setProjectList(prev => [...prev, { ...projectData, id: Math.random().toString(36).substr(2, 9) }]);
+            }
+            setIsEditModalOpen(false);
+        }
+    };
+
+    const handleDeleteProject = async (id: string) => {
+        if (window.confirm('Bạn có chắc chắn muốn xóa dự án này?')) {
+            try {
+                await projectService.deleteProject(id);
+                fetchProjects();
+            } catch (error) {
+                console.error('Error deleting project:', error);
+                setProjectList(prev => prev.filter(p => p.id !== id));
+            }
+        }
+    };
 
     const filteredProjects = projectList.filter(p => {
         const matchesStatus = filter === 'all' || p.status === filter;
@@ -218,7 +345,10 @@ export default function ProjectList() {
                             <button onClick={() => setViewMode('list')} className={`p-2 rounded-xl transition-premium ${viewMode === 'list' ? 'bg-white text-primary shadow-sm' : 'text-slate-400'}`}><span className="material-symbols-outlined">format_list_bulleted</span></button>
                             <button onClick={() => setViewMode('grid')} className={`p-2 rounded-xl transition-premium ${viewMode === 'grid' ? 'bg-white text-primary shadow-sm' : 'text-slate-400'}`}><span className="material-symbols-outlined">grid_view</span></button>
                         </div>
-                        <button className="px-8 py-3 mesh-gradient text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-premium hover:opacity-90 transition-premium flex items-center gap-2">
+                        <button
+                            onClick={() => { setCurrentProject(null); setIsEditModalOpen(true); }}
+                            className="px-8 py-3 mesh-gradient text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-premium hover:opacity-90 transition-premium flex items-center gap-2"
+                        >
                             <span className="material-symbols-outlined text-[20px]">add</span>
                             <span>Thêm đơn vị mới</span>
                         </button>
@@ -236,12 +366,24 @@ export default function ProjectList() {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
                             {filteredProjects.map(project => (
-                                <ProjectGridCard key={project.id} project={project} onEdit={() => { }} onDelete={() => { }} />
+                                <ProjectGridCard
+                                    key={project.id}
+                                    project={project}
+                                    onEdit={(p) => { setCurrentProject(p); setIsEditModalOpen(true); }}
+                                    onDelete={handleDeleteProject}
+                                />
                             ))}
                         </div>
                     )}
                 </div>
             </div>
+
+            <ProjectModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                onSave={handleSaveProject}
+                project={currentProject}
+            />
         </div>
     );
 }
