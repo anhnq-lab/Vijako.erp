@@ -33,7 +33,7 @@ export const financeService = {
         return data || [];
     },
 
-    async createContract(contract: Omit<Contract, 'id'>) {
+    async createContract(contract: Omit<Contract, 'id'>): Promise<Contract | null> {
         const { data, error } = await supabase
             .from('contracts')
             .insert(contract)
@@ -46,5 +46,50 @@ export const financeService = {
         }
 
         return data;
+    },
+
+    async getContractById(id: string): Promise<Contract | null> {
+        const { data, error } = await supabase
+            .from('contracts')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) {
+            console.error(`Error fetching contract ${id}:`, error);
+            return null;
+        }
+
+        return data;
+    },
+
+    async updateContract(id: string, updates: Partial<Contract>): Promise<Contract | null> {
+        const { data, error } = await supabase
+            .from('contracts')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error(`Error updating contract ${id}:`, error);
+            throw error;
+        }
+
+        return data;
+    },
+
+    async deleteContract(id: string): Promise<boolean> {
+        const { error } = await supabase
+            .from('contracts')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error(`Error deleting contract ${id}:`, error);
+            throw error;
+        }
+
+        return true;
     }
 };
