@@ -34,9 +34,12 @@ export const financeService = {
     },
 
     async createContract(contract: Omit<Contract, 'id'>): Promise<Contract | null> {
+        // Remove budget_category if it might not exist in DB schema
+        const { budget_category, ...dbContract } = contract as any;
+
         const { data, error } = await supabase
             .from('contracts')
-            .insert(contract)
+            .insert(dbContract)
             .select()
             .single();
 
