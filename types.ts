@@ -26,6 +26,7 @@ export interface Project {
 export interface Contract {
   id: string;
   contract_code: string;
+  name?: string;
   partner_name: string;
   project_id: string;
   value: number;
@@ -35,6 +36,7 @@ export interface Contract {
   type?: 'revenue' | 'expense';
   budget_category?: string; // Link to budget category for auto-calculation
   is_risk?: boolean;
+  end_date?: string;
 }
 
 export interface WBSItem {

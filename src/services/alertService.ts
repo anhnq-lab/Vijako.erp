@@ -187,7 +187,7 @@ export const alertService = {
                 newAlerts.push({
                     type: 'contract',
                     severity: 'high',
-                    title: `Hợp đồng sắp hết hạn: ${c.contract_number}`,
+                    title: `Hợp đồng sắp hết hạn: ${c.contract_code}`,
                     description: `Hợp đồng '${c.name}' dự kiến kết thúc vào ${new Date(c.end_date).toLocaleDateString('vi-VN')}. Hãy chuẩn bị thủ tục gia hạn hoặc quyết toán.`,
                     source_type: 'contract',
                     source_id: c.id,
