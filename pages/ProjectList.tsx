@@ -68,9 +68,9 @@ const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project, onEd
 
                 <div className="flex items-center justify-between">
                     <span className={`text-[10px] font-bold px-2 py-1 rounded border ${project.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' :
-                            project.status === 'completed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                project.status === 'delayed' ? 'bg-red-50 text-red-700 border-red-200' :
-                                    'bg-slate-50 text-slate-600 border-slate-200'
+                        project.status === 'completed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                            project.status === 'delayed' ? 'bg-red-50 text-red-700 border-red-200' :
+                                'bg-slate-50 text-slate-600 border-slate-200'
                         }`}>
                         {project.status === 'active' ? 'ĐANG THI CÔNG' :
                             project.status === 'completed' ? 'HOÀN THÀNH' :
@@ -202,11 +202,15 @@ const ProjectModal = ({ isOpen, onClose, project, onSave }: { isOpen: boolean, o
                         <input name="owner" value={formData.owner} onChange={handleChange} className="w-full p-2 border border-slate-200 rounded text-sm focus:border-primary outline-none" />
                     </div>
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Loại hình</label>
+                        <label className="text-xs font-bold text-slate-700">Lĩnh vực thi công</label>
                         <select name="type" value={formData.type} onChange={handleChange} className="w-full p-2 border border-slate-200 rounded text-sm outline-none">
-                            <option value="Cao ốc">Cao ốc</option>
-                            <option value="Nhà xưởng">Nhà xưởng</option>
-                            <option value="Hạ tầng">Hạ tầng</option>
+                            <option value="">-- Chọn lĩnh vực --</option>
+                            <option value="Công trình thấp tầng">Công trình thấp tầng</option>
+                            <option value="Công trình cao tầng">Công trình cao tầng</option>
+                            <option value="Hạ tầng kỹ thuật cảnh quan">Hạ tầng kỹ thuật cảnh quan</option>
+                            <option value="Hệ thống cơ điện">Hệ thống cơ điện</option>
+                            <option value="Hoàn thiện và lắp đặt nội thất">Hoàn thiện và lắp đặt nội thất</option>
+                            <option value="Công trình công nghiệp">Công trình công nghiệp</option>
                         </select>
                     </div>
                     <div className="space-y-1">
@@ -333,7 +337,7 @@ export default function ProjectList() {
                 await projectService.createProject({
                     ...payload,
                     progress: 0,
-                    planProgress: 0,
+                    plan_progress: 0,
                 });
             }
             fetchProjects();
