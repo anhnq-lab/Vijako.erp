@@ -3,9 +3,19 @@ import { Link } from 'react-router-dom';
 import { projectService } from '../src/services/projectService';
 import { Project } from '../types';
 
+// Các lĩnh vực thi công theo yêu cầu
+const CONSTRUCTION_TYPES = [
+    "Công trình thấp tầng",
+    "Công trình cao tầng",
+    "Hạ tầng kỹ thuật cảnh quan",
+    "Hệ thống cơ điện",
+    "Hoàn thiện và lắp đặt nội thất",
+    "Công trình công nghiệp"
+];
+
 // --- Thẻ Thống kê Cao cấp ---
 const LuxuryStatCard = ({ title, value, icon, color, gradient }: any) => (
-    <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-glass hover:shadow-premium transition-premium group relative overflow-hidden flex items-center gap-4">
+    <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-glass hover:shadow-premium transition-premium group relative overflow-hidden flex items-center gap-4 flex-1">
         <div className={`absolute -right-4 -top-4 size-24 opacity-5 blur-2xl rounded-full ${gradient}`}></div>
         <div className={`size-12 rounded-2xl flex items-center justify-center ${color} shadow-lg transition-premium group-hover:scale-110 shrink-0`}>
             <span className="material-symbols-outlined text-[24px] text-white">{icon}</span>
@@ -20,7 +30,7 @@ const LuxuryStatCard = ({ title, value, icon, color, gradient }: any) => (
 // --- Modal tạo dự án mới ---
 const ProjectModal = ({ isOpen, onClose, onSave, project }: { isOpen: boolean, onClose: () => void, onSave: (p: any) => void, project?: Project | null }) => {
     const [formData, setFormData] = useState<Partial<Project>>({
-        name: '', code: '', location: '', manager: '', type: 'Dân dụng', status: 'active', members: []
+        name: '', code: '', location: '', manager: '', type: CONSTRUCTION_TYPES[0], status: 'active', members: []
     });
     const [newMember, setNewMember] = useState('');
 
@@ -28,7 +38,7 @@ const ProjectModal = ({ isOpen, onClose, onSave, project }: { isOpen: boolean, o
         if (project) {
             setFormData({ ...project, members: project.members || [] });
         } else {
-            setFormData({ name: '', code: '', location: '', manager: 'Nguyễn Văn An', type: 'Dân dụng', status: 'active', members: [] });
+            setFormData({ name: '', code: '', location: '', manager: 'Nguyễn Văn An', type: CONSTRUCTION_TYPES[0], status: 'active', members: [] });
         }
     }, [project, isOpen]);
 
@@ -77,16 +87,15 @@ const ProjectModal = ({ isOpen, onClose, onSave, project }: { isOpen: boolean, o
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Loại hình thi công</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Lĩnh vực thi công</label>
                         <select
                             className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
                             value={formData.type}
                             onChange={e => setFormData({ ...formData, type: e.target.value })}
                         >
-                            <option>Dân dụng</option>
-                            <option>Công nghiệp</option>
-                            <option>Hạ tầng</option>
-                            <option>Đô thị</option>
+                            {CONSTRUCTION_TYPES.map(type => (
+                                <option key={type} value={type}>{type}</option>
+                            ))}
                         </select>
                     </div>
                     <div className="col-span-2 space-y-2">
@@ -107,7 +116,6 @@ const ProjectModal = ({ isOpen, onClose, onSave, project }: { isOpen: boolean, o
                         />
                     </div>
 
-                    {/* Thành viên tham dự */}
                     <div className="col-span-2 mt-4 space-y-4">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nhân sự tham gia dự án</label>
                         <div className="flex gap-2">
@@ -158,7 +166,6 @@ const ProjectModal = ({ isOpen, onClose, onSave, project }: { isOpen: boolean, o
 const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project; onEdit: (p: Project) => void; onDelete: (id: string) => void }) => {
     return (
         <div className="group bg-white rounded-[40px] border border-slate-200 shadow-glass hover:shadow-premium transition-premium flex flex-col overflow-hidden relative">
-            {/* Ảnh nền tiêu đề */}
             <div className="relative h-56 overflow-hidden">
                 <img
                     src={project.avatar || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format&fit=crop'}
@@ -167,10 +174,9 @@ const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project; onEd
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60"></div>
 
-                {/* Nhãn trạng thái */}
                 <div className="absolute top-4 left-4 flex gap-2">
                     <span className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-[10px] font-black text-white uppercase tracking-widest shadow-xl">
-                        {project.type || 'Công trình'}
+                        {project.type || 'Hạng mục khác'}
                     </span>
                 </div>
 
@@ -181,7 +187,6 @@ const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project; onEd
                     {project.status === 'active' ? 'Đang thi công' : 'Đã hoàn thành'}
                 </div>
 
-                {/* Thông tin nổi lên */}
                 <div className="absolute bottom-6 left-6 right-6">
                     <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] mb-1 font-mono">{project.code}</p>
                     <Link to={`/projects/${project.id}`} className="text-xl font-black text-white tracking-tight leading-tight hover:underline line-clamp-2 drop-shadow-lg">
@@ -190,7 +195,6 @@ const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project; onEd
                 </div>
             </div>
 
-            {/* Nội dung chính */}
             <div className="p-6 flex-1 flex flex-col">
                 <div className="space-y-4 mb-6">
                     <div className="flex items-center gap-3">
@@ -207,9 +211,7 @@ const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project; onEd
                     </div>
                 </div>
 
-                {/* Thanh Tiến độ và Sản lượng */}
                 <div className="space-y-4 mt-auto">
-                    {/* Thanh Tiến độ Kế hoạch */}
                     <div>
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tiến độ kế hoạch</span>
@@ -220,7 +222,6 @@ const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project; onEd
                         </div>
                     </div>
 
-                    {/* Thanh Sản lượng Thực tế */}
                     <div>
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sản lượng thực hiện</span>
@@ -231,7 +232,6 @@ const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project; onEd
                         </div>
                     </div>
 
-                    {/* Meta Action */}
                     <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                         <div className="flex -space-x-2">
                             {[1, 2, 3].map(i => (
@@ -259,7 +259,8 @@ export default function ProjectList() {
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [search, setSearch] = useState('');
-    const [filter, setFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [currentProject, setCurrentProject] = useState<Project | null>(null);
@@ -269,31 +270,33 @@ export default function ProjectList() {
         try {
             const data = await projectService.getAllProjects();
 
-            // Mock data fallback if DB returns empty
             const mockProjects: Project[] = [
                 {
-                    id: '1', code: 'PRJ-2024-001', name: 'Trường Tiểu học Tiên Sơn', location: 'Sóc Sơn, Hà Nội',
-                    manager: 'Nguyễn Văn An', progress: 65, plan_progress: 75, status: 'active', type: 'Dân dụng',
+                    id: '1', code: 'PRJ-S1', name: 'Trường Tiểu học Tiên Sơn', location: 'Sóc Sơn, Hà Nội',
+                    manager: 'Nguyễn Văn An', progress: 65, plan_progress: 75, status: 'active', type: 'Công trình thấp tầng',
                     avatar: 'https://images.unsplash.com/photo-1541829070764-84a7d30dee3f?q=80&w=800',
-                    members: ['Trần Anh', 'Lê Bình', 'Phạm Cẩn']
+                    members: ['Trần Anh', 'Lê Bình']
                 },
                 {
-                    id: '2', code: 'PRJ-2024-002', name: 'Nhà máy Foxconn Bắc Giang', location: 'KCN Quang Châu, Bắc Giang',
-                    manager: 'Trần Đức Bình', progress: 40, plan_progress: 50, status: 'active', type: 'Công nghiệp',
-                    avatar: 'https://images.unsplash.com/photo-1565008480292-22621ec41da7?q=80&w=800',
-                    members: ['Vũ Đạt', 'Hoàng Em']
+                    id: '2', code: 'PRJ-C1', name: 'The Manor Central Park', location: 'Thanh Trì, Hà Nội',
+                    manager: 'Trần Đức Bình', progress: 40, plan_progress: 55, status: 'active', type: 'Công trình cao tầng',
+                    avatar: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=800',
+                    members: ['Vũ Đạt']
                 },
                 {
-                    id: '3', code: 'PRJ-2024-003', name: 'Sun Urban City Hà Nam', location: 'Phủ Lý, Hà Nam',
-                    manager: 'Lê Thị Mai', progress: 15, plan_progress: 20, status: 'active', type: 'Đô thị',
-                    avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800',
-                    members: ['Ngô Giang', 'Lý Hà']
+                    id: '3', code: 'PRJ-U1', name: 'Sun Urban City Hà Nam', location: 'Phủ Lý, Hà Nam',
+                    manager: 'Lê Thị Mai', progress: 15, plan_progress: 20, status: 'active', type: 'Hạ tầng kỹ thuật cảnh quan',
+                    avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800'
                 },
                 {
-                    id: '4', code: 'PRJ-2023-010', name: 'Aeon Mall Hải Phòng', location: 'Lê Chân, Hải Phòng',
-                    manager: 'Phạm Hồng Quân', progress: 100, plan_progress: 100, status: 'completed', type: 'Thương mại',
-                    avatar: 'https://images.unsplash.com/photo-1519494026892-80bbd2d3fd0d?q=80&w=800',
-                    members: ['Đỗ Hùng', 'Bùi Kương']
+                    id: '4', code: 'PRJ-I1', name: 'Nhà máy Foxconn Bắc Giang', location: 'Bắc Giang',
+                    manager: 'Phạm Hồng Quân', progress: 90, plan_progress: 90, status: 'active', type: 'Công trình công nghiệp',
+                    avatar: 'https://images.unsplash.com/photo-1565008480292-22621ec41da7?q=80&w=800'
+                },
+                {
+                    id: '5', code: 'PRJ-M1', name: 'Hệ thống cơ điện - Aeon Mall', location: 'Hải Phòng',
+                    manager: 'Hoàng Văn Thái', progress: 100, plan_progress: 100, status: 'completed', type: 'Hệ thống cơ điện',
+                    avatar: 'https://images.unsplash.com/photo-1513828583688-c52646db42da?q=80&w=800'
                 }
             ];
 
@@ -307,6 +310,12 @@ export default function ProjectList() {
 
     useEffect(() => { fetchProjects(); }, []);
 
+    const handleTypeToggle = (type: string) => {
+        setSelectedTypes(prev =>
+            prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+        );
+    };
+
     const handleSaveProject = async (projectData: any) => {
         try {
             if (projectData.id) {
@@ -317,8 +326,6 @@ export default function ProjectList() {
             setIsEditModalOpen(false);
             fetchProjects();
         } catch (error) {
-            console.error('Error saving project:', error);
-            // Fallback for demo if no backend
             if (projectData.id) {
                 setProjectList(prev => prev.map(p => p.id === projectData.id ? projectData : p));
             } else {
@@ -334,90 +341,144 @@ export default function ProjectList() {
                 await projectService.deleteProject(id);
                 fetchProjects();
             } catch (error) {
-                console.error('Error deleting project:', error);
                 setProjectList(prev => prev.filter(p => p.id !== id));
             }
         }
     };
 
     const filteredProjects = projectList.filter(p => {
-        const matchesStatus = filter === 'all' || p.status === filter;
+        const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
         const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.code.toLowerCase().includes(search.toLowerCase());
-        return matchesStatus && matchesSearch;
+        const matchesType = selectedTypes.length === 0 || selectedTypes.includes(p.type || '');
+        return matchesStatus && matchesSearch && matchesType;
     });
 
     return (
-        <div className="flex flex-col h-full bg-slate-50/50">
-            {/* Header Sang trọng */}
-            <div className="px-10 py-8 bg-white border-b border-slate-200/50 flex flex-col gap-6">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <p className="text-[10px] font-black text-primary-accent uppercase tracking-[0.4em] mb-1">Cơ sở hạ tầng & Tài sản</p>
-                        <h1 className="text-4xl font-black text-slate-900 tracking-tight">Danh mục Dự án</h1>
-                    </div>
-                    <div className="flex gap-4">
-                        <LuxuryStatCard title="Công trường hoạt động" value={projectList.length} icon="apartment" color="bg-primary" gradient="bg-primary" />
-                        <LuxuryStatCard title="Tỷ lệ tăng trưởng" value="+12.5%" icon="trending_up" color="bg-emerald" gradient="bg-emerald" />
+        <div className="flex flex-col h-full bg-white">
+            {/* Top Navigation Links (Tabs) */}
+            <div className="px-10 pt-6 flex items-center border-b border-slate-100">
+                {[
+                    { id: 'all', label: 'Tất cả' },
+                    { id: 'completed', label: 'Đã hoàn thành' },
+                    { id: 'active', label: 'Đang thi công' },
+                    { id: 'master', label: 'Tổng thầu' }
+                ].map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setStatusFilter(tab.id)}
+                        className={`px-12 py-4 text-sm font-bold transition-premium relative ${statusFilter === tab.id ? 'text-primary' : 'text-slate-500 hover:text-slate-900'
+                            }`}
+                    >
+                        {tab.label}
+                        {statusFilter === tab.id && (
+                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full"></div>
+                        )}
+                    </button>
+                ))}
+            </div>
+
+            {/* Main Header Area */}
+            <div className="px-10 py-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                <div className="flex-1 space-y-4">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-1">Cơ sở hạ tầng & Tài sản</p>
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Danh mục Dự án</h1>
+
+                    <div className="relative w-full max-w-md group">
+                        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-premium">search</span>
+                        <input
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
+                            placeholder="Nhập tên dự án..."
+                        />
                     </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="flex items-center gap-3 w-full md:w-auto">
-                        <div className="relative group flex-1 md:w-96">
-                            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-premium">search</span>
-                            <input
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="w-full pl-12 pr-4 py-3 bg-slate-100/50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 focus:border-primary outline-none transition-premium"
-                                placeholder="Tìm kiếm đơn vị thi công, mã dự án hoặc địa điểm..."
-                            />
-                        </div>
-                        <select
-                            value={filter}
-                            onChange={(e) => setFilter(e.target.value)}
-                            className="px-6 py-3 bg-white border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-600 outline-none focus:border-primary cursor-pointer hover:bg-slate-50 transition-premium shadow-sm"
-                        >
-                            <option value="all">Trạng thái: Tất cả</option>
-                            <option value="active">Đang thực hiện</option>
-                            <option value="completed">Đã bàn giao</option>
-                        </select>
-                    </div>
-
-                    <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-                        <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200">
-                            <button onClick={() => setViewMode('list')} className={`p-2 rounded-xl transition-premium ${viewMode === 'list' ? 'bg-white text-primary shadow-sm' : 'text-slate-400'}`}><span className="material-symbols-outlined">format_list_bulleted</span></button>
-                            <button onClick={() => setViewMode('grid')} className={`p-2 rounded-xl transition-premium ${viewMode === 'grid' ? 'bg-white text-primary shadow-sm' : 'text-slate-400'}`}><span className="material-symbols-outlined">grid_view</span></button>
-                        </div>
-                        <button
-                            onClick={() => { setCurrentProject(null); setIsEditModalOpen(true); }}
-                            className="px-8 py-3 mesh-gradient text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-premium hover:opacity-90 transition-premium flex items-center gap-2"
-                        >
-                            <span className="material-symbols-outlined text-[20px]">add</span>
-                            <span>Tạo dự án mới</span>
-                        </button>
-                    </div>
+                <div className="flex gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                    <LuxuryStatCard title="Công trường hoạt động" value={projectList.filter(p => p.status === 'active').length} icon="apartment" color="bg-primary" gradient="bg-primary" />
+                    <LuxuryStatCard title="Tỷ lệ tăng trưởng" value="+12.5%" icon="trending_up" color="bg-emerald" gradient="bg-emerald" />
+                    <button
+                        onClick={() => { setCurrentProject(null); setIsEditModalOpen(true); }}
+                        className="px-8 py-3 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-premium hover:shadow-lg transition-premium flex items-center gap-2 shrink-0 h-[72px]"
+                    >
+                        <span className="material-symbols-outlined text-[20px]">add</span>
+                        <span>Tạo dự án mới</span>
+                    </button>
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
-                <div className="max-w-[1700px] mx-auto min-h-full">
-                    {loading ? (
-                        <div className="flex flex-col items-center justify-center h-96">
-                            <div className="size-16 border-4 border-slate-200 border-t-primary rounded-full animate-spin shadow-lg"></div>
-                            <p className="mt-8 text-slate-400 font-bold uppercase tracking-widest animate-pulse">Đang đồng bộ dữ liệu...</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
-                            {filteredProjects.map(project => (
-                                <ProjectGridCard
-                                    key={project.id}
-                                    project={project}
-                                    onEdit={(p) => { setCurrentProject(p); setIsEditModalOpen(true); }}
-                                    onDelete={handleDeleteProject}
+            <div className="flex-1 flex overflow-hidden">
+                {/* Sidebar Filter Area */}
+                <div className="w-80 border-r border-slate-100 p-10 overflow-y-auto hidden lg:block">
+                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-8">Lĩnh vực thi công</h3>
+                    <div className="space-y-6">
+                        {CONSTRUCTION_TYPES.map(type => (
+                            <label key={type} className="flex items-center gap-3 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    checked={selectedTypes.includes(type)}
+                                    onChange={() => handleTypeToggle(type)}
+                                    className="size-5 rounded-lg border-2 border-slate-200 text-primary focus:ring-primary transition-premium cursor-pointer"
                                 />
-                            ))}
+                                <span className={`text-sm font-bold transition-premium ${selectedTypes.includes(type) ? 'text-primary' : 'text-slate-600 group-hover:text-slate-900'
+                                    }`}>
+                                    {type}
+                                </span>
+                            </label>
+                        ))}
+                    </div>
+
+                    <div className="mt-12 pt-12 border-t border-slate-100">
+                        <div className="p-6 bg-slate-50 rounded-[32px] border border-slate-100">
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Bộ lọc đang chọn</h4>
+                            <p className="text-xl font-black text-slate-900">{filteredProjects.length} <span className="text-xs text-slate-500 font-bold uppercase ml-1">Dự án</span></p>
+                            {selectedTypes.length > 0 && (
+                                <button
+                                    onClick={() => setSelectedTypes([])}
+                                    className="mt-4 text-[10px] font-black text-primary uppercase border-b-2 border-primary/20 hover:border-primary transition-premium"
+                                >
+                                    Xóa tất cả bộ lọc
+                                </button>
+                            )}
                         </div>
-                    )}
+                    </div>
+                </div>
+
+                {/* Content Area */}
+                <div className="flex-1 overflow-y-auto p-10 bg-slate-50/50 custom-scrollbar">
+                    <div className="flex justify-between items-center mb-10">
+                        <h2 className="text-xl font-black text-slate-900 tracking-tight">Danh sách dự án</h2>
+                        <div className="flex bg-white p-1 rounded-2xl border border-slate-200 shadow-sm">
+                            <button onClick={() => setViewMode('list')} className={`p-2 rounded-xl transition-premium ${viewMode === 'list' ? 'bg-slate-100 text-primary shadow-inner' : 'text-slate-400'}`}><span className="material-symbols-outlined">format_list_bulleted</span></button>
+                            <button onClick={() => setViewMode('grid')} className={`p-2 rounded-xl transition-premium ${viewMode === 'grid' ? 'bg-slate-100 text-primary shadow-inner' : 'text-slate-400'}`}><span className="material-symbols-outlined">grid_view</span></button>
+                        </div>
+                    </div>
+
+                    <div className="max-w-[1500px]">
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center h-96">
+                                <div className="size-16 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>
+                                <p className="mt-8 text-slate-400 font-bold uppercase tracking-widest">Đang tải danh mục...</p>
+                            </div>
+                        ) : filteredProjects.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-96 bg-white rounded-[40px] border-2 border-dashed border-slate-200 p-10 text-center">
+                                <span className="material-symbols-outlined text-6xl text-slate-200 mb-4">search_off</span>
+                                <h3 className="text-xl font-black text-slate-900 mb-2">Không tìm thấy dự án</h3>
+                                <p className="text-sm text-slate-500 font-medium">Hãy thử thay đổi từ khóa tìm kiếm hoặc bỏ bớt các bộ lọc đang chọn.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+                                {filteredProjects.map(project => (
+                                    <ProjectGridCard
+                                        key={project.id}
+                                        project={project}
+                                        onEdit={(p) => { setCurrentProject(p); setIsEditModalOpen(true); }}
+                                        onDelete={handleDeleteProject}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
