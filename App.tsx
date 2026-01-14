@@ -1,91 +1,69 @@
-import React, { useState } from 'react';
-import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import React, { useState, Suspense, lazy } from 'react';
+import { HashRouter, Routes, Route } from 'react-router-dom';
+import { ResponsiveSidebar } from './src/components/layout/ResponsiveSidebar';
+import { ToastProvider } from './src/components/ui/Toast';
+import { PageLoader } from './src/components/ui/LoadingComponents';
+import { GlobalSearch, useGlobalSearch } from './src/components/ui/GlobalSearch';
 import { ChatWidget } from './src/components/AIChat/ChatWidget';
-import Dashboard from './pages/Dashboard';
-import Workspace from './pages/Workspace';
-import ProjectList from './pages/ProjectList';
-import ProjectDetail from './pages/ProjectDetail';
-import Finance from './pages/Finance';
-import SupplyChain from './pages/SupplyChain';
-import HRM from './pages/HRM';
-import Documents from './pages/Documents';
-import Alerts from './pages/Alerts';
-import Recruitment from './pages/Recruitment';
 
-const SidebarItem = ({ to, icon, label, active, count }: { to: string; icon: string; label: string; active: boolean; count?: number }) => (
-  <Link
-    to={to}
-    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${active ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-      }`}
-  >
-    <span className={`material-symbols-outlined ${active ? 'filled' : ''} group-hover:text-primary transition-colors`}>
-      {icon}
-    </span>
-    <span>{label}</span>
-    {count && (
-      <span className="ml-auto bg-alert text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-        {count}
-      </span>
-    )}
-  </Link>
-);
+// Lazy load pages for better performance
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Workspace = lazy(() => import('./pages/Workspace'));
+const ProjectList = lazy(() => import('./pages/ProjectList'));
+const ProjectDetail = lazy(() => import('./pages/ProjectDetail'));
+const Finance = lazy(() => import('./pages/Finance'));
+const SupplyChain = lazy(() => import('./pages/SupplyChain'));
+const HRM = lazy(() => import('./pages/HRM'));
+const Documents = lazy(() => import('./pages/Documents'));
+const Alerts = lazy(() => import('./pages/Alerts'));
+const Recruitment = lazy(() => import('./pages/Recruitment'));
 
 const Layout = ({ children }: { children?: React.ReactNode }) => {
-  const location = useLocation();
-  const path = location.pathname;
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { isOpen: isSearchOpen, setIsOpen: setSearchOpen } = useGlobalSearch();
+
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+  const closeSidebar = () => setIsSidebarOpen(false);
 
   return (
     <div className="flex h-screen w-full">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-100 flex-shrink-0 flex flex-col h-full z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-        <div className="h-16 flex items-center px-6 border-b border-slate-50">
-          <div className="flex items-center gap-3 text-primary">
-            <div className="size-8 bg-primary text-white rounded-lg flex items-center justify-center">
-              <span className="material-symbols-outlined text-[20px]">apartment</span>
-            </div>
-            <h1 className="text-xl font-extrabold tracking-tight text-slate-900">
-              Vijako<span className="text-primary font-normal">ERP</span>
-            </h1>
-          </div>
-        </div>
+      {/* Global Search */}
+      <GlobalSearch isOpen={isSearchOpen} onClose={() => setSearchOpen(false)} />
 
-        <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
-          <div className="px-3 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Dashboard</div>
-          <SidebarItem to="/" icon="dashboard" label="Tổng quan Lãnh đạo" active={path === '/'} />
-          <SidebarItem to="/workspace" icon="person" label="Dashboard Cá nhân" active={path === '/workspace'} />
-
-          <div className="px-3 mt-6 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Quản lý</div>
-          <SidebarItem to="/projects" icon="domain" label="Dự án" active={path === '/projects' || path.startsWith('/projects/')} />
-          <SidebarItem to="/finance" icon="account_balance_wallet" label="Tài chính & Hợp đồng" active={path === '/finance'} />
-          <SidebarItem to="/supply" icon="inventory_2" label="Chuỗi Cung ứng" active={path === '/supply'} />
-          <SidebarItem to="/hrm" icon="groups" label="Nhân sự & Đào tạo" active={path === '/hrm'} />
-          <SidebarItem to="/recruitment" icon="person_search" label="Tuyển dụng" active={path === '/recruitment'} />
-
-          <div className="px-3 mt-6 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Công cụ</div>
-          <SidebarItem to="/documents" icon="folder_open" label="Hồ sơ Tài liệu (CDE)" active={path === '/documents'} />
-          <SidebarItem to="/alerts" icon="notifications_active" label="Trung tâm Cảnh báo" active={path === '/alerts'} count={3} />
-          <SidebarItem to="/system" icon="settings" label="Hệ thống" active={path === '/system'} />
-        </nav>
-
-        <div className="p-4 border-t border-slate-50">
-          <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-100">
-            <img
-              src="https://picsum.photos/100/100"
-              alt="User"
-              className="size-9 rounded-full bg-cover bg-center object-cover"
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-slate-900 truncate">Nguyễn Văn An</p>
-              <p className="text-xs text-slate-500 truncate">CEO / Ban Giám Đốc</p>
-            </div>
-          </div>
-        </div>
-      </aside>
+      {/* Responsive Sidebar */}
+      <ResponsiveSidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f7f7f8]">
+        {/* Mobile Header with Hamburger */}
+        <div className="lg:hidden h-14 bg-white border-b border-slate-100 flex items-center px-4 z-10">
+          <button
+            onClick={toggleSidebar}
+            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            <span className="material-symbols-outlined text-slate-700">menu</span>
+          </button>
+          <div className="flex items-center gap-2 ml-3 text-primary">
+            <div className="size-7 bg-primary text-white rounded-lg flex items-center justify-center">
+              <span className="material-symbols-outlined text-[16px]">apartment</span>
+            </div>
+            <h1 className="text-lg font-extrabold tracking-tight text-slate-900">
+              Vijako<span className="text-primary font-normal">ERP</span>
+            </h1>
+          </div>
+
+          {/* Search Button on Mobile */}
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="ml-auto p-2 hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            <span className="material-symbols-outlined text-slate-700">search</span>
+          </button>
+        </div>
+
         {children}
       </main>
+
       <ChatWidget />
     </div>
   );
@@ -93,23 +71,27 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
 
 export default function App() {
   return (
-    <HashRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/workspace" element={<Workspace />} />
-          <Route path="/projects" element={<ProjectList />} />
-          <Route path="/projects/:id" element={<ProjectDetail />} />
-          <Route path="/finance" element={<Finance />} />
-          <Route path="/supply" element={<SupplyChain />} />
-          <Route path="/hrm" element={<HRM />} />
-          <Route path="/recruitment" element={<Recruitment />} />
-          <Route path="/documents" element={<Documents />} />
-          <Route path="/alerts" element={<Alerts />} />
-          {/* Placeholders for other routes */}
-          <Route path="*" element={<div className="p-10 text-center text-slate-500">Đang phát triển...</div>} />
-        </Routes>
-      </Layout>
-    </HashRouter>
+    <ToastProvider>
+      <HashRouter>
+        <Layout>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/workspace" element={<Workspace />} />
+              <Route path="/projects" element={<ProjectList />} />
+              <Route path="/projects/:id" element={<ProjectDetail />} />
+              <Route path="/finance" element={<Finance />} />
+              <Route path="/supply" element={<SupplyChain />} />
+              <Route path="/hrm" element={<HRM />} />
+              <Route path="/recruitment" element={<Recruitment />} />
+              <Route path="/documents" element={<Documents />} />
+              <Route path="/alerts" element={<Alerts />} />
+              {/* Placeholders for other routes */}
+              <Route path="*" element={<div className="p-10 text-center text-slate-500">Đang phát triển...</div>} />
+            </Routes>
+          </Suspense>
+        </Layout>
+      </HashRouter>
+    </ToastProvider>
   );
 }
