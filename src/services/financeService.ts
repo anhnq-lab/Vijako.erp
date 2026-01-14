@@ -1,16 +1,7 @@
 import { supabase } from '../lib/supabase';
+import { Contract } from '../../types';
 
-export interface Contract {
-    id: string;
-    contract_code: string;
-    partner_name: string;
-    project_id: string;
-    value: number;
-    paid_amount: number;
-    retention_amount: number;
-    status: 'active' | 'completed' | 'terminated';
-    is_risk: boolean;
-}
+export type { Contract }; // Re-export for compatibility if needed
 
 export const financeService = {
     async getAllContracts(): Promise<Contract[]> {
@@ -24,7 +15,22 @@ export const financeService = {
             throw error;
         }
 
-        return (data as Contract[]) || [];
+        return data || [];
+    },
+
+    async getContractsByProjectId(projectId: string): Promise<Contract[]> {
+        const { data, error } = await supabase
+            .from('contracts')
+            .select('*')
+            .eq('project_id', projectId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error(`Error fetching contracts for project ${projectId}:`, error);
+            return [];
+        }
+
+        return data || [];
     },
 
     async createContract(contract: Omit<Contract, 'id'>) {

@@ -21,14 +21,14 @@ export interface Project {
 
 export interface Contract {
   id: string;
-  code: string;
-  partner: string;
-  project: string;
+  contract_code: string;
+  partner_name: string;
+  project_id: string;
   value: number;
-  paid: number;
-  retention: number;
-  status: 'active' | 'completed';
-  warning?: boolean;
+  paid_amount: number;
+  retention_amount: number;
+  status: 'active' | 'completed' | 'terminated';
+  is_risk?: boolean;
 }
 
 export interface WBSItem {

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, CartesianGrid, YAxis } from 'recharts';
 import { projectService } from '../src/services/projectService';
-import { Project, WBSItem, ProjectIssue, ProjectBudget } from '../types';
+import { financeService } from '../src/services/financeService';
+import { Project, WBSItem, ProjectIssue, ProjectBudget, Contract } from '../types';
 
 // Mock Chart Data (Keep for visual until backend supports time-series)
 const costData = [
@@ -15,7 +16,7 @@ const costData = [
     { name: 'T7', budget: 3490, actual: 4300 },
 ];
 
-const WBSItemRow = ({ item }: { item: WBSItem }) => {
+const WBSItemRow: React.FC<{ item: WBSItem }> = ({ item }) => {
     return (
         <tr className={`border-b border-slate-50 hover:bg-slate-50 transition-colors ${item.level === 0 ? 'bg-slate-50/80' : ''}`}>
             <td className={`px-4 py-3 text-sm ${item.level === 0 ? 'font-bold text-slate-900' : 'text-slate-700 pl-8 border-l-2 border-transparent hover:border-primary'}`}>
@@ -44,7 +45,7 @@ const WBSItemRow = ({ item }: { item: WBSItem }) => {
     )
 }
 
-const IssueRow = ({ issue }: { issue: ProjectIssue }) => (
+const IssueRow: React.FC<{ issue: ProjectIssue }> = ({ issue }) => (
     <tr className="border-b border-slate-50 hover:bg-slate-50">
         <td className="px-4 py-3 font-mono text-xs text-slate-500">{issue.code}</td>
         <td className="px-4 py-3">
@@ -67,7 +68,7 @@ const IssueRow = ({ issue }: { issue: ProjectIssue }) => (
     </tr>
 )
 
-const BudgetRow = ({ item }: { item: ProjectBudget }) => {
+const BudgetRow: React.FC<{ item: ProjectBudget }> = ({ item }) => {
     const percent = item.budget_amount > 0 ? Math.round((item.actual_amount / item.budget_amount) * 100) : 0;
     const isOver = item.actual_amount > item.budget_amount;
     const remain = item.budget_amount - item.actual_amount;
@@ -90,6 +91,32 @@ const BudgetRow = ({ item }: { item: ProjectBudget }) => {
                 {remain?.toLocaleString() || 0}
             </td>
         </tr>
+    );
+};
+
+const ContractRow: React.FC<{ contract: Contract }> = ({ contract }) => {
+    const paidPercent = contract.value > 0 ? Math.round((contract.paid_amount / contract.value) * 100) : 0;
+    return (
+        <tr className="border-b border-slate-50 hover:bg-slate-50">
+            <td className="px-4 py-3 text-sm font-bold text-slate-700">{contract.contract_code}</td>
+            <td className="px-4 py-3 text-sm text-slate-900">{contract.partner_name}</td>
+            <td className="px-4 py-3 text-sm font-mono text-right font-bold text-slate-900">{contract.value?.toLocaleString() || 0}</td>
+            <td className="px-4 py-3 text-sm font-mono text-right text-green-600 font-bold">{contract.paid_amount?.toLocaleString() || 0}</td>
+            <td className="px-4 py-3 text-sm font-mono text-right text-slate-500">{contract.retention_amount?.toLocaleString() || 0}</td>
+            <td className="px-4 py-3">
+                <div className="flex items-center gap-2 justify-end">
+                    <span className="text-xs font-bold text-slate-700">{paidPercent}%</span>
+                    <div className="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-green-500 rounded-full" style={{ width: `${Math.min(paidPercent, 100)}%` }}></div>
+                    </div>
+                </div>
+            </td>
+            <td className="px-4 py-3 text-right">
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${contract.status === 'active' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
+                    {contract.status === 'active' ? 'Hiệu lực' : 'Hoàn thành'}
+                </span>
+            </td>
+        </tr>
     )
 }
 
@@ -102,6 +129,7 @@ export default function ProjectDetail() {
     const [wbs, setWbs] = useState<WBSItem[]>([]);
     const [issues, setIssues] = useState<ProjectIssue[]>([]);
     const [budget, setBudget] = useState<ProjectBudget[]>([]);
+    const [contracts, setContracts] = useState<Contract[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -113,11 +141,12 @@ export default function ProjectDetail() {
     const fetchProjectData = async (projectId: string) => {
         setLoading(true);
         try {
-            const [p, w, i, b] = await Promise.all([
+            const [p, w, i, b, c] = await Promise.all([
                 projectService.getProjectById(projectId),
                 projectService.getProjectWBS(projectId),
                 projectService.getProjectIssues(projectId),
-                projectService.getProjectBudget(projectId)
+                projectService.getProjectBudget(projectId),
+                financeService.getContractsByProjectId(projectId)
             ]);
 
             if (!p) {
@@ -129,6 +158,7 @@ export default function ProjectDetail() {
             setWbs(w);
             setIssues(i);
             setBudget(b);
+            setContracts(c);
         } catch (err) {
             console.error('Failed to fetch project details', err);
         } finally {
@@ -203,7 +233,7 @@ export default function ProjectDetail() {
                         >
                             {tab === 'overview' && 'Tổng quan Dashboard'}
                             {tab === 'wbs' && 'Tiến độ (WBS)'}
-                            {tab === 'budget' && 'Ngân sách & Chi phí'}
+                            {tab === 'budget' && 'Tài chính & Hợp đồng'}
                             {tab === 'diary' && 'Nhật ký thi công'}
                             {tab === 'issues' && 'Sự cố & Rủi ro'}
                             {tab === 'documents' && 'Hồ sơ tài liệu'}
@@ -369,26 +399,62 @@ export default function ProjectDetail() {
                     )}
 
                     {activeTab === 'budget' && (
-                        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <table className="w-full text-left">
-                                <thead className="bg-slate-50 text-xs text-slate-500 uppercase font-semibold border-b border-slate-200">
-                                    <tr>
-                                        <th className="px-4 py-3">Khoản mục chi phí</th>
-                                        <th className="px-4 py-3 text-right">Ngân sách (Budget)</th>
-                                        <th className="px-4 py-3 text-right">Thực tế (Actual)</th>
-                                        <th className="px-4 py-3 text-right">Đã cam kết (Committed)</th>
-                                        <th className="px-4 py-3 text-right">Tỷ lệ (%)</th>
-                                        <th className="px-4 py-3 text-right">Còn lại (Remaining)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {budget.length > 0 ? budget.map(item => (
-                                        <BudgetRow key={item.id} item={item} />
-                                    )) : (
-                                        <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500">Chưa có dữ liệu ngân sách.</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
+                        <div className="space-y-6">
+                            {/* Contracts Section */}
+                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                                    <h3 className="font-bold text-slate-700">Danh sách Hợp đồng</h3>
+                                    <button className="text-xs font-bold text-primary bg-white border border-primary/20 px-3 py-1.5 rounded hover:bg-primary/5 transition-colors">
+                                        + Thêm Hợp đồng
+                                    </button>
+                                </div>
+                                <table className="w-full text-left">
+                                    <thead className="bg-white text-xs text-slate-500 uppercase font-semibold border-b border-slate-100">
+                                        <tr>
+                                            <th className="px-4 py-3">Mã HĐ</th>
+                                            <th className="px-4 py-3">Đối tác</th>
+                                            <th className="px-4 py-3 text-right">Giá trị HĐ (VNĐ)</th>
+                                            <th className="px-4 py-3 text-right">Đã thanh toán</th>
+                                            <th className="px-4 py-3 text-right">Giữ lại</th>
+                                            <th className="px-4 py-3 text-right">Tiến độ TT</th>
+                                            <th className="px-4 py-3 text-right">Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {contracts.length > 0 ? contracts.map(contract => (
+                                            <ContractRow key={contract.id} contract={contract} />
+                                        )) : (
+                                            <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">Chưa có dữ liệu hợp đồng.</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Budget Section (Existing) */}
+                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="p-4 bg-slate-50 border-b border-slate-200">
+                                    <h3 className="font-bold text-slate-700">Ngân sách & Chi phí Dự án</h3>
+                                </div>
+                                <table className="w-full text-left">
+                                    <thead className="bg-white text-xs text-slate-500 uppercase font-semibold border-b border-slate-100">
+                                        <tr>
+                                            <th className="px-4 py-3">Khoản mục chi phí</th>
+                                            <th className="px-4 py-3 text-right">Ngân sách (Budget)</th>
+                                            <th className="px-4 py-3 text-right">Thực tế (Actual)</th>
+                                            <th className="px-4 py-3 text-right">Đã cam kết (Committed)</th>
+                                            <th className="px-4 py-3 text-right">Tỷ lệ (%)</th>
+                                            <th className="px-4 py-3 text-right">Còn lại (Remaining)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {budget.length > 0 ? budget.map(item => (
+                                            <BudgetRow key={item.id} item={item} />
+                                        )) : (
+                                            <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500">Chưa có dữ liệu ngân sách.</td></tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     )}
 
