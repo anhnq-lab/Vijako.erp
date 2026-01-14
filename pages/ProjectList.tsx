@@ -17,30 +17,52 @@ const KPICard = ({ title, value, icon, color }: { title: string, value: number |
     </div>
 );
 
-const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project, onEdit: (p: Project) => void, onDelete: (id: string) => void }) => {
+interface ProjectCardProps {
+    project: Project;
+    onEdit: (p: Project) => void;
+    onDelete: (id: string) => void;
+}
+
+const ProjectGridCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => {
     return (
         <div className="group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-300 flex flex-col overflow-hidden relative">
-            <div className="relative h-40 overflow-hidden bg-slate-100">
+            <div className="relative h-44 overflow-hidden bg-slate-100">
                 <img
                     src={project.avatar || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format&fit=crop'}
                     alt={project.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
-                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-slate-800 shadow-sm">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80"></div>
+
+                {/* Type Badge (Top Left) */}
+                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-slate-800 shadow-sm">
                     {project.type || 'Dự án'}
                 </div>
-                <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={(e) => { e.stopPropagation(); onEdit(project); }} className="p-1.5 bg-white/90 rounded-full hover:bg-white text-slate-600 hover:text-primary transition-colors">
-                        <span className="material-symbols-outlined text-[16px]">edit</span>
+
+                {/* Status Badge (Top Right) - Moved per request */}
+                <div className={`absolute top-3 right-3 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-md ${project.status === 'active' ? 'bg-green-500/90 text-white' :
+                    project.status === 'completed' ? 'bg-blue-500/90 text-white' :
+                        project.status === 'delayed' ? 'bg-red-500/90 text-white' :
+                            'bg-slate-500/90 text-white'
+                    }`}>
+                    {project.status === 'active' ? 'ĐANG THI CÔNG' :
+                        project.status === 'completed' ? 'HOÀN THÀNH' :
+                            project.status === 'delayed' ? 'CHẬM TIẾN ĐỘ' : 'TẠM DỪNG'}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="absolute top-12 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0 duration-300">
+                    <button onClick={(e) => { e.stopPropagation(); onEdit(project); }} className="p-2 bg-white/10 backdrop-blur hover:bg-white text-white hover:text-primary rounded-full transition-colors shadow-lg">
+                        <span className="material-symbols-outlined text-[18px]">edit</span>
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); onDelete(project.id); }} className="p-1.5 bg-white/90 rounded-full hover:bg-white text-slate-600 hover:text-red-600 transition-colors">
-                        <span className="material-symbols-outlined text-[16px]">delete</span>
+                    <button onClick={(e) => { e.stopPropagation(); onDelete(project.id); }} className="p-2 bg-white/10 backdrop-blur hover:bg-white text-white hover:text-red-600 rounded-full transition-colors shadow-lg">
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
                     </button>
                 </div>
-                <div className="absolute bottom-3 left-4 right-4 text-white">
-                    <p className="text-[10px] opacity-80 font-mono mb-0.5">{project.code}</p>
-                    <Link to={`/projects/${project.id}`} className="font-bold text-lg leading-tight hover:underline line-clamp-2 shadow-black drop-shadow-md">
+
+                <div className="absolute bottom-4 left-4 right-4 text-white">
+                    <p className="text-[10px] opacity-80 font-mono mb-1">{project.code}</p>
+                    <Link to={`/projects/${project.id}`} className="font-bold text-lg leading-tight hover:underline line-clamp-2 drop-shadow-md text-white">
                         {project.name}
                     </Link>
                 </div>
@@ -48,56 +70,64 @@ const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project, onEd
 
             <div className="p-4 flex-1 flex flex-col gap-4">
                 {/* Info Text */}
-                <div className="text-xs text-slate-500 flex flex-col gap-1.5">
+                <div className="text-xs text-slate-500 flex flex-col gap-2">
                     <div className="flex items-start gap-2">
                         <span className="material-symbols-outlined text-[16px] text-slate-400 shrink-0">location_on</span>
-                        <span className="line-clamp-1">{project.location || 'Chưa cập nhật địa điểm'}</span>
+                        <span className="line-clamp-1 text-slate-700">{project.location || 'Chưa cập nhật địa điểm'}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                        <span className="material-symbols-outlined text-[16px] text-slate-400 shrink-0">person</span>
+                        <span className="line-clamp-1 font-medium text-slate-900">GĐDA: {project.manager || 'Đang cập nhật'}</span>
                     </div>
                     {project.package && (
                         <div className="flex items-start gap-2">
                             <span className="material-symbols-outlined text-[16px] text-slate-400 shrink-0">assignment</span>
-                            <span className="font-bold text-slate-700 line-clamp-2" title={project.package}>{project.package}</span>
+                            <span className="font-bold text-slate-700 line-clamp-1" title={project.package}>{project.package}</span>
                         </div>
                     )}
                     {project.description && (
-                        <div className="mt-1 pl-6 text-[11px] italic text-slate-400 line-clamp-2 border-l-2 border-slate-100">
+                        <div className="mt-1 pl-2 text-[11px] italic text-slate-500 line-clamp-2 border-l-2 border-slate-200">
                             {project.description}
                         </div>
                     )}
                 </div>
 
-                <div className="flex items-center justify-between">
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded border ${project.status === 'active' ? 'bg-green-50 text-green-700 border-green-200' :
-                        project.status === 'completed' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                            project.status === 'delayed' ? 'bg-red-50 text-red-700 border-red-200' :
-                                'bg-slate-50 text-slate-600 border-slate-200'
-                        }`}>
-                        {project.status === 'active' ? 'ĐANG THI CÔNG' :
-                            project.status === 'completed' ? 'HOÀN THÀNH' :
-                                project.status === 'delayed' ? 'CHẬM TIẾN ĐỘ' : 'TẠM DỪNG'}
-                    </span>
-                    <span className="text-[10px] font-mono text-slate-400 text-right">
-                        End: {project.end_date || 'TBD'}
-                    </span>
+                {/* Deadlines & Dates */}
+                <div className="flex items-center justify-between pt-2 border-t border-slate-50">
+                    <span className="text-[10px] text-slate-400 font-mono">End: {project.end_date || 'TBD'}</span>
                 </div>
 
-                {/* Progress Bar */}
-                <div className="mt-auto pt-3 border-t border-slate-50">
-                    <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
-                        <span>Sản lượng</span>
-                        <span className="text-slate-900">{project.progress}%</span>
+                {/* Progress Bars */}
+                <div className="mt-auto space-y-3">
+                    {/* Output (Sản lượng) */}
+                    <div>
+                        <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
+                            <span>Sản lượng</span>
+                            <span className="text-slate-900">{project.progress}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-primary rounded-full" style={{ width: `${project.progress}%` }}></div>
+                        </div>
                     </div>
-                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-primary rounded-full" style={{ width: `${project.progress}%` }}></div>
+
+                    {/* Revenue (Doanh thu) */}
+                    <div>
+                        <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
+                            <span>Doanh thu</span>
+                            <span className="text-green-600">{(project as any).revenue || project.progress}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-green-500 rounded-full" style={{ width: `${(project as any).revenue || project.progress}%` }}></div>
+                        </div>
                     </div>
 
                     {/* Fake KPI Status */}
-                    <div className="flex justify-between mt-3 px-2 py-2 bg-yellow-50/50 rounded-lg border border-yellow-100">
-                        <div className="flex flex-col items-center gap-1">
-                            <span className="material-symbols-outlined text-[16px] text-yellow-600">flag</span>
-                            <span className="text-[8px] font-bold text-yellow-700 uppercase">Nghiệm thu</span>
+                    <div className="flex justify-between mt-3 px-3 py-2 bg-slate-50 rounded-lg border border-slate-100">
+                        <div className="flex flex-col gap-0.5">
+                            <span className="text-[8px] font-bold text-yellow-600 uppercase tracking-wide">Mục tiêu T9</span>
+                            <span className="text-[10px] font-bold text-slate-800">Nghiệm thu sàn T2</span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                             <span className="material-symbols-outlined text-[16px] text-green-500 filled" title="Tiến độ: Tốt">check_circle</span>
                             <span className="material-symbols-outlined text-[16px] text-green-500 filled" title="Ngân sách: Tốt">check_circle</span>
                             <span className="material-symbols-outlined text-[16px] text-green-500 filled" title="An toàn: Tốt">check_circle</span>
@@ -109,7 +139,7 @@ const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project, onEd
     );
 };
 
-const ProjectListView = ({ project, onEdit, onDelete }: { project: Project, onEdit: (p: Project) => void, onDelete: (id: string) => void }) => (
+const ProjectListView: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => (
     <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors group">
         <td className="px-6 py-4">
             <div className="flex items-center gap-3">
