@@ -20,6 +20,7 @@ export interface Project {
   model_url?: string;
   lat?: number;
   lng?: number;
+  schedule_performance?: 'ahead' | 'on_track' | 'delayed' | 'preparing' | 'completed';
 }
 
 export interface Contract {
