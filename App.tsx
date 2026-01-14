@@ -35,28 +35,29 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
       <ResponsiveSidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f7f7f8]">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-background-light">
         {/* Mobile Header with Hamburger */}
-        <div className="lg:hidden h-14 bg-white border-b border-slate-100 flex items-center px-4 z-10">
+        <div className="lg:hidden h-16 glass border-b border-slate-200/50 flex items-center px-6 z-10">
           <button
             onClick={toggleSidebar}
-            className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+            className="size-10 flex items-center justify-center hover:bg-slate-100 rounded-xl transition-premium"
           >
             <span className="material-symbols-outlined text-slate-700">menu</span>
           </button>
-          <div className="flex items-center gap-2 ml-3 text-primary">
-            <div className="size-7 bg-primary text-white rounded-lg flex items-center justify-center">
-              <span className="material-symbols-outlined text-[16px]">apartment</span>
+
+          <div className="flex items-center gap-3 ml-4">
+            <div className="size-8 mesh-gradient text-white rounded-lg flex items-center justify-center shadow-lg">
+              <span className="material-symbols-outlined text-[18px]">apartment</span>
             </div>
-            <h1 className="text-lg font-extrabold tracking-tight text-slate-900">
-              Vijako<span className="text-primary font-normal">ERP</span>
+            <h1 className="text-lg font-black tracking-tighter text-slate-900">
+              VIJAKO
             </h1>
           </div>
 
           {/* Search Button on Mobile */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="ml-auto p-2 hover:bg-slate-100 rounded-lg transition-colors"
+            className="ml-auto size-10 flex items-center justify-center hover:bg-slate-100 rounded-xl transition-premium"
           >
             <span className="material-symbols-outlined text-slate-700">search</span>
           </button>

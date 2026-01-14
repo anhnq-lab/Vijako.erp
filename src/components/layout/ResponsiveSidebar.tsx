@@ -14,17 +14,20 @@ const SidebarItem = ({ to, icon, label, active, count, onClick }: SidebarItemPro
     <Link
         to={to}
         onClick={onClick}
-        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${active
-            ? 'bg-primary/10 text-primary font-bold'
-            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-premium group relative ${active
+            ? 'bg-primary text-white shadow-premium font-bold'
+            : 'text-slate-500 hover:bg-white hover:text-primary hover:shadow-sm'
             }`}
     >
-        <span className={`material-symbols-outlined ${active ? 'filled' : ''} group-hover:text-primary transition-colors`}>
+        {active && (
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-emerald rounded-r-full shadow-[0_0_10px_#10b981]" />
+        )}
+        <span className={`material-symbols-outlined text-[22px] ${active ? 'filled' : ''} group-hover:scale-110 transition-premium`}>
             {icon}
         </span>
-        <span>{label}</span>
+        <span className="text-sm font-medium tracking-tight">{label}</span>
         {count && (
-            <span className="ml-auto bg-alert text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+            <span className="ml-auto bg-emerald text-white text-[10px] font-black px-1.5 py-0.5 rounded-lg shadow-sm">
                 {count}
             </span>
         )}
@@ -55,37 +58,39 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isOpen, on
                 className={`
           fixed lg:static
           top-0 left-0 bottom-0
-          w-64 bg-white border-r border-slate-100
+          w-72 glass border-r border-slate-200/50
           flex flex-col h-full z-40
-          shadow-[4px_0_24px_rgba(0,0,0,0.02)]
-          transform transition-transform duration-300 ease-in-out
+          transform transition-premium duration-500 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
             >
-                {/* Header */}
-                <div className="h-16 flex items-center px-6 border-b border-slate-50 justify-between">
-                    <div className="flex items-center gap-3 text-primary">
-                        <div className="size-8 bg-primary text-white rounded-lg flex items-center justify-center">
-                            <span className="material-symbols-outlined text-[20px]">apartment</span>
+                {/* Logo Section */}
+                <div className="h-24 flex items-center px-8 justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="size-10 mesh-gradient text-white rounded-xl flex items-center justify-center shadow-premium">
+                            <span className="material-symbols-outlined text-[24px]">apartment</span>
                         </div>
-                        <h1 className="text-xl font-extrabold tracking-tight text-slate-900">
-                            Vijako<span className="text-primary font-normal">ERP</span>
-                        </h1>
+                        <div>
+                            <h1 className="text-xl font-black tracking-tighter text-slate-900 leading-none">
+                                VIJAKO
+                            </h1>
+                            <p className="text-[10px] font-bold tracking-[0.2em] text-emerald uppercase mt-1">Enterprise</p>
+                        </div>
                     </div>
 
                     {/* Close button - chỉ hiện trên mobile */}
                     <button
                         onClick={onClose}
-                        className="lg:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="lg:hidden size-10 flex items-center justify-center hover:bg-slate-100 rounded-xl transition-premium"
                     >
                         <span className="material-symbols-outlined text-slate-600">close</span>
                     </button>
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1">
-                    <div className="px-3 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                        Dashboard
+                <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1 custom-scrollbar">
+                    <div className="px-4 mb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                        Executive
                     </div>
                     <SidebarItem
                         to="/"
@@ -102,58 +107,51 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isOpen, on
                         onClick={onClose}
                     />
 
-                    <div className="px-3 mt-6 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                        Quản lý
+                    <div className="px-4 mt-8 mb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                        Management
                     </div>
                     <SidebarItem
                         to="/projects"
                         icon="domain"
-                        label="Dự án"
+                        label="Dự án Công trình"
                         active={path === '/projects' || path.startsWith('/projects/')}
                         onClick={onClose}
                     />
                     <SidebarItem
                         to="/contracts"
-                        icon="description"
+                        icon="receipt_long"
                         label="Hợp đồng & Đấu thầu"
                         active={path === '/contracts'}
                         onClick={onClose}
                     />
                     <SidebarItem
                         to="/finance"
-                        icon="account_balance_wallet"
+                        icon="payments"
                         label="Tài chính & Thanh toán"
                         active={path === '/finance'}
                         onClick={onClose}
                     />
                     <SidebarItem
                         to="/supply"
-                        icon="inventory_2"
+                        icon="conveyor_belt"
                         label="Chuỗi Cung ứng"
                         active={path === '/supply'}
                         onClick={onClose}
                     />
                     <SidebarItem
                         to="/hrm"
-                        icon="groups"
-                        label="Nhân sự & Đào tạo"
+                        icon="badge"
+                        label="Nhân lực & Đào tạo"
                         active={path === '/hrm'}
                         onClick={onClose}
                     />
-                    <SidebarItem
-                        to="/recruitment"
-                        icon="person_search"
-                        label="Tuyển dụng"
-                        active={path === '/recruitment'}
-                        onClick={onClose}
-                    />
 
-                    <div className="px-3 mt-6 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                        Công cụ
+                    <div className="px-4 mt-8 mb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                        Resources
                     </div>
                     <SidebarItem
                         to="/documents"
-                        icon="folder_open"
+                        icon="cloud_done"
                         label="Hồ sơ Tài liệu (CDE)"
                         active={path === '/documents'}
                         onClick={onClose}
@@ -176,17 +174,21 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isOpen, on
                 </nav>
 
                 {/* User Profile */}
-                <div className="p-4 border-t border-slate-50">
-                    <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-100">
-                        <img
-                            src="https://picsum.photos/100/100"
-                            alt="User"
-                            className="size-9 rounded-full bg-cover bg-center object-cover"
-                        />
+                <div className="p-6">
+                    <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/50 border border-slate-200/50 shadow-sm hover:shadow-md transition-premium cursor-pointer group">
+                        <div className="relative">
+                            <img
+                                src="https://i.pravatar.cc/150?u=vijako"
+                                alt="User"
+                                className="size-10 rounded-xl bg-cover bg-center object-cover ring-2 ring-emerald/20 group-hover:ring-emerald/50 transition-premium"
+                            />
+                            <div className="absolute -bottom-1 -right-1 size-4 bg-emerald border-2 border-white rounded-full"></div>
+                        </div>
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-bold text-slate-900 truncate">Nguyễn Văn An</p>
-                            <p className="text-xs text-slate-500 truncate">CEO / Ban Giám Đốc</p>
+                            <p className="text-[10px] font-bold text-slate-500 truncate uppercase tracking-wider">Ban Giám Đốc</p>
                         </div>
+                        <span className="material-symbols-outlined text-slate-400 text-[20px] group-hover:text-primary transition-premium">logout</span>
                     </div>
                 </div>
             </aside>

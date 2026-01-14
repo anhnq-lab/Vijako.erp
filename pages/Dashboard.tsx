@@ -9,8 +9,6 @@ import { projectService } from '../src/services/projectService';
 import { riskService } from '../src/services/riskService';
 import { Project, RiskMatrixData } from '../types';
 
-// --- Data Simulation ---
-
 // Finance & EVM Data
 const financeData = [
   { name: 'T1', plan: 10, cost: 8, ev: 9 },
@@ -18,172 +16,98 @@ const financeData = [
   { name: 'T3', plan: 45, cost: 35, ev: 40 },
   { name: 'T4', plan: 60, cost: 45, ev: 55 },
   { name: 'T5', plan: 75, cost: 55, ev: 65 },
-  { name: 'T6', plan: 85, cost: 65, ev: 72 }, // Current
+  { name: 'T6', plan: 85, cost: 65, ev: 72 },
   { name: 'T7', plan: 90, cost: 75, ev: 80 },
   { name: 'T8', plan: 95, cost: 82, ev: 88 },
   { name: 'T9', plan: 100, cost: 90, ev: 95 },
 ];
 
-// Manpower & Machinery Data
-const resourceData = [
-  { name: 'T1', workers: 120, machines: 10 },
-  { name: 'T2', workers: 350, machines: 25 },
-  { name: 'T3', workers: 500, machines: 40 },
-  { name: 'T4', workers: 800, machines: 65 },
-  { name: 'T5', workers: 950, machines: 70 },
-  { name: 'T6', workers: 1100, machines: 85 }, // Peak
-  { name: 'T7', workers: 800, machines: 60 },
-  { name: 'T8', workers: 400, machines: 30 },
-];
-
-// Fallback Risk Matrix Data (used when DB has no data)
 const fallbackRiskData: RiskMatrixData[] = [
-  { x: 20, y: 20, z: 40, name: 'The Nine', status: 'Low', color: '#07883d' },
-  { x: 60, y: 60, z: 360, name: 'Foxconn BG', status: 'Medium', color: '#FACC15' },
-  { x: 100, y: 100, z: 1000, name: 'Sun Urban', status: 'Critical', color: '#EF4444' },
-  { x: 80, y: 60, z: 480, name: 'Aeon Mall', status: 'High', color: '#F97316' },
+  { x: 20, y: 20, z: 40, name: 'The Nine', status: 'Low', color: '#10b981' },
+  { x: 60, y: 60, z: 360, name: 'Foxconn BG', status: 'Medium', color: '#f59e0b' },
+  { x: 100, y: 100, z: 1000, name: 'Sun Urban', status: 'Critical', color: '#ef4444' },
+  { x: 80, y: 60, z: 480, name: 'Aeon Mall', status: 'High', color: '#f97316' },
   { x: 40, y: 80, z: 320, name: 'Mỹ Thuận 2', status: 'Medium', color: '#3b82f6' },
 ];
 
-// --- Components ---
-
-const StatCard = ({ title, value, unit, change, type, icon, subValue, note }: any) => {
-  const colors: any = {
-    primary: "text-primary bg-primary/10",
-    warning: "text-yellow-700 bg-yellow-50",
-    alert: "text-red-700 bg-red-50",
-    success: "text-green-700 bg-green-50",
+const PremiumStatCard = ({ title, value, unit, change, type, icon, subValue, note }: any) => {
+  const gradients: any = {
+    primary: "from-blue-500/10 to-transparent",
+    warning: "from-amber-500/10 to-transparent",
+    alert: "from-red-500/10 to-transparent",
+    success: "from-emerald-500/10 to-transparent",
   };
+
   const iconColors: any = {
-    primary: "text-primary",
-    warning: "text-yellow-600",
-    alert: "text-red-600",
-    success: "text-green-600"
+    primary: "text-blue-500 bg-blue-50",
+    warning: "text-amber-500 bg-amber-50",
+    alert: "text-red-500 bg-red-50",
+    success: "text-emerald-500 bg-emerald-50"
   };
 
   return (
-    <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all relative overflow-hidden group h-full">
-      <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
-        <span className={`material-symbols-outlined text-[80px] ${iconColors[type]}`}>{icon}</span>
-      </div>
-      <div className="relative z-10 flex flex-col h-full justify-between">
-        <div>
-          <div className="flex justify-between items-start mb-3">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">{title}</p>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${colors[type]}`}>
-              {change}
-            </span>
-          </div>
+    <div className="bg-white rounded-[32px] p-6 border border-slate-200 shadow-glass hover:shadow-premium transition-premium group relative overflow-hidden">
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradients[type]} opacity-0 group-hover:opacity-100 transition-premium`}></div>
 
-          <div className="flex items-baseline gap-1 mb-3">
-            <h3 className="text-2xl font-black text-slate-900">{value}</h3>
-            <span className="text-xs font-bold text-slate-400">{unit}</span>
+      <div className="relative z-10 flex flex-col h-full">
+        <div className="flex justify-between items-center mb-6">
+          <div className={`size-12 rounded-2xl flex items-center justify-center ${iconColors[type]} shadow-sm group-hover:scale-110 transition-premium`}>
+            <span className="material-symbols-outlined text-[24px]">{icon}</span>
+          </div>
+          <div className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${change.includes('+') ? 'text-emerald bg-emerald/10' : 'text-slate-500 bg-slate-100'}`}>
+            {change}
           </div>
         </div>
 
-        <div>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{title}</p>
+        <div className="flex items-baseline gap-2 mb-4">
+          <h3 className="text-3xl font-black text-slate-900 tracking-tight">{value}</h3>
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{unit}</span>
+        </div>
+
+        <div className="mt-auto">
           {subValue && (
-            <div className="w-full bg-slate-100 rounded-full h-1.5 mb-2 overflow-hidden">
-              <div className={`h-full rounded-full ${type === 'alert' ? 'bg-red-500' : (type === 'warning' ? 'bg-yellow-500' : 'bg-primary')}`} style={{ width: subValue }}></div>
+            <div className="w-full bg-slate-100 h-1.5 rounded-full mb-3 overflow-hidden">
+              <div className={`h-full rounded-full transition-all duration-1000 ${type === 'alert' ? 'bg-red-500' : 'bg-primary'}`} style={{ width: subValue }}></div>
             </div>
           )}
-
-          <div className="text-[10px] text-slate-500 font-medium">
-            {note}
-          </div>
+          <p className="text-[10px] font-bold text-slate-500 leading-relaxed italic">{note}</p>
         </div>
       </div>
     </div>
   );
 };
 
-const MaterialTicker = () => (
-  <div className="flex items-center gap-6 overflow-hidden whitespace-nowrap text-xs">
-    <div className="flex items-center gap-1">
-      <span className="text-slate-500 font-bold">Thép CB300:</span>
-      <span className="font-bold text-slate-900">14,200</span>
-      <span className="text-red-500 flex items-center bg-red-50 px-1 rounded"><span className="material-symbols-outlined text-[12px]">arrow_upward</span> 1.2%</span>
-    </div>
-    <div className="w-px h-3 bg-slate-300"></div>
-    <div className="flex items-center gap-1">
-      <span className="text-slate-500 font-bold">Xi măng PCB40:</span>
-      <span className="font-bold text-slate-900">1,450</span>
-      <span className="text-green-500 flex items-center bg-green-50 px-1 rounded"><span className="material-symbols-outlined text-[12px]">arrow_downward</span> 0.5%</span>
-    </div>
-    <div className="w-px h-3 bg-slate-300"></div>
-    <div className="flex items-center gap-1">
-      <span className="text-slate-500 font-bold">Dầu DO:</span>
-      <span className="font-bold text-slate-900">21,500</span>
-      <span className="text-slate-400 font-bold">-</span>
-    </div>
-  </div>
-)
+const AICommandHeader = () => (
+  <div className="mesh-gradient rounded-[40px] p-8 text-white relative overflow-hidden shadow-premium mb-8 group border border-white/10">
+    <div className="absolute -right-20 -top-20 size-80 bg-blue-400/20 blur-[100px] rounded-full group-hover:bg-blue-400/30 transition-premium"></div>
+    <div className="absolute -left-20 -bottom-20 size-64 bg-emerald-400/10 blur-[80px] rounded-full"></div>
 
-const AIInsight = () => (
-  <div className="bg-gradient-to-r from-indigo-900 to-primary text-white p-5 rounded-xl shadow-lg mb-6 flex items-start gap-4 relative overflow-hidden ring-1 ring-white/20">
-    <div className="absolute -top-10 -right-10 p-4 opacity-10">
-      <span className="material-symbols-outlined text-[200px]">psychology</span>
-    </div>
-    <div className="bg-white/10 p-2.5 rounded-lg backdrop-blur-sm shrink-0 border border-white/20 shadow-inner">
-      <span className="material-symbols-outlined text-[28px] animate-pulse text-yellow-300">auto_awesome</span>
-    </div>
-    <div className="relative z-10 flex-1">
-      <h4 className="text-sm font-bold text-indigo-100 mb-1 flex items-center gap-2">
-        Trợ lý ảo phân tích (AI Executive Summary)
-        <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded text-white border border-white/10">Vừa cập nhật 5p trước</span>
-      </h4>
-      <p className="text-sm font-medium leading-relaxed opacity-90">
-        <strong className="text-white">Cảnh báo Ưu tiên:</strong> Dự án <span className="underline decoration-yellow-400 decoration-2 underline-offset-2 font-bold text-white">Sun Urban City</span> đang có dấu hiệu trượt tiến độ (SPI = 0.85) kết hợp với sự cố An toàn cấp 1 hôm qua. Rủi ro pháp lý tại The Nine đã giảm.
-      </p>
-      <p className="text-xs text-indigo-200 mt-1">
-        Khuyến nghị: Điều chuyển 2 tổ đội từ The Nine sang hỗ trợ Sun Urban trong 3 ngày tới để bù tiến độ.
-      </p>
-
-      <div className="mt-4 flex gap-3">
-        <button className="bg-white text-primary text-xs font-bold px-3 py-1.5 rounded shadow hover:bg-indigo-50 transition-colors flex items-center gap-1">
-          <span className="material-symbols-outlined text-[16px]">visibility</span> Xem chi tiết
-        </button>
-        <button className="bg-indigo-950/30 text-indigo-100 border border-white/20 text-xs font-bold px-3 py-1.5 rounded hover:bg-indigo-900/50 transition-colors">
-          Bỏ qua
-        </button>
-      </div>
-    </div>
-  </div>
-)
-
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white p-3 border border-slate-100 shadow-xl rounded-lg text-xs">
-        <p className="font-bold text-slate-900 mb-1">{label}</p>
-        {payload.map((entry: any, index: number) => (
-          <p key={index} style={{ color: entry.color }} className="font-medium">
-            {entry.name}: {entry.value}
-          </p>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
-
-const RiskTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    return (
-      <div className="bg-white p-3 border border-slate-100 shadow-xl rounded-lg text-xs w-48 z-50">
-        <div className="flex items-center gap-2 mb-2 pb-2 border-b border-slate-50">
-          <span className="size-3 rounded-full" style={{ backgroundColor: data.color }}></span>
-          <p className="font-bold text-slate-900 text-sm">{data.name}</p>
+    <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <div className="lg:col-span-8 flex flex-col md:flex-row gap-6 items-center md:items-start text-center md:text-left">
+        <div className="size-20 bg-white/10 backdrop-blur-xl border border-white/20 rounded-[24px] flex items-center justify-center shadow-2xl shrink-0 group-hover:rotate-6 transition-premium">
+          <span className="material-symbols-outlined text-[48px] text-yellow-300 animate-pulse">auto_awesome</span>
         </div>
-        <p className="text-slate-500 mb-1">Khả năng: <span className="font-bold text-slate-700">{data.x}%</span></p>
-        <p className="text-slate-500 mb-1">Ảnh hưởng: <span className="font-bold text-slate-700">{data.y}%</span></p>
-        <p className="text-slate-500">Trạng thái: <span className={`font-bold ${data.status === 'Critical' ? 'text-red-600' : 'text-slate-700'}`}>{data.status}</span></p>
+        <div>
+          <div className="flex flex-wrap items-center gap-2 mb-2 justify-center md:justify-start">
+            <span className="px-2 py-0.5 bg-white/10 rounded-md text-[10px] font-black tracking-widest uppercase border border-white/10">VIJAKO AI Executive</span>
+            <span className="px-2 py-0.5 bg-emerald/20 text-emerald-300 rounded-md text-[10px] font-black tracking-widest uppercase border border-emerald-400/20 flex items-center gap-1">
+              <span className="size-1 bg-emerald-300 rounded-full animate-ping"></span> Live Intelligence
+            </span>
+          </div>
+          <h2 className="text-3xl font-black tracking-tight mb-2">Chào buổi tối, Anh An!</h2>
+          <p className="text-indigo-100/80 text-lg font-medium leading-relaxed max-w-2xl">
+            Hệ thống ghi nhận <span className="text-white font-black underline decoration-emerald-400 underline-offset-4">Sun Urban City</span> đang gặp khó khăn về tiến độ (SPI 0.82). Tuy nhiên, rủi ro tài chính tại dự án The Nine đã được khống chế thành công.
+          </p>
+        </div>
       </div>
-    );
-  }
-  return null;
-};
+      <div className="lg:col-span-4 flex justify-center lg:justify-end gap-3">
+        <button className="px-8 py-3 bg-white text-primary font-black rounded-2xl shadow-xl hover:scale-105 transition-premium text-sm uppercase tracking-widest">Chi tiết rủi ro</button>
+        <button className="px-8 py-3 bg-white/5 border border-white/10 backdrop-blur-md text-white font-black rounded-2xl hover:bg-white/10 transition-premium text-sm uppercase tracking-widest">Bỏ qua</button>
+      </div>
+    </div>
+  </div>
+);
 
 export default function Dashboard() {
   const [activeChart, setActiveChart] = useState<'finance' | 'manpower'>('finance');
@@ -191,201 +115,160 @@ export default function Dashboard() {
   const [riskData, setRiskData] = useState<RiskMatrixData[]>(fallbackRiskData);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchAllData = async () => {
       try {
-        // Fetch projects
-        const projectsData = await projectService.getAllProjects();
-        setProjects(projectsData);
-
-        // Fetch risk matrix data
-        const risksData = await riskService.getRiskMatrix();
-        if (risksData && risksData.length > 0) {
-          setRiskData(risksData);
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
+        const [proj, risks] = await Promise.all([
+          projectService.getAllProjects(),
+          riskService.getRiskMatrix()
+        ]);
+        setProjects(proj);
+        if (risks && risks.length) setRiskData(risks);
+      } catch (err) {
+        console.error(err);
       }
     };
-    fetchData();
+    fetchAllData();
   }, []);
 
   return (
-    <>
-      <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-8 shadow-sm z-10 sticky top-0">
-        <div className="flex flex-col">
-          <h2 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            Trung tâm Chỉ huy
-            <span className="bg-slate-100 text-slate-500 text-[10px] px-2 py-0.5 rounded-full border border-slate-200 font-bold uppercase">Executive View</span>
-          </h2>
-        </div>
-
-        {/* Material Price Ticker - Top Bar */}
-        <div className="hidden xl:flex items-center bg-slate-50 px-4 py-1.5 rounded-full border border-slate-200">
-          <MaterialTicker />
+    <div className="flex-1 flex flex-col min-w-0 bg-background-light overflow-hidden">
+      {/* Premium Sticky Header */}
+      <header className="h-20 glass border-b border-slate-200/50 flex items-center justify-between px-10 z-20 sticky top-0">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Executive Dashboard</h2>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-0.5">Vijako Headquarters / Command Center</p>
         </div>
 
         <div className="flex items-center gap-4">
-          <button className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition-all">
-            <span className="material-symbols-outlined text-[18px] text-slate-500">filter_list</span>
-            <span>Khu vực: Toàn quốc</span>
-          </button>
-          <button className="flex items-center gap-2 px-3 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">
-            <span className="material-symbols-outlined text-[18px]">download</span>
-            <span>Xuất Báo cáo</span>
-          </button>
+          <div className="hidden xl:flex items-center gap-6 bg-slate-200/50 px-6 py-2 rounded-2xl border border-white/50">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase">Steel</span>
+              <span className="text-sm font-black text-slate-900">14.2K</span>
+              <span className="text-[10px] text-red-500 font-bold">↑ 1.2%</span>
+            </div>
+            <div className="w-px h-4 bg-slate-300"></div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase">Cement</span>
+              <span className="text-sm font-black text-slate-900">1.4K</span>
+              <span className="text-[10px] text-emerald font-bold">↓ 0.5%</span>
+            </div>
+          </div>
+          <button className="px-6 py-2.5 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-premium hover:scale-105 transition-premium">Export Report</button>
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-6 bg-[#f7f7f8]">
-        <div className="max-w-[1800px] mx-auto space-y-6">
+      <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
+        <div className="max-w-[1800px] mx-auto space-y-10">
 
-          {/* 1. AI Insight Section */}
-          <AIInsight />
+          {/* AI Header */}
+          <AICommandHeader />
 
-          {/* 2. Key Stats Matrix */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            <StatCard
-              title="Doanh Thu Ghi Nhận"
+          {/* Key Stats Matrix */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+            <PremiumStatCard
+              title="YTD Revenue"
               value="120.5" unit="Tỷ"
-              change="+12%" type="primary" icon="payments"
+              change="+12.4%" type="success" icon="payments"
               subValue="78%"
-              note="Đạt 78% kế hoạch năm (YTD)"
+              note="Đạt 78% kế hoạch năm (Thặng dư 1.2 Tỷ)"
             />
-            <StatCard
-              title="Rủi ro & Sự cố"
-              value="3" unit="Vụ"
-              change="Critical" type="alert" icon="warning"
+            <PremiumStatCard
+              title="Safety & Risks"
+              value="03" unit="Alerts"
+              change="Priority" type="alert" icon="security"
               subValue="85%"
-              note="1 Sự cố ATLĐ nghiêm trọng tuần này"
+              note="1 Sự cố ATLĐ mức độ 1 tại Dự án ABC"
             />
-            <StatCard
-              title="Dòng tiền khả dụng"
+            <PremiumStatCard
+              title="Liquid Assets"
               value="45.8" unit="Tỷ"
-              change="-2%" type="warning" icon="account_balance_wallet"
+              change="-2.5%" type="warning" icon="account_balance_wallet"
               subValue="40%"
-              note="Đủ khả năng thanh toán 1.5 tháng tới"
+              note="Phủ được 1.5 tháng chi phí vận hành"
             />
-            <StatCard
-              title="Tổng nhân lực (Site)"
-              value="1,245" unit="Người"
-              change="Peak" type="success" icon="groups"
-              subValue="92%"
-              note="Huy động tối đa cho giai đoạn hoàn thiện"
+            <PremiumStatCard
+              title="Total Site Force"
+              value="1,245" unit="Staff"
+              change="Peak" type="primary" icon="groups"
+              subValue="95%"
+              note="92% Công suất huy động tối đa"
             />
           </div>
 
-          {/* 3. Main Chart Section (Multi-view) & Risk Matrix */}
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-            {/* LEFT: Multi-view Chart */}
-            <div className="xl:col-span-8 bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col h-[520px]">
-              <div className="p-6 border-b border-slate-50 flex flex-wrap items-center justify-between gap-4">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+            <div className="xl:col-span-8 bg-white rounded-[40px] border border-slate-200 shadow-glass overflow-hidden h-[550px] flex flex-col">
+              <div className="p-8 pb-4 flex justify-between items-center">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">Biểu đồ Tổng hợp Đa dự án</h3>
-                  <p className="text-sm text-slate-500">Theo dõi chỉ số hiệu quả dự án theo thời gian thực.</p>
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight">Financial Performance (EVM)</h3>
+                  <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Real-time Project Auditing</p>
                 </div>
-                {/* Chart Toggle */}
-                <div className="flex bg-slate-100 p-1 rounded-lg">
+                <div className="flex bg-slate-100 p-1.5 rounded-2xl">
                   <button
                     onClick={() => setActiveChart('finance')}
-                    className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${activeChart === 'finance' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                  >
-                    <span className="material-symbols-outlined text-[16px]">monitoring</span> Tài chính & EVM
-                  </button>
+                    className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-premium ${activeChart === 'finance' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  >Finance</button>
                   <button
                     onClick={() => setActiveChart('manpower')}
-                    className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${activeChart === 'manpower' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                  >
-                    <span className="material-symbols-outlined text-[16px]">engineering</span> Nhân lực & Máy móc
-                  </button>
+                    className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-premium ${activeChart === 'manpower' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  >Manpower</button>
                 </div>
               </div>
-
-              <div className="flex-1 p-4 relative text-xs">
-                <ErrorBoundary fallback={<div className="p-10 text-center text-slate-400">Không thể hiển thị biểu đồ.</div>}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    {activeChart === 'finance' ? (
-                      <ComposedChart data={financeData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                        <defs>
-                          <linearGradient id="colorPlan" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#1f3f89" stopOpacity={0.1} />
-                            <stop offset="95%" stopColor="#1f3f89" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tickMargin={10} />
-                        <YAxis axisLine={false} tickLine={false} />
-                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
-                        <Legend verticalAlign="top" height={36} iconType="circle" />
-                        <Area name="Kế hoạch (PV)" type="monotone" dataKey="plan" stroke="#1f3f89" strokeWidth={3} fillOpacity={1} fill="url(#colorPlan)" />
-                        <Bar name="Chi phí thực (AC)" dataKey="cost" fill="#EF4444" barSize={20} radius={[4, 4, 0, 0]} opacity={0.8} />
-                        <Line name="Giá trị đạt được (EV)" type="monotone" dataKey="ev" stroke="#FACC15" strokeWidth={3} dot={{ r: 4, fill: '#FACC15', strokeWidth: 2, stroke: '#fff' }} />
-                        <ReferenceLine x="T6" stroke="#94a3b8" strokeDasharray="3 3" label={{ position: 'top', value: 'Hiện tại', fill: '#94a3b8', fontSize: 10 }} />
-                      </ComposedChart>
-                    ) : (
-                      <ComposedChart data={resourceData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis dataKey="name" axisLine={false} tickLine={false} tickMargin={10} />
-                        <YAxis yAxisId="left" orientation="left" stroke="#07883d" axisLine={false} tickLine={false} label={{ value: 'Công nhân', angle: -90, position: 'insideLeft', fill: '#07883d', opacity: 0.5 }} />
-                        <YAxis yAxisId="right" orientation="right" stroke="#1f3f89" axisLine={false} tickLine={false} label={{ value: 'Máy móc', angle: 90, position: 'insideRight', fill: '#1f3f89', opacity: 0.5 }} />
-                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
-                        <Legend verticalAlign="top" height={36} iconType="circle" />
-                        <Bar yAxisId="left" name="Công nhân (Người)" dataKey="workers" fill="#07883d" barSize={30} radius={[4, 4, 0, 0]} />
-                        <Line yAxisId="right" name="Máy móc (Thiết bị)" type="monotone" dataKey="machines" stroke="#1f3f89" strokeWidth={3} dot={{ r: 4, fill: '#1f3f89', strokeWidth: 2, stroke: '#fff' }} />
-                      </ComposedChart>
-                    )}
-                  </ResponsiveContainer>
-                </ErrorBoundary>
+              <div className="flex-1 p-8">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={financeData}>
+                    <defs>
+                      <linearGradient id="colorPV" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#1d4ed8" stopOpacity={0.1} />
+                        <stop offset="95%" stopColor="#1d4ed8" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} />
+                    <Tooltip contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }} />
+                    <Area type="monotone" dataKey="plan" stroke="#1d4ed8" fillOpacity={1} fill="url(#colorPV)" strokeWidth={4} />
+                    <Bar dataKey="cost" fill="#ef4444" barSize={12} radius={[6, 6, 0, 0]} />
+                    <Line type="monotone" dataKey="ev" stroke="#f59e0b" strokeWidth={4} dot={{ r: 6, fill: '#f59e0b', strokeWidth: 0 }} />
+                  </ComposedChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
-            {/* RIGHT: Risk Matrix */}
-            <div className="xl:col-span-4 bg-white rounded-xl border border-slate-100 shadow-sm flex flex-col h-[520px]">
-              <div className="p-6 border-b border-slate-50">
-                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-red-600">crisis_alert</span> Ma trận Rủi ro
-                </h3>
-                <p className="text-sm text-slate-500">Phân vùng rủi ro theo Xác suất & Ảnh hưởng</p>
+            <div className="xl:col-span-4 bg-white rounded-[40px] border border-slate-200 shadow-glass overflow-hidden h-[550px] flex flex-col relative">
+              <div className="p-8">
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">Risk Matrix Map</h3>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Impact vs Probability</p>
               </div>
               <div className="flex-1 p-4 relative">
-                {/* Matrix Background Zones */}
-                <div className="absolute inset-4 left-10 bottom-8 border-l border-b border-slate-200 z-0">
-                  <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-green-50/50 rounded-tr-xl"></div>
-                  <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-red-50/50 rounded-bl-xl"></div>
-                  <div className="absolute bottom-0 right-0 w-full h-full bg-transparent flex items-center justify-center pointer-events-none">
-                    <span className="text-[100px] text-slate-500/5 font-black -rotate-12 transform">RISK</span>
-                  </div>
-                </div>
-
+                <div className="absolute inset-8 border-l border-b border-slate-100/50"></div>
                 <ResponsiveContainer width="100%" height="100%">
-                  <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis type="number" dataKey="x" name="Khả năng xảy ra" unit="%" domain={[0, 100]} tick={{ fontSize: 10 }} label={{ value: 'Xác suất (Probability)', position: 'bottom', fontSize: 10, fill: '#64748b' }} />
-                    <YAxis type="number" dataKey="y" name="Mức độ ảnh hưởng" unit="%" domain={[0, 100]} tick={{ fontSize: 10 }} label={{ value: 'Ảnh hưởng (Impact)', angle: -90, position: 'insideLeft', fontSize: 10, fill: '#64748b' }} />
-                    <ZAxis type="number" dataKey="z" range={[100, 1000]} name="Mức độ nghiêm trọng" />
-                    <Tooltip content={<RiskTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-                    <Scatter name="Projects" data={riskData} fill="#8884d8">
+                  <ScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 10 }}>
+                    <XAxis type="number" dataKey="x" domain={[0, 100]} hide />
+                    <YAxis type="number" dataKey="y" domain={[0, 100]} hide />
+                    <ZAxis type="number" dataKey="z" range={[400, 2000]} />
+                    <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+                    <Scatter data={riskData}>
                       {riskData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                        <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
                       ))}
                     </Scatter>
                   </ScatterChart>
                 </ResponsiveContainer>
               </div>
-              <div className="px-6 pb-6 pt-2 flex justify-between text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                <span>Thấp</span>
-                <span>Cao</span>
+              <div className="p-8 flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-100">
+                <span>Low Exposure</span>
+                <span>Critical Zone</span>
               </div>
             </div>
           </div>
 
-          {/* 4. Project Map Section */}
-          <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden h-[450px]">
-            <ErrorBoundary fallback={<div className="flex flex-col items-center justify-center h-full bg-slate-50 text-slate-400 gap-2 font-bold"><span className="material-symbols-outlined text-[48px]">map</span> Bản đồ hiện không khả dụng.</div>}>
-              <ProjectMap projects={projects} />
-            </ErrorBoundary>
+          {/* Project Map */}
+          <div className="bg-white rounded-[40px] border border-slate-200 shadow-glass overflow-hidden h-[500px] group">
+            <ProjectMap projects={projects} />
           </div>
+
         </div>
       </div>
-    </>
+    </div>
   );
 }

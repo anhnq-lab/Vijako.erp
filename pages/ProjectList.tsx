@@ -3,134 +3,99 @@ import { Link } from 'react-router-dom';
 import { projectService } from '../src/services/projectService';
 import { Project } from '../types';
 
-// --- Helper Components ---
-
-const KPICard = ({ title, value, icon, color }: { title: string, value: number | string, icon: string, color: string }) => (
-    <div className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-slate-100 shadow-sm min-w-[180px]">
-        <div className={`size-10 rounded-full flex items-center justify-center ${color}`}>
-            <span className="material-symbols-outlined">{icon}</span>
+// --- Premium Stat Card ---
+const LuxuryStatCard = ({ title, value, icon, color, gradient }: any) => (
+    <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-glass hover:shadow-premium transition-premium group relative overflow-hidden flex items-center gap-4">
+        <div className={`absolute -right-4 -top-4 size-24 opacity-5 blur-2xl rounded-full ${gradient}`}></div>
+        <div className={`size-12 rounded-2xl flex items-center justify-center ${color} shadow-lg transition-premium group-hover:scale-110 shrink-0`}>
+            <span className="material-symbols-outlined text-[24px] text-white">{icon}</span>
         </div>
-        <div>
-            <p className="text-xs text-slate-500 font-bold uppercase">{title}</p>
-            <p className="text-xl font-black text-slate-800">{value}</p>
+        <div className="relative z-10">
+            <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mb-0.5">{title}</p>
+            <p className="text-2xl font-black text-slate-900 tracking-tight">{value}</p>
         </div>
     </div>
 );
 
-interface ProjectCardProps {
-    project: Project;
-    onEdit: (p: Project) => void;
-    onDelete: (id: string) => void;
-}
-
-const ProjectGridCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => {
+const ProjectGridCard = ({ project, onEdit, onDelete }: { project: Project; onEdit: (p: Project) => void; onDelete: (id: string) => void }) => {
     return (
-        <div className="group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-300 flex flex-col overflow-hidden relative">
-            <div className="relative h-44 overflow-hidden bg-slate-100">
+        <div className="group bg-white rounded-[40px] border border-slate-200 shadow-glass hover:shadow-premium transition-premium flex flex-col overflow-hidden relative">
+            {/* Image Header */}
+            <div className="relative h-56 overflow-hidden">
                 <img
                     src={project.avatar || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format&fit=crop'}
                     alt={project.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60"></div>
 
-                {/* Type Badge (Top Left) */}
-                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-slate-800 shadow-sm">
-                    {project.type || 'Dự án'}
+                {/* Badges */}
+                <div className="absolute top-4 left-4 flex gap-2">
+                    <span className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-[10px] font-black text-white uppercase tracking-widest shadow-xl">
+                        {project.type || 'Construction'}
+                    </span>
                 </div>
 
-                {/* Status Badge (Top Right) - Moved per request */}
-                <div className={`absolute top-3 right-3 px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-md ${project.status === 'active' ? 'bg-green-500/90 text-white' :
-                    project.status === 'completed' ? 'bg-blue-500/90 text-white' :
-                        project.status === 'delayed' ? 'bg-red-500/90 text-white' :
-                            'bg-slate-500/90 text-white'
+                <div className={`absolute top-4 right-4 px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl backdrop-blur-md border ${project.status === 'active' ? 'bg-emerald/20 text-emerald-400 border-emerald-400/30' :
+                        project.status === 'completed' ? 'bg-blue-500/20 text-blue-400 border-blue-400/30' :
+                            'bg-red-500/20 text-red-400 border-red-400/30'
                     }`}>
-                    {project.status === 'active' ? 'ĐANG THI CÔNG' :
-                        project.status === 'completed' ? 'HOÀN THÀNH' :
-                            project.status === 'delayed' ? 'CHẬM TIẾN ĐỘ' : 'TẠM DỪNG'}
+                    {project.status === 'active' ? 'Construction' : 'Finished'}
                 </div>
 
-                {/* Action Buttons */}
-                <div className="absolute top-12 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0 duration-300">
-                    <button onClick={(e) => { e.stopPropagation(); onEdit(project); }} className="p-2 bg-white/10 backdrop-blur hover:bg-white text-white hover:text-primary rounded-full transition-colors shadow-lg">
-                        <span className="material-symbols-outlined text-[18px]">edit</span>
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); onDelete(project.id); }} className="p-2 bg-white/10 backdrop-blur hover:bg-white text-white hover:text-red-600 rounded-full transition-colors shadow-lg">
-                        <span className="material-symbols-outlined text-[18px]">delete</span>
-                    </button>
-                </div>
-
-                <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <p className="text-[10px] opacity-80 font-mono mb-1">{project.code}</p>
-                    <Link to={`/projects/${project.id}`} className="font-bold text-lg leading-tight hover:underline line-clamp-2 drop-shadow-md text-white">
+                {/* Floating Content */}
+                <div className="absolute bottom-6 left-6 right-6">
+                    <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] mb-1 font-mono">{project.code}</p>
+                    <Link to={`/projects/${project.id}`} className="text-xl font-black text-white tracking-tight leading-tight hover:underline line-clamp-2 drop-shadow-lg">
                         {project.name}
                     </Link>
                 </div>
             </div>
 
-            <div className="p-4 flex-1 flex flex-col gap-4">
-                {/* Info Text */}
-                <div className="text-xs text-slate-500 flex flex-col gap-2">
-                    <div className="flex items-start gap-2">
-                        <span className="material-symbols-outlined text-[16px] text-slate-400 shrink-0">location_on</span>
-                        <span className="line-clamp-1 text-slate-700">{project.location || 'Chưa cập nhật địa điểm'}</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                        <span className="material-symbols-outlined text-[16px] text-slate-400 shrink-0">person</span>
-                        <span className="line-clamp-1 font-medium text-slate-900">GĐDA: {project.manager || 'Đang cập nhật'}</span>
-                    </div>
-                    {project.package && (
-                        <div className="flex items-start gap-2">
-                            <span className="material-symbols-outlined text-[16px] text-slate-400 shrink-0">assignment</span>
-                            <span className="font-bold text-slate-700 line-clamp-1" title={project.package}>{project.package}</span>
+            {/* Content Body */}
+            <div className="p-6 flex-1 flex flex-col">
+                <div className="space-y-4 mb-6">
+                    <div className="flex items-center gap-3">
+                        <div className="size-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                            <span className="material-symbols-outlined text-[18px]">location_on</span>
                         </div>
-                    )}
-                    {project.description && (
-                        <div className="mt-1 pl-2 text-[11px] italic text-slate-500 line-clamp-2 border-l-2 border-slate-200">
-                            {project.description}
+                        <span className="text-xs font-bold text-slate-600 truncate">{project.location || 'Vietnam Coast'}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="size-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                            <span className="material-symbols-outlined text-[18px]">person</span>
                         </div>
-                    )}
+                        <span className="text-xs font-bold text-slate-900">PM: {project.manager || 'Admin'}</span>
+                    </div>
                 </div>
 
-                {/* Deadlines & Dates */}
-                <div className="flex items-center justify-between pt-2 border-t border-slate-50">
-                    <span className="text-[10px] text-slate-400 font-mono">End: {project.end_date || 'TBD'}</span>
-                </div>
-
-                {/* Progress Bars */}
-                <div className="mt-auto space-y-3">
-                    {/* Output (Sản lượng) */}
+                {/* Progress Indicators */}
+                <div className="space-y-4 mt-auto">
                     <div>
-                        <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
-                            <span>Sản lượng</span>
-                            <span className="text-slate-900">{project.progress}%</span>
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Efficiency</span>
+                            <span className="text-xs font-black text-primary">{project.progress}%</span>
                         </div>
                         <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-primary rounded-full" style={{ width: `${project.progress}%` }}></div>
+                            <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${project.progress}%` }}></div>
                         </div>
                     </div>
 
-                    {/* Revenue (Doanh thu) */}
-                    <div>
-                        <div className="flex justify-between text-[10px] font-bold text-slate-500 mb-1">
-                            <span>Doanh thu</span>
-                            <span className="text-green-600">{(project as any).revenue || project.progress}%</span>
+                    {/* Meta Action */}
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                        <div className="flex -space-x-2">
+                            {[1, 2, 3].map(i => (
+                                <img key={i} src={`https://i.pravatar.cc/100?u=${i}`} className="size-6 rounded-full border-2 border-white ring-1 ring-slate-100" />
+                            ))}
+                            <div className="size-6 rounded-full bg-slate-100 border-2 border-white ring-1 ring-slate-100 flex items-center justify-center text-[8px] font-bold text-slate-500">+5</div>
                         </div>
-                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-green-500 rounded-full" style={{ width: `${(project as any).revenue || project.progress}%` }}></div>
-                        </div>
-                    </div>
-
-                    {/* Fake KPI Status */}
-                    <div className="flex justify-between mt-3 px-3 py-2 bg-slate-50 rounded-lg border border-slate-100">
-                        <div className="flex flex-col gap-0.5">
-                            <span className="text-[8px] font-bold text-yellow-600 uppercase tracking-wide">Mục tiêu T9</span>
-                            <span className="text-[10px] font-bold text-slate-800">Nghiệm thu sàn T2</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[16px] text-green-500 filled" title="Tiến độ: Tốt">check_circle</span>
-                            <span className="material-symbols-outlined text-[16px] text-green-500 filled" title="Ngân sách: Tốt">check_circle</span>
-                            <span className="material-symbols-outlined text-[16px] text-green-500 filled" title="An toàn: Tốt">check_circle</span>
+                        <div className="flex gap-2">
+                            <button onClick={() => onEdit(project)} className="size-8 rounded-xl bg-slate-50 hover:bg-primary text-slate-400 hover:text-white transition-premium flex items-center justify-center shadow-sm">
+                                <span className="material-symbols-outlined text-[16px]">edit</span>
+                            </button>
+                            <button onClick={() => onDelete(project.id)} className="size-8 rounded-xl bg-slate-50 hover:bg-red-500 text-slate-400 hover:text-white transition-premium flex items-center justify-center shadow-sm">
+                                <span className="material-symbols-outlined text-[16px]">delete</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -138,155 +103,6 @@ const ProjectGridCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete
         </div>
     );
 };
-
-const ProjectListView: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => (
-    <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors group">
-        <td className="px-6 py-4">
-            <div className="flex items-center gap-3">
-                <img src={project.avatar || 'https://via.placeholder.com/40'} alt="" className="size-10 rounded-lg object-cover bg-slate-200" />
-                <div>
-                    <Link to={`/projects/${project.id}`} className="font-bold text-slate-900 hover:text-primary">{project.name}</Link>
-                    <p className="text-xs text-slate-500 font-mono">{project.code}</p>
-                </div>
-            </div>
-        </td>
-        <td className="px-6 py-4">
-            <div className="flex gap-1">
-                <span className="size-2 rounded-full bg-green-500" title="Schedule: Good"></span>
-                <span className="size-2 rounded-full bg-green-500" title="Budget: Good"></span>
-                <span className="size-2 rounded-full bg-green-500" title="Safety: Good"></span>
-            </div>
-        </td>
-        <td className="px-6 py-4 w-48">
-            <div className="text-xs space-y-2">
-                <div>
-                    <div className="flex justify-between mb-1"><span className="text-slate-500">Tiến độ</span> <span className="font-bold">{project.progress}%</span></div>
-                    <div className="h-1 w-full bg-slate-100 rounded-full"><div className="h-full bg-primary" style={{ width: `${project.progress}%` }}></div></div>
-                </div>
-            </div>
-        </td>
-        <td className="px-6 py-4 text-xs text-slate-600">
-            Nghiệm thu: <strong className="text-slate-900">TBD</strong>
-        </td>
-        <td className="px-6 py-4 text-right">
-            <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${project.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'
-                }`}>
-                {project.status}
-            </span>
-        </td>
-        <td className="px-6 py-4 text-right">
-            <button onClick={() => onEdit(project)} className="text-slate-400 hover:text-primary mx-1"><span className="material-symbols-outlined text-[18px]">edit</span></button>
-            <button onClick={() => onDelete(project.id)} className="text-slate-400 hover:text-red-600 mx-1"><span className="material-symbols-outlined text-[18px]">delete</span></button>
-        </td>
-    </tr>
-);
-
-const ProjectModal = ({ isOpen, onClose, project, onSave }: { isOpen: boolean, onClose: () => void, project: Project | null, onSave: (data: any) => void }) => {
-    if (!isOpen) return null;
-    const [formData, setFormData] = useState<Partial<Project>>({
-        code: '', name: '', location: '', manager: '', status: 'active',
-        owner: '', package: '', type: 'Cao ốc', area: '', description: '',
-        start_date: '', end_date: ''
-    });
-
-    useEffect(() => {
-        if (project) {
-            setFormData(project);
-        } else {
-            setFormData({
-                code: '', name: '', location: '', manager: '', status: 'active',
-                owner: '', package: '', type: 'Cao ốc', area: '', description: '',
-                start_date: '', end_date: ''
-            });
-        }
-    }, [project]);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                <div className="p-6 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
-                    <h3 className="text-xl font-bold text-slate-900">{project ? 'Cập nhật dự án' : 'Thêm dự án mới'}</h3>
-                    <button onClick={onClose} className="size-8 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500">
-                        <span className="material-symbols-outlined">close</span>
-                    </button>
-                </div>
-                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Mã dự án</label>
-                        <input name="code" value={formData.code} onChange={handleChange} className="w-full p-2 border border-slate-200 rounded text-sm focus:border-primary outline-none" placeholder="VD: P-001" />
-                    </div>
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Tên dự án</label>
-                        <input name="name" value={formData.name} onChange={handleChange} className="w-full p-2 border border-slate-200 rounded text-sm focus:border-primary outline-none" placeholder="Tên dự án..." />
-                    </div>
-                    <div className="col-span-2 space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Gói thầu</label>
-                        <input name="package" value={formData.package} onChange={handleChange} className="w-full p-2 border border-slate-200 rounded text-sm focus:border-primary outline-none" placeholder="VD: Thi công kết cấu..." />
-                    </div>
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Chủ đầu tư</label>
-                        <input name="owner" value={formData.owner} onChange={handleChange} className="w-full p-2 border border-slate-200 rounded text-sm focus:border-primary outline-none" />
-                    </div>
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Lĩnh vực thi công</label>
-                        <select name="type" value={formData.type} onChange={handleChange} className="w-full p-2 border border-slate-200 rounded text-sm outline-none">
-                            <option value="">-- Chọn lĩnh vực --</option>
-                            <option value="Công trình thấp tầng">Công trình thấp tầng</option>
-                            <option value="Công trình cao tầng">Công trình cao tầng</option>
-                            <option value="Hạ tầng kỹ thuật cảnh quan">Hạ tầng kỹ thuật cảnh quan</option>
-                            <option value="Hệ thống cơ điện">Hệ thống cơ điện</option>
-                            <option value="Hoàn thiện và lắp đặt nội thất">Hoàn thiện và lắp đặt nội thất</option>
-                            <option value="Công trình công nghiệp">Công trình công nghiệp</option>
-                        </select>
-                    </div>
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Địa điểm</label>
-                        <input name="location" value={formData.location} onChange={handleChange} className="w-full p-2 border border-slate-200 rounded text-sm outline-none" />
-                    </div>
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Giám đốc DA</label>
-                        <input name="manager" value={formData.manager} onChange={handleChange} className="w-full p-2 border border-slate-200 rounded text-sm outline-none" />
-                    </div>
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Ngày bắt đầu</label>
-                        <input type="date" name="start_date" value={formData.start_date || ''} onChange={handleChange} className="w-full p-2 border border-slate-200 rounded text-sm outline-none" />
-                    </div>
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Ngày kết thúc</label>
-                        <input type="date" name="end_date" value={formData.end_date || ''} onChange={handleChange} className="w-full p-2 border border-slate-200 rounded text-sm outline-none" />
-                    </div>
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Diện tích (m2)</label>
-                        <input name="area" value={formData.area} onChange={handleChange} className="w-full p-2 border border-slate-200 rounded text-sm outline-none" />
-                    </div>
-                    <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Trạng thái</label>
-                        <select name="status" value={formData.status} onChange={handleChange} className="w-full p-2 border border-slate-200 rounded text-sm outline-none">
-                            <option value="active">Đang thi công</option>
-                            <option value="pending">Tạm dừng</option>
-                            <option value="delayed">Chậm tiến độ</option>
-                            <option value="completed">Hoàn thành</option>
-                        </select>
-                    </div>
-                    <div className="col-span-2 space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Mô tả / Quy mô</label>
-                        <textarea name="description" value={formData.description} onChange={handleChange} className="w-full p-2 border border-slate-200 rounded text-sm outline-none h-20" />
-                    </div>
-                </div>
-                <div className="p-6 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 rounded-b-2xl">
-                    <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-lg">Hủy</button>
-                    <button onClick={() => onSave(formData)} className="px-4 py-2 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg shadow-lg shadow-primary/20">Lưu dự án</button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// --- Main Component ---
 
 export default function ProjectList() {
     const [projectList, setProjectList] = useState<Project[]>([]);
@@ -294,210 +110,89 @@ export default function ProjectList() {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [search, setSearch] = useState('');
     const [filter, setFilter] = useState('all');
-    const [sortBy, setSortBy] = useState('deadline');
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingProject, setEditingProject] = useState<Project | null>(null);
 
     const fetchProjects = async () => {
         setLoading(true);
         try {
             const data = await projectService.getAllProjects();
-            const mappedData: Project[] = data.map((p: any) => ({
-                id: p.id,
-                code: p.code,
-                name: p.name,
-                type: p.type || 'Cao ốc',
-                package: p.package || 'Gói thầu xây lắp',
-                location: p.location || '',
-                manager: p.manager || '',
-                progress: p.progress || 0,
-                planProgress: p.plan_progress || 0,
-                status: p.status === 'finished' ? 'completed' : (p.status as any),
-                owner: p.owner,
-                start_date: p.start_date,
-                end_date: p.end_date,
-                description: p.description,
-                area: p.area,
-                avatar: p.avatar,
-                budget: p.budget || 0,
-                health: { schedule: 'good', budget: 'good', safety: 'good' }, // Mock
-            }));
-            setProjectList(mappedData);
-        } catch (error) {
-            console.error('Failed to fetch projects', error);
-        } finally {
-            setLoading(false);
-        }
+            setProjectList(data);
+        } catch (error) { console.error(error); } finally { setLoading(false); }
     };
 
-    useEffect(() => {
-        fetchProjects();
-    }, []);
+    useEffect(() => { fetchProjects(); }, []);
 
-    const handleAddProject = () => {
-        setEditingProject(null);
-        setIsModalOpen(true);
-    };
-
-    const handleEditProject = (project: Project) => {
-        setEditingProject(project);
-        setIsModalOpen(true);
-    };
-
-    const handleSaveProject = async (formData: any) => {
-        try {
-            const payload = {
-                code: formData.code,
-                name: formData.name,
-                location: formData.location,
-                manager: formData.manager,
-                status: formData.status,
-                type: formData.type,
-                package: formData.package,
-                owner: formData.owner,
-                description: formData.description,
-                area: formData.area,
-                start_date: formData.start_date || null,
-                end_date: formData.end_date || null,
-            };
-
-            if (editingProject) {
-                await projectService.updateProject(editingProject.id, payload);
-            } else {
-                await projectService.createProject({
-                    ...payload,
-                    progress: 0,
-                    plan_progress: 0,
-                });
-            }
-            fetchProjects();
-            setIsModalOpen(false);
-        } catch (error) {
-            console.error('Save error:', error);
-            alert('Lỗi khi lưu dự án.');
-        }
-    };
-
-    const handleDeleteProject = async (id: string) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa dự án này?')) {
-            try {
-                await projectService.deleteProject(id);
-                fetchProjects();
-            } catch (error) {
-                console.error('Delete error:', error);
-            }
-        }
-    };
-
-    const filteredProjects = projectList
-        .filter(p => {
-            const matchesStatus = filter === 'all' || p.status === filter;
-            const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.code.toLowerCase().includes(search.toLowerCase());
-            return matchesStatus && matchesSearch;
-        })
-        .sort((a, b) => {
-            if (sortBy === 'progress') return (b.progress || 0) - (a.progress || 0);
-            return (a.end_date || '').localeCompare(b.end_date || '');
-        });
+    const filteredProjects = projectList.filter(p => {
+        const matchesStatus = filter === 'all' || p.status === filter;
+        const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.code.toLowerCase().includes(search.toLowerCase());
+        return matchesStatus && matchesSearch;
+    });
 
     return (
-        <div className="flex flex-col h-full bg-background-light">
-            <header className="flex-shrink-0 bg-white border-b border-slate-100 z-10 sticky top-0 shadow-sm">
-                <div className="px-8 pt-6 pb-2">
-                    <div className="mb-4 text-xs flex gap-2 text-slate-500">
-                        <span>Trang chủ</span> / <span className="font-bold text-primary">Quản lý dự án</span>
+        <div className="flex flex-col h-full bg-slate-50/50">
+            {/* Luxury Header */}
+            <div className="px-10 py-8 bg-white border-b border-slate-200/50 flex flex-col gap-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <p className="text-[10px] font-black text-primary-accent uppercase tracking-[0.4em] mb-1">Infrastructure Assets</p>
+                        <h1 className="text-4xl font-black text-slate-900 tracking-tight">Portfolio</h1>
                     </div>
-                    <div className="flex flex-wrap lg:flex-nowrap justify-between items-end pb-6 gap-4">
-                        <div>
-                            <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Danh sách Dự án</h2>
-                            <p className="text-sm text-slate-500 mt-1">Quản lý tiến độ, ngân sách và nguồn lực toàn bộ công trình.</p>
-                        </div>
-                        <div className="hidden xl:flex gap-4">
-                            <KPICard title="Tổng dự án" value={projectList.length} icon="domain" color="bg-blue-50 text-blue-600" />
-                            <KPICard title="Đang thi công" value={projectList.filter(p => p.status === 'active').length} icon="engineering" color="bg-green-50 text-green-600" />
-                            <KPICard title="Rủi ro cao" value={0} icon="warning" color="bg-red-50 text-red-600" />
-                        </div>
+                    <div className="flex gap-4">
+                        <LuxuryStatCard title="Active Sites" value={projectList.length} icon="apartment" color="bg-primary" gradient="bg-primary" />
+                        <LuxuryStatCard title="Growth Rate" value="+12.5%" icon="trending_up" color="bg-emerald" gradient="bg-emerald" />
                     </div>
                 </div>
 
-                <div className="px-8 pb-4 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="flex gap-2 w-full md:w-auto">
-                        <div className="relative flex-1 md:w-80">
-                            <span className="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[20px]">search</span>
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                        <div className="relative group flex-1 md:w-96">
+                            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-premium">search</span>
                             <input
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                                placeholder="Tìm kiếm dự án..."
+                                className="w-full pl-12 pr-4 py-3 bg-slate-100/50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 focus:border-primary outline-none transition-premium"
+                                placeholder="Find construction units, codes or locations..."
                             />
                         </div>
                         <select
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
-                            className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 outline-none focus:border-primary cursor-pointer hover:bg-slate-50"
+                            className="px-6 py-3 bg-white border border-slate-200 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-600 outline-none focus:border-primary cursor-pointer hover:bg-slate-50 transition-premium shadow-sm"
                         >
-                            <option value="all">Tất cả trạng thái</option>
-                            <option value="active">Đang thi công</option>
-                            <option value="completed">Hoàn thành</option>
+                            <option value="all">Status: Global</option>
+                            <option value="active">Contracted</option>
+                            <option value="completed">Operational</option>
                         </select>
                     </div>
 
-                    <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-                        <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
-                            <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md ${viewMode === 'list' ? 'bg-white text-primary shadow-sm' : 'text-slate-400'}`}><span className="material-symbols-outlined">list_alt</span></button>
-                            <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-md ${viewMode === 'grid' ? 'bg-white text-primary shadow-sm' : 'text-slate-400'}`}><span className="material-symbols-outlined">grid_view</span></button>
+                    <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+                        <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200">
+                            <button onClick={() => setViewMode('list')} className={`p-2 rounded-xl transition-premium ${viewMode === 'list' ? 'bg-white text-primary shadow-sm' : 'text-slate-400'}`}><span className="material-symbols-outlined">format_list_bulleted</span></button>
+                            <button onClick={() => setViewMode('grid')} className={`p-2 rounded-xl transition-premium ${viewMode === 'grid' ? 'bg-white text-primary shadow-sm' : 'text-slate-400'}`}><span className="material-symbols-outlined">grid_view</span></button>
                         </div>
-                        <button onClick={handleAddProject} className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg flex items-center gap-2 hover:bg-primary/90 shadow-lg shadow-primary/20">
-                            <span className="material-symbols-outlined">add</span> Dự án mới
+                        <button className="px-8 py-3 mesh-gradient text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-premium hover:opacity-90 transition-premium flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[20px]">add</span>
+                            <span>Add New Unit</span>
                         </button>
                     </div>
                 </div>
-            </header>
+            </div>
 
-            <div className="flex-1 overflow-y-auto p-6 scroll-smooth">
-                <div className="max-w-[1600px] mx-auto min-h-full">
+            <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
+                <div className="max-w-[1700px] mx-auto min-h-full">
                     {loading ? (
                         <div className="flex flex-col items-center justify-center h-96">
-                            <div className="size-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                            <p className="mt-4 text-slate-500 font-medium tracking-tight">Đang tải dữ liệu dự án...</p>
-                        </div>
-                    ) : filteredProjects.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-96 text-slate-400">
-                            <p>Không tìm thấy dự án nào.</p>
+                            <div className="size-16 border-4 border-slate-200 border-t-primary rounded-full animate-spin shadow-lg"></div>
+                            <p className="mt-8 text-slate-400 font-bold uppercase tracking-widest animate-pulse">Syncing Portfolio...</p>
                         </div>
                     ) : (
-                        viewMode === 'grid' ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-in fade-in zoom-in duration-300">
-                                {filteredProjects.map(project => (
-                                    <ProjectGridCard key={project.id} project={project} onEdit={handleEditProject} onDelete={handleDeleteProject} />
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                <table className="w-full text-left border-collapse">
-                                    <thead className="bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 uppercase">
-                                        <tr>
-                                            <th className="px-6 py-4">Dự án</th>
-                                            <th className="px-6 py-4">KPIs</th>
-                                            <th className="px-6 py-4">Tiến độ</th>
-                                            <th className="px-6 py-4">Nghiệm thu</th>
-                                            <th className="px-6 py-4 text-right">Trạng thái</th>
-                                            <th className="px-6 py-4"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {filteredProjects.map(project => (
-                                            <ProjectListView key={project.id} project={project} onEdit={handleEditProject} onDelete={handleDeleteProject} />
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+                            {filteredProjects.map(project => (
+                                <ProjectGridCard key={project.id} project={project} onEdit={() => { }} onDelete={() => { }} />
+                            ))}
+                        </div>
                     )}
                 </div>
             </div>
-
-            <ProjectModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} project={editingProject} onSave={handleSaveProject} />
         </div>
     );
 }

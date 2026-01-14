@@ -132,6 +132,28 @@ const mockBankGuarantees = [
     }
 ];
 
+const PremiumStatCard = ({ title, value, sub, progress, icon, color, gradient }: any) => (
+    <div className="relative group overflow-hidden bg-white p-6 rounded-3xl border border-slate-200 shadow-glass hover:shadow-premium transition-premium">
+        <div className={`absolute -right-4 -top-4 size-32 opacity-10 blur-2xl rounded-full ${gradient}`}></div>
+        <div className="flex justify-between items-start mb-4 relative z-10">
+            <div className={`size-12 rounded-2xl flex items-center justify-center ${color} shadow-lg`}>
+                <span className="material-symbols-outlined text-[24px]">{icon}</span>
+            </div>
+            {progress && (
+                <div className="text-right">
+                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Growth</span>
+                    <p className="text-emerald font-black text-sm">+{progress}%</p>
+                </div>
+            )}
+        </div>
+        <div className="relative z-10">
+            <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mb-1">{title}</p>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">{value}</h3>
+            <p className="text-xs text-slate-500 mt-2 font-medium">{sub}</p>
+        </div>
+    </div>
+);
+
 export default function Contracts() {
     const [activeTab, setActiveTab] = useState<'revenue' | 'expense' | 'bidding' | 'guarantees'>('revenue');
     const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -152,347 +174,198 @@ export default function Contracts() {
     // Get current data based on active tab
     const getCurrentData = () => {
         switch (activeTab) {
-            case 'revenue':
-                return revenueContracts;
-            case 'expense':
-                return expenseContracts;
-            case 'bidding':
-                return mockBiddingPackages;
-            case 'guarantees':
-                return mockBankGuarantees;
-            default:
-                return [];
+            case 'revenue': return revenueContracts;
+            case 'expense': return expenseContracts;
+            case 'bidding': return mockBiddingPackages;
+            case 'guarantees': return mockBankGuarantees;
+            default: return [];
         }
     };
 
     return (
-        <div className="flex flex-col h-full bg-background-light">
+        <div className="flex flex-col h-full bg-slate-50/50">
             {/* Page Header */}
-            <PageHeader
-                title="Quản lý Tài chính & Hợp đồng"
-                subtitle="Kiểm soát dòng tiền hợp đồng A-B-B và thanh quyết toán"
-                icon="account_balance_wallet"
-                actions={
-                    <>
-                        <ExportButton
-                            data={getCurrentData()}
-                            filename={`contracts-${activeTab}`}
-                            title="Danh sách Hợp đồng"
-                            variant="secondary"
+            <div className="px-8 py-6 bg-white border-b border-slate-200/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-black text-emerald uppercase tracking-[0.3em]">Contractual Management</span>
+                    </div>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                        Hợp đồng & Đấu thầu
+                        <span className="size-2 rounded-full bg-emerald animate-pulse"></span>
+                    </h1>
+                    <p className="text-sm text-slate-500 font-medium">Theo dõi hiệu suất tài chính và pháp lý của toàn bộ dự án</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <ExportButton
+                        data={getCurrentData()}
+                        filename={`contracts-${activeTab}`}
+                        title="Export Report"
+                        variant="secondary"
+                    />
+                    <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl text-sm font-black hover:bg-primary-light shadow-premium transition-premium group">
+                        <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-premium">add</span>
+                        <span>New Contract</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* Content Content Area */}
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                <div className="max-w-[1600px] mx-auto space-y-8">
+
+                    {/* Statistics Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <PremiumStatCard
+                            title="Total Revenue (A-B)"
+                            value={`${(stats.totalRevenue / 1000000000).toFixed(1)}B ₫`}
+                            sub={`Đã thu ${(stats.paidRevenue / 1000000000).toFixed(1)}B ₫`}
+                            progress="12"
+                            icon="trending_up"
+                            color="bg-emerald text-white"
+                            gradient="bg-emerald"
                         />
-                        <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all">
-                            <span className="material-symbols-outlined text-[18px]">print</span>
-                            <span>Báo cáo</span>
-                        </button>
-                        <button className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all">
-                            <span className="material-symbols-outlined text-[18px]">add</span>
-                            <span>Tạo hợp đồng mới</span>
-                        </button>
-                    </>
-                }
-            />
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-                <div className="max-w-[1600px] mx-auto space-y-6">
-
-                    {/* Statistics Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-                            <div className="flex items-center gap-3 mb-1">
-                                <div className="bg-green-50 p-3 rounded-xl">
-                                    <span className="material-symbols-outlined text-green-600 text-[24px]">trending_up</span>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-slate-500 font-bold">HĐ Đầu Ra (A-B)</p>
-                                    <p className="text-2xl font-black text-green-600">
-                                        {(stats.totalRevenue / 1000000000).toFixed(1)} Tỷ
-                                    </p>
-                                </div>
-                            </div>
-                            <p className="text-xs text-slate-500">
-                                Đã thu: {(stats.paidRevenue / 1000000000).toFixed(1)} Tỷ ({Math.round((stats.paidRevenue / stats.totalRevenue) * 100)}%)
-                            </p>
-                        </div>
-
-                        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-                            <div className="flex items-center gap-3 mb-1">
-                                <div className="bg-red-50 p-3 rounded-xl">
-                                    <span className="material-symbols-outlined text-red-600 text-[24px]">trending_down</span>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-slate-500 font-bold">HĐ Đầu Vào (B-C)</p>
-                                    <p className="text-2xl font-black text-red-600">
-                                        {(stats.totalExpense / 1000000000).toFixed(1)} Tỷ
-                                    </p>
-                                </div>
-                            </div>
-                            <p className="text-xs text-slate-500">
-                                Đã chi: {(stats.paidExpense / 1000000000).toFixed(1)} Tỷ ({Math.round((stats.paidExpense / stats.totalExpense) * 100)}%)
-                            </p>
-                        </div>
-
-                        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-                            <div className="flex items-center gap-3 mb-1">
-                                <div className="bg-blue-50 p-3 rounded-xl">
-                                    <span className="material-symbols-outlined text-blue-600 text-[24px]">gavel</span>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-slate-500 font-bold">Đấu Thầu</p>
-                                    <p className="text-2xl font-black text-blue-600">{stats.activeBidding}</p>
-                                </div>
-                            </div>
-                            <p className="text-xs text-slate-500">Gói thầu đang mời thầu</p>
-                        </div>
-
-                        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-                            <div className="flex items-center gap-3 mb-1">
-                                <div className="bg-primary/10 p-3 rounded-xl">
-                                    <span className="material-symbols-outlined text-primary text-[24px]">security</span>
-                                </div>
-                                <div>
-                                    <p className="text-xs text-slate-500 font-bold">Bảo Lãnh</p>
-                                    <p className="text-2xl font-black text-primary">{stats.activeGuarantees}</p>
-                                </div>
-                            </div>
-                            <p className="text-xs text-slate-500">Bảo lãnh đang hiệu lực</p>
-                        </div>
+                        <PremiumStatCard
+                            title="Total Expense (B-C)"
+                            value={`${(stats.totalExpense / 1000000000).toFixed(1)}B ₫`}
+                            sub={`Đã chi ${(stats.paidExpense / 1000000000).toFixed(1)}B ₫`}
+                            progress="8"
+                            icon="payments"
+                            color="bg-slate-800 text-white"
+                            gradient="bg-blue-600"
+                        />
+                        <PremiumStatCard
+                            title="Active Bidding"
+                            value={stats.activeBidding}
+                            sub={`${mockBiddingPackages.length} gói thầu tổng cộng`}
+                            icon="gavel"
+                            color="bg-blue-500 text-white"
+                            gradient="bg-blue-400"
+                        />
+                        <PremiumStatCard
+                            title="Bank Guarantees"
+                            value={stats.activeGuarantees}
+                            sub={`${mockBankGuarantees.length} bảo lãnh hiện tại`}
+                            icon="verified_user"
+                            color="bg-amber-500 text-white"
+                            gradient="bg-amber-400"
+                        />
                     </div>
 
-                    {/* Tabs */}
-                    <div className="flex items-center gap-2 border-b border-slate-200">
-                        <button
-                            onClick={() => setActiveTab('revenue')}
-                            className={`px-4 py-3 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'revenue'
-                                ? 'border-green-600 text-green-600'
-                                : 'border-transparent text-slate-500 hover:text-slate-700'
-                                }`}
-                        >
-                            <span className="material-symbols-outlined text-[18px]">trending_up</span>
-                            Hợp Đồng Đầu Ra (A-B) ({revenueContracts.length})
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('expense')}
-                            className={`px-4 py-3 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'expense'
-                                ? 'border-red-600 text-red-600'
-                                : 'border-transparent text-slate-500 hover:text-slate-700'
-                                }`}
-                        >
-                            <span className="material-symbols-outlined text-[18px]">trending_down</span>
-                            Hợp Đồng Đầu Vào (B-B / Thầu Phụ) ({expenseContracts.length})
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('bidding')}
-                            className={`px-4 py-3 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'bidding'
-                                ? 'border-blue-600 text-blue-600'
-                                : 'border-transparent text-slate-500 hover:text-slate-700'
-                                }`}
-                        >
-                            <span className="material-symbols-outlined text-[18px]">gavel</span>
-                            Quản Lý Đấu Thầu (Bidding) ({mockBiddingPackages.length})
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('guarantees')}
-                            className={`px-4 py-3 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'guarantees'
-                                ? 'border-primary text-primary'
-                                : 'border-transparent text-slate-500 hover:text-slate-700'
-                                }`}
-                        >
-                            <span className="material-symbols-outlined text-[18px]">security</span>
-                            Bảo Lãnh (Bank Guarantees) ({mockBankGuarantees.length})
-                        </button>
+                    {/* Tabs Navigation */}
+                    <div className="flex items-center p-1.5 bg-slate-200/50 rounded-2xl w-fit">
+                        {[
+                            { id: 'revenue', label: 'Revenue (A-B)', icon: 'north_east' },
+                            { id: 'expense', label: 'Expense (B-C)', icon: 'south_west' },
+                            { id: 'bidding', label: 'Bidding', icon: 'campaign' },
+                            { id: 'guarantees', label: 'Guarantees', icon: 'security' },
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id as any)}
+                                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black transition-premium ${activeTab === tab.id
+                                        ? 'bg-white text-primary shadow-sm'
+                                        : 'text-slate-500 hover:text-primary'
+                                    }`}
+                            >
+                                <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
 
-                    {/* Content based on active tab */}
-                    <div className="bg-white rounded-xl border border-slate-100">
-                        {(activeTab === 'revenue' || activeTab === 'expense') && (
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-slate-50 border-b border-slate-100">
-                                        <tr>
-                                            <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Mã HĐ</th>
-                                            <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Đối tác</th>
-                                            <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Dự án</th>
-                                            <th className="px-6 py-4 text-right text-xs font-black text-slate-600 uppercase">Giá trị</th>
-                                            <th className="px-6 py-4 text-right text-xs font-black text-slate-600 uppercase">Đã TT</th>
-                                            <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Tiến độ</th>
-                                            <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Trạng thái</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        {getCurrentData().map((contract: any) => {
-                                            const percent = Math.round((contract.paid_amount / contract.value) * 100);
-                                            return (
-                                                <tr
-                                                    key={contract.id}
-                                                    onClick={() => setSelectedItem(contract)}
-                                                    className="hover:bg-slate-50 cursor-pointer transition-colors"
-                                                >
-                                                    <td className="px-6 py-4">
-                                                        <p className="font-mono text-sm font-bold text-primary">{contract.contract_code}</p>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <p className="font-bold text-slate-900">{contract.partner_name}</p>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <p className="text-sm text-slate-600">{contract.project_name}</p>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        <p className="font-bold text-slate-900">
-                                                            {(contract.value / 1000000).toFixed(0)} Tr
+                    {/* Table Section */}
+                    <div className="bg-white rounded-[32px] border border-slate-200 shadow-glass overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-50/50 border-b border-slate-100">
+                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Detail Information</th>
+                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Partner/Project</th>
+                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Value (₫)</th>
+                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Progress</th>
+                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
+                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {getCurrentData().map((item: any) => (
+                                        <tr key={item.id} className="hover:bg-slate-50/80 transition-premium group">
+                                            <td className="px-8 py-5">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="size-10 rounded-xl bg-slate-100 flex items-center justify-center group-hover:bg-primary transition-premium">
+                                                        <span className="material-symbols-outlined text-[20px] text-slate-500 group-hover:text-white transition-premium">
+                                                            {activeTab === 'bidding' ? 'gavel' : 'description'}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-mono text-sm font-black text-primary uppercase">
+                                                            {item.contract_code || item.package_code || item.guarantee_code}
                                                         </p>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        <p className="font-bold text-green-600">
-                                                            {(contract.paid_amount / 1000000).toFixed(0)} Tr
+                                                        <p className="text-xs text-slate-500 font-bold mt-0.5">
+                                                            {item.signing_date || item.issue_date || item.publish_date || 'N/A'}
                                                         </p>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="flex-1 bg-slate-200 h-2 rounded-full overflow-hidden">
-                                                                <div
-                                                                    className="bg-green-500 h-full rounded-full transition-all"
-                                                                    style={{ width: `${percent}%` }}
-                                                                />
-                                                            </div>
-                                                            <span className="text-xs font-bold text-slate-600 w-10 text-right">{percent}%</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center justify-center gap-2">
-                                                            <Badge
-                                                                label={contract.status === 'active' ? 'Hiệu lực' : 'Thanh lý'}
-                                                                variant={contract.status === 'active' ? 'success' : 'default'}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-5">
+                                                <p className="font-black text-slate-900 leading-tight">
+                                                    {item.partner_name || item.title || item.bank_name}
+                                                </p>
+                                                <p className="text-xs text-slate-500 font-medium mt-1 truncate max-w-[200px]">
+                                                    {item.project_name || item.contract_code || 'Chưa phân bổ'}
+                                                </p>
+                                            </td>
+                                            <td className="px-8 py-5 text-right">
+                                                <p className="font-black text-slate-900 tracking-tight">
+                                                    {(item.value || item.budget).toLocaleString()}
+                                                </p>
+                                                {item.paid_amount && (
+                                                    <p className="text-[10px] font-black text-emerald uppercase mt-1">
+                                                        Paid: {item.paid_amount.toLocaleString()}
+                                                    </p>
+                                                )}
+                                            </td>
+                                            <td className="px-8 py-5">
+                                                {item.value ? (
+                                                    <div className="flex flex-col items-center gap-1.5">
+                                                        <div className="w-24 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                                            <div
+                                                                className="h-full bg-emerald rounded-full"
+                                                                style={{ width: `${Math.round((item.paid_amount || 0) / item.value * 100)}%` }}
                                                             />
-                                                            {contract.is_risk && (
-                                                                <Badge label="Rủi ro" variant="danger" size="sm" />
-                                                            )}
                                                         </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-
-                        {activeTab === 'bidding' && (
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-slate-50 border-b border-slate-100">
-                                        <tr>
-                                            <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Gói thầu</th>
-                                            <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Dự án</th>
-                                            <th className="px-6 py-4 text-right text-xs font-black text-slate-600 uppercase">Ngân sách</th>
-                                            <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Hạn nộp</th>
-                                            <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Nhà thầu</th>
-                                            <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Trạng thái</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        {mockBiddingPackages.map((pkg) => (
-                                            <tr
-                                                key={pkg.id}
-                                                onClick={() => setSelectedItem(pkg)}
-                                                className="hover:bg-slate-50 cursor-pointer transition-colors"
-                                            >
-                                                <td className="px-6 py-4">
-                                                    <p className="font-bold text-slate-900">{pkg.title}</p>
-                                                    <p className="text-xs text-slate-500 font-mono">{pkg.package_code}</p>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <p className="text-sm text-slate-600">{pkg.project_name}</p>
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <p className="font-bold text-primary">
-                                                        {pkg.budget ? `${(pkg.budget / 1000000000).toFixed(1)} Tỷ` : 'N/A'}
-                                                    </p>
-                                                </td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <p className="text-sm">{pkg.deadline}</p>
-                                                </td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <p className="font-bold text-blue-600">{pkg.bidders_count}</p>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex justify-center">
-                                                        <Badge
-                                                            label={pkg.status === 'draft' ? 'Bản nháp' : pkg.status === 'published' ? 'Đang mời thầu' : 'Đã chọn thầu'}
-                                                            variant={pkg.status === 'draft' ? 'default' : pkg.status === 'published' ? 'info' : 'success'}
-                                                        />
+                                                        <span className="text-[10px] font-black text-slate-500">
+                                                            {Math.round((item.paid_amount || 0) / item.value * 100)}%
+                                                        </span>
                                                     </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-
-                        {activeTab === 'guarantees' && (
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-slate-50 border-b border-slate-100">
-                                        <tr>
-                                            <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Mã BL</th>
-                                            <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Loại</th>
-                                            <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Ngân hàng</th>
-                                            <th className="px-6 py-4 text-right text-xs font-black text-slate-600 uppercase">Giá trị</th>
-                                            <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Ngày hết hạn</th>
-                                            <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Trạng thái</th>
+                                                ) : (
+                                                    <div className="text-center text-slate-300">N/A</div>
+                                                )}
+                                            </td>
+                                            <td className="px-8 py-5">
+                                                <div className="flex justify-center">
+                                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${item.status === 'active' || item.status === 'awarded'
+                                                            ? 'bg-emerald/10 text-emerald border border-emerald/20'
+                                                            : 'bg-slate-100 text-slate-500 border border-slate-200'
+                                                        }`}>
+                                                        {item.status}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-5 text-right">
+                                                <button className="size-10 rounded-xl hover:bg-white hover:shadow-sm flex items-center justify-center text-slate-400 hover:text-primary transition-premium">
+                                                    <span className="material-symbols-outlined">more_vert</span>
+                                                </button>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        {mockBankGuarantees.map((guarantee) => (
-                                            <tr
-                                                key={guarantee.id}
-                                                onClick={() => setSelectedItem(guarantee)}
-                                                className="hover:bg-slate-50 cursor-pointer transition-colors"
-                                            >
-                                                <td className="px-6 py-4">
-                                                    <p className="font-mono text-sm font-bold text-primary">{guarantee.guarantee_code}</p>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <p className="font-bold text-slate-900">{guarantee.type}</p>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <p className="text-sm text-slate-600">{guarantee.bank_name}</p>
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <p className="font-bold text-slate-900">
-                                                        {(guarantee.value / 1000000).toFixed(0)} Tr
-                                                    </p>
-                                                </td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <p className="text-sm">{guarantee.expiry_date}</p>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex justify-center">
-                                                        <Badge
-                                                            label={guarantee.status === 'active' ? 'Hiệu lực' : 'Hết hạn'}
-                                                            variant={guarantee.status === 'active' ? 'success' : 'default'}
-                                                        />
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-
-                        {/* Empty state */}
-                        {getCurrentData().length === 0 && (
-                            <div className="p-12 text-center">
-                                <span className="material-symbols-outlined text-[64px] text-slate-300">inbox</span>
-                                <p className="mt-4 text-slate-500 font-bold">Chưa có dữ liệu hợp đồng</p>
-                                <p className="text-sm text-slate-400">Bắt đầu bằng cách tạo hợp đồng mới</p>
-                            </div>
-                        )}
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div >
+        </div>
     );
 }

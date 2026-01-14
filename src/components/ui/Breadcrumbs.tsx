@@ -94,22 +94,24 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
     actions
 }) => {
     return (
-        <div className="bg-white border-b border-slate-100 px-6 py-4">
+        <div className="bg-white border-b border-slate-200/50 px-8 py-6">
             {/* Breadcrumbs */}
-            <Breadcrumbs items={breadcrumbs} />
+            <div className="mb-4">
+                <Breadcrumbs items={breadcrumbs} />
+            </div>
 
             {/* Title & Actions */}
-            <div className="flex items-center justify-between mt-3">
-                <div className="flex items-center gap-3">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
                     {icon && (
-                        <div className="bg-primary/10 p-3 rounded-xl">
-                            <span className="material-symbols-outlined text-[28px] text-primary">{icon}</span>
+                        <div className="size-14 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center shadow-sm group hover:bg-primary transition-premium">
+                            <span className="material-symbols-outlined text-[32px] text-primary group-hover:text-white transition-premium">{icon}</span>
                         </div>
                     )}
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900 tracking-tight">{title}</h1>
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none mb-1">{title}</h1>
                         {subtitle && (
-                            <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>
+                            <p className="text-sm text-slate-500 font-medium">{subtitle}</p>
                         )}
                     </div>
                 </div>

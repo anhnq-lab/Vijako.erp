@@ -7,56 +7,65 @@ import { financeService, PaymentRequest, CashFlowData } from '../src/services/fi
 import { projectService } from '../src/services/projectService';
 import { Project } from '../types';
 import { InvoiceScanModal } from '../components/InvoiceScanModal';
-import { PageHeader } from '../src/components/ui/Breadcrumbs';
 import { Badge } from '../src/components/ui/CommonComponents';
 
 // --- Mock Data for fallback ---
 const costStructureData = [
-    { name: 'T1', inflow: 45, outflow: 35 },
-    { name: 'T2', inflow: 52, outflow: 48 },
-    { name: 'T3', inflow: 48, outflow: 55 },
-    { name: 'T4', inflow: 61, outflow: 42 },
-    { name: 'T5', inflow: 55, outflow: 50 },
-    { name: 'T6', inflow: 67, outflow: 58 },
+    { name: 'Jan', inflow: 4500, outflow: 3500 },
+    { name: 'Feb', inflow: 5200, outflow: 4800 },
+    { name: 'Mar', inflow: 4800, outflow: 5500 },
+    { name: 'Apr', inflow: 6100, outflow: 4200 },
+    { name: 'May', inflow: 5500, outflow: 5000 },
+    { name: 'Jun', inflow: 6700, outflow: 5800 },
 ];
 
-// --- Sub-Components ---
-
-const StatCard = ({ title, value, sub, icon, color }: any) => (
-    <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-start gap-4 hover:shadow-md transition-shadow">
-        <div className={`size-12 rounded-xl flex items-center justify-center ${color}`}>
-            <span className="material-symbols-outlined text-[24px]">{icon}</span>
+const PremiumStatCard = ({ title, value, sub, icon, color, trend }: any) => (
+    <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-glass hover:shadow-premium transition-premium group">
+        <div className="flex justify-between items-start mb-4">
+            <div className={`size-12 rounded-2xl flex items-center justify-center ${color} shadow-lg transition-premium group-hover:scale-110`}>
+                <span className="material-symbols-outlined text-[24px] text-white">{icon}</span>
+            </div>
+            {trend && (
+                <div className={`px-2 py-1 rounded-lg text-[10px] font-black ${trend > 0 ? 'bg-emerald/10 text-emerald' : 'bg-red-100 text-red-600'}`}>
+                    {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}%
+                </div>
+            )}
         </div>
         <div>
-            <p className="text-xs text-slate-500 font-bold uppercase">{title}</p>
-            <h3 className="text-2xl font-black text-slate-900 my-1">{value}</h3>
-            <p className="text-xs text-slate-500">{sub}</p>
+            <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mb-1">{title}</p>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">{value}</h3>
+            <p className="text-xs text-slate-500 mt-2 font-medium">{sub}</p>
         </div>
     </div>
 );
 
 const AIFinancialInsight = () => (
-    <div className="bg-gradient-to-br from-indigo-900 to-slate-800 rounded-xl p-6 text-white relative overflow-hidden h-full flex flex-col justify-between shadow-lg">
-        <div className="absolute top-0 right-0 p-6 opacity-5">
-            <span className="material-symbols-outlined text-[150px]">psychology_alt</span>
-        </div>
+    <div className="mesh-gradient rounded-[32px] p-8 text-white relative overflow-hidden h-full flex flex-col justify-between shadow-premium border border-white/10 group">
+        <div className="absolute -right-10 -top-10 size-64 bg-emerald/20 blur-[80px] rounded-full group-hover:bg-emerald/30 transition-premium"></div>
         <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-4">
-                <span className="bg-white/10 p-1.5 rounded-lg border border-white/10">
-                    <span className="material-symbols-outlined text-[20px] text-yellow-300">auto_awesome</span>
-                </span>
-                <h3 className="font-bold text-lg">CFO AI Insight</h3>
+            <div className="flex items-center gap-3 mb-6">
+                <div className="size-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
+                    <span className="material-symbols-outlined text-[20px] text-yellow-300 animate-pulse">auto_awesome</span>
+                </div>
+                <div>
+                    <h3 className="font-black text-lg tracking-tight">CFO Intelligence</h3>
+                    <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest">AI powered analysis</p>
+                </div>
             </div>
             <div className="space-y-4">
-                <div className="bg-white/5 border border-white/10 rounded-lg p-3 backdrop-blur-sm">
-                    <p className="text-xs text-indigo-200 font-bold uppercase mb-1">Dự báo dòng tiền</p>
-                    <p className="text-sm">Tháng tới dự kiến thu <span className="text-green-400 font-bold">12.5 Tỷ</span> từ 3 dự án trọng điểm. Tuy nhiên, cần lưu ý hạn thanh toán nợ NCC vào ngày 25.</p>
+                <div className="bg-white/10 border border-white/10 rounded-2xl p-4 backdrop-blur-md hover:bg-white/20 transition-premium cursor-pointer">
+                    <p className="text-[10px] text-emerald-300 font-black uppercase tracking-widest mb-1 leading-none">Cashflow Forecast</p>
+                    <p className="text-sm font-medium leading-relaxed">Dự kiến thu <span className="text-emerald-400 font-bold">12.5 Tỷ</span> trong 30 ngày tới. Khả năng thanh khoản đạt <span className="text-emerald-400 font-bold">98%</span>.</p>
+                </div>
+                <div className="bg-white/10 border border-white/10 rounded-2xl p-4 backdrop-blur-md hover:bg-white/20 transition-premium cursor-pointer">
+                    <p className="text-[10px] text-yellow-300 font-black uppercase tracking-widest mb-1 leading-none">Risk Alert</p>
+                    <p className="text-sm font-medium leading-relaxed">Cần lưu ý 2 khoản thanh toán NCC quá hạn vào cuối tuần này.</p>
                 </div>
             </div>
         </div>
-        <div className="relative z-10 mt-4 pt-4 border-t border-white/10 flex justify-between items-center text-xs text-slate-400">
-            <span>AI phân tích dựa trên dữ liệu thực tế</span>
-            <button className="font-bold bg-white text-indigo-900 px-3 py-1.5 rounded-lg">Chi tiết</button>
+        <div className="relative z-10 mt-6 flex justify-between items-center">
+            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest italic">Updated 2m ago</span>
+            <button className="px-5 py-2 bg-white text-primary text-[10px] font-black rounded-xl hover:scale-105 transition-premium shadow-lg shadow-white/10 uppercase tracking-widest">Deep Analysis</button>
         </div>
     </div>
 );
@@ -81,7 +90,6 @@ export default function Finance() {
                 financeService.getCashFlowData(),
                 projectService.getAllProjects()
             ]);
-
             if (prData) setPaymentRequests(prData);
             if (cfData) setCashFlowRecords(cfData);
             if (pData) setProjects(pData);
@@ -93,172 +101,218 @@ export default function Finance() {
     };
 
     return (
-        <div className="flex flex-col h-full bg-slate-50">
-            <PageHeader
-                title="Quản lý Tài chính & Thanh toán"
-                subtitle="Kiểm soát dòng tiền, hóa đơn và các khoản thanh toán dự án"
-                icon="payments"
-                actions={
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => setIsInvoiceScanModalOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-200"
-                        >
-                            <span className="material-symbols-outlined text-[18px]">document_scanner</span>
-                            Quét hóa đơn AI
-                        </button>
-                        <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-sm">
-                            <span className="material-symbols-outlined text-[18px]">add</span>
-                            Tạo thanh toán
-                        </button>
+        <div className="flex flex-col h-full bg-slate-50/50">
+            {/* Page Header */}
+            <div className="px-8 py-6 bg-white border-b border-slate-200/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-black text-primary-accent uppercase tracking-[0.3em]">Treasury & Payments</span>
                     </div>
-                }
-            />
-
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                {/* Overview Cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                    <StatCard
-                        title="Dòng tiền hiện tại"
-                        value="42.8 Tỷ"
-                        sub="+5.2% so với tháng trước"
-                        icon="account_balance_wallet"
-                        color="bg-blue-50 text-blue-600"
-                    />
-                    <StatCard
-                        title="Doanh thu tháng"
-                        value="12.5 Tỷ"
-                        sub="Đã thu 8.2 Tỷ"
-                        icon="trending_up"
-                        color="bg-green-50 text-green-600"
-                    />
-                    <StatCard
-                        title="Chi phí tháng"
-                        value="9.8 Tỷ"
-                        sub="Phải trả NCC: 3.4 Tỷ"
-                        icon="trending_down"
-                        color="bg-red-50 text-red-600"
-                    />
-                    <div className="lg:col-span-1">
-                        <AIFinancialInsight />
-                    </div>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                        Tài chính & Thanh toán
+                        <span className="size-2 rounded-full bg-primary-accent animate-pulse"></span>
+                    </h1>
+                    <p className="text-sm text-slate-500 font-medium">Quản lý dòng tiền vận hành và hồ sơ quyết toán tự động</p>
                 </div>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setIsInvoiceScanModalOpen(true)}
+                        className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-black hover:bg-slate-50 transition-premium shadow-sm hover:shadow-md"
+                    >
+                        <span className="material-symbols-outlined text-[20px] text-primary-accent">document_scanner</span>
+                        <span>Scan Invoice AI</span>
+                    </button>
+                    <button className="flex items-center gap-2 px-6 py-3 mesh-gradient text-white rounded-2xl text-sm font-black hover:opacity-90 shadow-premium transition-premium group">
+                        <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-premium">add</span>
+                        <span>New Payment</span>
+                    </button>
+                </div>
+            </div>
 
-                {/* Main Content Area */}
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                    <div className="flex border-b border-slate-100 px-6">
-                        <button
-                            onClick={() => setActiveTab('cashflow')}
-                            className={`px-6 py-4 font-bold text-sm transition-all border-b-2 ${activeTab === 'cashflow' ? 'border-primary text-primary' : 'border-transparent text-slate-500'}`}
-                        >
-                            Dòng tiền & Ngân sách
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('payments')}
-                            className={`px-6 py-4 font-bold text-sm transition-all border-b-2 ${activeTab === 'payments' ? 'border-primary text-primary' : 'border-transparent text-slate-500'}`}
-                        >
-                            Thanh toán & Công nợ
-                        </button>
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                <div className="max-w-[1600px] mx-auto space-y-8">
+                    {/* Overview Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <PremiumStatCard
+                                title="Net Assets"
+                                value="42.8B ₫"
+                                sub="+5.2% vs Last Month"
+                                icon="account_balance_wallet"
+                                color="bg-primary"
+                                trend={5.2}
+                            />
+                            <PremiumStatCard
+                                title="Monthly Revenue"
+                                value="12.5B ₫"
+                                sub="Target: 15.0B ₫"
+                                icon="show_chart"
+                                color="bg-emerald"
+                                trend={12.4}
+                            />
+                            <PremiumStatCard
+                                title="Operating Costs"
+                                value="9.8B ₫"
+                                sub="Vendor Debt: 3.4B ₫"
+                                icon="output"
+                                color="bg-red-500"
+                                trend={-2.1}
+                            />
+                        </div>
+                        <div className="lg:col-span-1">
+                            <AIFinancialInsight />
+                        </div>
                     </div>
 
-                    <div className="p-6">
-                        {activeTab === 'cashflow' && (
-                            <div className="space-y-6">
-                                <div className="h-[350px] w-full">
-                                    <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-primary">show_chart</span>
-                                        Biểu đồ Dòng tiền (Vào - Ra)
-                                    </h4>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <AreaChart data={costStructureData}>
-                                            <defs>
-                                                <linearGradient id="colorIn" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#07883d" stopOpacity={0.1} />
-                                                    <stop offset="95%" stopColor="#07883d" stopOpacity={0} />
-                                                </linearGradient>
-                                                <linearGradient id="colorOut" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.1} />
-                                                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
-                                                </linearGradient>
-                                            </defs>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                                            <Tooltip
-                                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                                            />
-                                            <Area type="monotone" dataKey="inflow" name="Dòng tiền vào" stroke="#07883d" fillOpacity={1} fill="url(#colorIn)" strokeWidth={3} />
-                                            <Area type="monotone" dataKey="outflow" name="Dòng tiền ra" stroke="#EF4444" fillOpacity={1} fill="url(#colorOut)" strokeWidth={3} />
-                                        </AreaChart>
-                                    </ResponsiveContainer>
-                                </div>
+                    {/* Main Content Card */}
+                    <div className="bg-white rounded-[40px] border border-slate-200 shadow-glass overflow-hidden">
+                        <div className="flex border-b border-slate-100 p-2 bg-slate-50/50">
+                            {[
+                                { id: 'cashflow', label: 'Cash Flow & Budget', icon: 'query_stats' },
+                                { id: 'payments', label: 'Transactions & Debt', icon: 'history' },
+                            ].map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id as any)}
+                                    className={`flex items-center gap-2 px-8 py-3 rounded-2xl text-sm font-black transition-premium ${activeTab === tab.id
+                                        ? 'bg-white text-primary shadow-premium'
+                                        : 'text-slate-500 hover:text-slate-900'
+                                        }`}
+                                >
+                                    <span className="material-symbols-outlined text-[20px]">{tab.icon}</span>
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
-                                    <div className="p-4 rounded-xl border border-slate-100">
-                                        <h5 className="font-bold text-sm text-slate-900 mb-3">Dự án thu nhiều nhất</h5>
-                                        <div className="space-y-3">
-                                            {[1, 2].map(i => (
-                                                <div key={i} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg">
-                                                    <span className="text-sm font-medium">Trường Tiểu học Tiên Sơn</span>
-                                                    <span className="text-sm font-bold text-green-600">+12.4 Tỷ</span>
-                                                </div>
-                                            ))}
+                        <div className="p-8">
+                            {activeTab === 'cashflow' && (
+                                <div className="space-y-8">
+                                    <div className="h-[400px] w-full relative">
+                                        <div className="absolute top-0 left-0">
+                                            <h4 className="text-xl font-black text-slate-900 tracking-tight">Financial Trajectory</h4>
+                                            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Comparison: Inflow vs Outflow</p>
+                                        </div>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <AreaChart data={costStructureData} margin={{ top: 60, right: 10, left: -20, bottom: 0 }}>
+                                                <defs>
+                                                    <linearGradient id="colorIn" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                                    </linearGradient>
+                                                    <linearGradient id="colorOut" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} />
+                                                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                                                    </linearGradient>
+                                                </defs>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} dy={10} />
+                                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} />
+                                                <Tooltip
+                                                    contentStyle={{ borderRadius: '24px', border: 'none', padding: '16px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}
+                                                />
+                                                <Area type="monotone" dataKey="inflow" name="Inflow" stroke="#10b981" fillOpacity={1} fill="url(#colorIn)" strokeWidth={4} />
+                                                <Area type="monotone" dataKey="outflow" name="Outflow" stroke="#ef4444" fillOpacity={1} fill="url(#colorOut)" strokeWidth={4} />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-slate-100">
+                                        <div className="space-y-4">
+                                            <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Top Revenue Sources</h5>
+                                            <div className="space-y-3">
+                                                {[1, 2].map(i => (
+                                                    <div key={i} className="flex justify-between items-center bg-slate-50/50 p-4 rounded-2xl hover:bg-slate-100 transition-premium cursor-pointer group">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="size-10 rounded-xl bg-emerald/10 flex items-center justify-center text-emerald">
+                                                                <span className="material-symbols-outlined text-[20px]">domain</span>
+                                                            </div>
+                                                            <span className="text-sm font-black text-slate-700 group-hover:text-slate-900 transition-premium">Dự án Tiên Sơn {i}</span>
+                                                        </div>
+                                                        <span className="text-sm font-black text-emerald">+12.4B ₫</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Top Cost Drivers</h5>
+                                            <div className="space-y-3">
+                                                {[1, 2].map(i => (
+                                                    <div key={i} className="flex justify-between items-center bg-slate-50/50 p-4 rounded-2xl hover:bg-slate-100 transition-premium cursor-pointer group">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="size-10 rounded-xl bg-red-100 flex items-center justify-center text-red-600">
+                                                                <span className="material-symbols-outlined text-[20px]">engineering</span>
+                                                            </div>
+                                                            <span className="text-sm font-black text-slate-700 group-hover:text-slate-900 transition-premium">Thi công móng {i}</span>
+                                                        </div>
+                                                        <span className="text-sm font-black text-red-600">-2.8B ₫</span>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="p-4 rounded-xl border border-slate-100">
-                                        <h5 className="font-bold text-sm text-slate-900 mb-3">Dự án chi nhiều nhất</h5>
-                                        <div className="space-y-3">
-                                            {[1, 2].map(i => (
-                                                <div key={i} className="flex justify-between items-center bg-slate-50 p-3 rounded-lg">
-                                                    <span className="text-sm font-medium">Cầu Vượt Láng Hạ</span>
-                                                    <span className="text-sm font-bold text-red-600">-8.2 Tỷ</span>
-                                                </div>
-                                            ))}
-                                        </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'payments' && (
+                                <div className="space-y-4">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left">
+                                            <thead>
+                                                <tr className="border-b border-slate-100">
+                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Operation Details</th>
+                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Project Origin</th>
+                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Amount (₫)</th>
+                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
+                                                    <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-50">
+                                                {paymentRequests.length > 0 ? paymentRequests.map((req) => (
+                                                    <tr key={req.id} className="hover:bg-slate-50/80 transition-premium group">
+                                                        <td className="px-6 py-5">
+                                                            <p className="font-black text-slate-900">{req.partner_name}</p>
+                                                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 italic">Ref: PAY_{req.id.slice(0, 8)}</p>
+                                                        </td>
+                                                        <td className="px-6 py-5">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="size-2 rounded-full bg-primary-accent"></div>
+                                                                <span className="text-sm font-bold text-slate-600">Trường Tiểu học Tiên Sơn</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-5 text-right font-black text-slate-900 tracking-tight">
+                                                            {(req.amount || 0).toLocaleString()}
+                                                        </td>
+                                                        <td className="px-6 py-5">
+                                                            <div className="flex justify-center">
+                                                                <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${req.status === 'paid'
+                                                                    ? 'bg-emerald/10 text-emerald border border-emerald/20'
+                                                                    : 'bg-blue-50 text-blue-600 border border-blue-100'
+                                                                    }`}>
+                                                                    {req.status === 'paid' ? 'Paid' : 'In Review'}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-5 text-right">
+                                                            <button className="px-4 py-2 bg-white text-[10px] font-black text-primary border border-slate-200 rounded-xl hover:bg-primary hover:text-white hover:border-primary transition-premium shadow-sm">VIEW</button>
+                                                        </td>
+                                                    </tr>
+                                                )) : (
+                                                    <tr>
+                                                        <td colSpan={5} className="py-20 text-center">
+                                                            <div className="inline-flex flex-col items-center">
+                                                                <span className="material-symbols-outlined text-slate-200 text-[64px] mb-4">payments</span>
+                                                                <p className="text-slate-400 font-bold">No transactions found</p>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
-                            </div>
-                        )}
-
-                        {activeTab === 'payments' && (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left">
-                                    <thead className="bg-slate-50 border-b border-slate-100">
-                                        <tr>
-                                            <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase">Yêu cầu thanh toán</th>
-                                            <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase">Dự án</th>
-                                            <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase">Số tiền</th>
-                                            <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase">Ngày yêu cầu</th>
-                                            <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase text-center">Trạng thái</th>
-                                            <th className="px-6 py-4 text-xs font-black text-slate-500 uppercase text-right">Thao tác</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        {paymentRequests.length > 0 ? paymentRequests.map((req) => (
-                                            <tr key={req.id} className="hover:bg-slate-50 transition-colors">
-                                                <td className="px-6 py-4 text-sm font-bold text-slate-900">{req.partner_name}</td>
-                                                <td className="px-6 py-4 text-sm text-slate-600">Trường Tiểu học Tiên Sơn</td>
-                                                <td className="px-6 py-4 text-sm font-bold text-primary">{(req.amount || 0).toLocaleString()} ₫</td>
-                                                <td className="px-6 py-4 text-sm text-slate-500">{new Date().toLocaleDateString('vi-VN')}</td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <Badge
-                                                        label={req.status === 'paid' ? 'Đã trả' : 'Đang xử lý'}
-                                                        variant={req.status === 'paid' ? 'success' : 'info'}
-                                                    />
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <button className="text-primary hover:underline text-sm font-bold">Chi tiết</button>
-                                                </td>
-                                            </tr>
-                                        )) : (
-                                            <tr>
-                                                <td colSpan={6} className="px-6 py-12 text-center text-slate-400 font-medium">Chưa có dữ liệu thanh toán</td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -266,10 +320,11 @@ export default function Finance() {
             <InvoiceScanModal
                 isOpen={isInvoiceScanModalOpen}
                 onClose={() => setIsInvoiceScanModalOpen(false)}
-                onScanComplete={(data) => {
-                    console.log('Scanned:', data);
+                onSave={(data) => {
+                    console.log('Saved Scanned Invoice:', data);
                     setIsInvoiceScanModalOpen(false);
                 }}
+                projects={projects}
             />
         </div>
     );
