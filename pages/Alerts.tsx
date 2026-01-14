@@ -33,6 +33,8 @@ export default function Alerts() {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<AlertType | 'all'>('all');
 
+    const [scanning, setScanning] = useState(false);
+
     useEffect(() => {
         loadAlerts();
     }, []);
@@ -46,6 +48,18 @@ export default function Alerts() {
             console.error('Error loading alerts:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleScan = async () => {
+        setScanning(true);
+        try {
+            await alertService.checkAndGenerateAutoAlerts();
+            await loadAlerts();
+        } catch (error) {
+            console.error('Error scanning system:', error);
+        } finally {
+            setScanning(false);
         }
     };
 
@@ -71,14 +85,17 @@ export default function Alerts() {
                 </div>
                 <div className="flex items-center gap-3">
                     <button
-                        onClick={loadAlerts}
-                        className="p-2.5 bg-slate-50 text-slate-600 rounded-xl border border-slate-100 hover:bg-white hover:shadow-md transition-all active:scale-95"
+                        onClick={handleScan}
+                        disabled={scanning}
+                        className={`flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors ${scanning ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        <span className="material-symbols-outlined">refresh</span>
+                        <span className={`material-symbols-outlined text-[18px] ${scanning ? 'animate-spin' : ''}`}>
+                            {scanning ? 'sync' : 'search_check'}
+                        </span>
+                        {scanning ? 'Đang quét...' : 'Quét hệ thống'}
                     </button>
-                    <button className="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all active:scale-95">
-                        <span className="material-symbols-outlined text-[20px]">settings</span>
-                        Cấu hình
+                    <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 shadow-lg shadow-primary/20">
+                        <span className="material-symbols-outlined text-[18px]">add</span> Tạo thủ công
                     </button>
                 </div>
             </header>
@@ -117,8 +134,8 @@ export default function Alerts() {
                             key={f}
                             onClick={() => setFilter(f as any)}
                             className={`px-4 py-2 rounded-full text-xs font-bold border transition-all whitespace-nowrap ${filter === f
-                                    ? 'bg-primary text-white border-primary shadow-md shadow-primary/20 scale-105'
-                                    : 'bg-white text-slate-600 border-slate-200 hover:border-primary/50'
+                                ? 'bg-primary text-white border-primary shadow-md shadow-primary/20 scale-105'
+                                : 'bg-white text-slate-600 border-slate-200 hover:border-primary/50'
                                 }`}
                         >
                             {f === 'all' ? 'Tất cả' : f.charAt(0).toUpperCase() + f.slice(1)}
@@ -147,7 +164,7 @@ export default function Alerts() {
                                         }`}
                                 >
                                     <div className={`size-12 rounded-2xl shrink-0 flex items-center justify-center ${alert.severity === 'critical' ? 'bg-red-50' :
-                                            alert.severity === 'high' ? 'bg-orange-50' : 'bg-blue-50'
+                                        alert.severity === 'high' ? 'bg-orange-50' : 'bg-blue-50'
                                         }`}>
                                         <AlertIcon type={alert.type} />
                                     </div>
