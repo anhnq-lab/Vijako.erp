@@ -465,107 +465,200 @@ export default function ProjectDetail() {
                         </div>
                     )}
 
-                    {activeTab === 'budget' && (
-                        <div className="space-y-8">
-                            {/* Revenue Contracts (A-B) */}
-                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="p-4 bg-blue-50/50 border-b border-blue-100 flex justify-between items-center">
-                                    <div className="flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-blue-600">domain_add</span>
-                                        <h3 className="font-bold text-slate-800">Hợp đồng với Chủ Đầu Tư (Đầu ra)</h3>
-                                    </div>
-                                    <button className="text-xs font-bold text-blue-600 bg-white border border-blue-200 px-3 py-1.5 rounded hover:bg-blue-50 transition-colors">
-                                        + Thêm HĐ Chủ đầu tư
-                                    </button>
-                                </div>
-                                <table className="w-full text-left">
-                                    <thead className="bg-white text-xs text-slate-500 uppercase font-semibold border-b border-slate-100">
-                                        <tr>
-                                            <th className="px-4 py-3">Mã HĐ</th>
-                                            <th className="px-4 py-3">Chủ đầu tư</th>
-                                            <th className="px-4 py-3 text-right">Giá trị HĐ</th>
-                                            <th className="px-4 py-3 text-right">Đã thanh toán</th>
-                                            <th className="px-4 py-3 text-right">Giữ lại</th>
-                                            <th className="px-4 py-3 text-right">Tiến độ TT</th>
-                                            <th className="px-4 py-3 text-right">Trạng thái</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {contracts.filter(c => c.type === 'revenue' || c.contract_code.includes('TS-001')).length > 0 ?
-                                            contracts.filter(c => c.type === 'revenue' || c.contract_code.includes('TS-001')).map(contract => (
-                                                <ContractRow key={contract.id} contract={contract} />
-                                            )) : (
-                                                contracts.some(c => !c.type && c.contract_code.includes('TS-001')) ?
-                                                    contracts.filter(c => c.contract_code.includes('TS-001')).map(contract => (
-                                                        <ContractRow key={contract.id} contract={contract} />
-                                                    )) :
-                                                    <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">Chưa có hợp đồng chủ đầu tư.</td></tr>
-                                            )}
-                                    </tbody>
-                                </table>
-                            </div>
+                    {activeTab === 'budget' && (() => {
+                        // Calculate Financial KPIs
+                        const revenueContracts = contracts.filter(c => c.type === 'revenue' || c.contract_code.includes('TS-001'));
+                        const expenseContracts = contracts.filter(c => c.type === 'expense' || (c.type !== 'revenue' && !c.contract_code.includes('TS-001')));
 
-                            {/* Expense Contracts (B-B) */}
-                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
-                                <div className="p-4 bg-orange-50/50 border-b border-orange-100 flex justify-between items-center">
-                                    <div className="flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-orange-600">engineering</span>
-                                        <h3 className="font-bold text-slate-800">Hợp đồng Thầu phụ & Nhà cung cấp (Đầu vào)</h3>
-                                    </div>
-                                    <button className="text-xs font-bold text-orange-600 bg-white border border-orange-200 px-3 py-1.5 rounded hover:bg-orange-50 transition-colors">
-                                        + Thêm HĐ Thầu phụ
-                                    </button>
-                                </div>
-                                <table className="w-full text-left">
-                                    <thead className="bg-white text-xs text-slate-500 uppercase font-semibold border-b border-slate-100">
-                                        <tr>
-                                            <th className="px-4 py-3">Mã HĐ</th>
-                                            <th className="px-4 py-3">Đối tác</th>
-                                            <th className="px-4 py-3 text-right">Giá trị HĐ</th>
-                                            <th className="px-4 py-3 text-right">Đã thanh toán</th>
-                                            <th className="px-4 py-3 text-right">Giữ lại</th>
-                                            <th className="px-4 py-3 text-right">Tiến độ TT</th>
-                                            <th className="px-4 py-3 text-right">Trạng thái</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {contracts.filter(c => c.type === 'expense' || (c.type !== 'revenue' && !c.contract_code.includes('TS-001'))).length > 0 ?
-                                            contracts.filter(c => c.type === 'expense' || (c.type !== 'revenue' && !c.contract_code.includes('TS-001'))).map(contract => (
-                                                <ContractRow key={contract.id} contract={contract} />
-                                            )) : (
-                                                <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">Chưa có hợp đồng thầu phụ.</td></tr>
-                                            )}
-                                    </tbody>
-                                </table>
-                            </div>
+                        const totalRevenue = revenueContracts.reduce((sum, c) => sum + (c.value || 0), 0);
+                        const totalRevenuePaid = revenueContracts.reduce((sum, c) => sum + (c.paid_amount || 0), 0);
+                        const totalExpense = expenseContracts.reduce((sum, c) => sum + (c.value || 0), 0);
+                        const totalExpensePaid = expenseContracts.reduce((sum, c) => sum + (c.paid_amount || 0), 0);
+                        const grossMargin = totalRevenue - totalExpense;
+                        const marginPercent = totalRevenue > 0 ? ((grossMargin / totalRevenue) * 100).toFixed(1) : 0;
 
-                            {/* Budget Section (Existing) */}
-                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="p-4 bg-slate-50 border-b border-slate-200">
-                                    <h3 className="font-bold text-slate-700">Ngân sách & Chi phí Dự án</h3>
+                        const totalBudget = budget.reduce((sum, b) => sum + (b.budget_amount || 0), 0);
+                        const totalActual = budget.reduce((sum, b) => sum + (b.actual_amount || 0), 0);
+                        const budgetUsedPercent = totalBudget > 0 ? ((totalActual / totalBudget) * 100).toFixed(1) : 0;
+                        const isBudgetOverrun = totalActual > totalBudget;
+
+                        return (
+                            <div className="space-y-8">
+                                {/* Financial KPI Summary Cards */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    {/* Total Revenue */}
+                                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-5 rounded-xl shadow-lg shadow-blue-500/20">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="material-symbols-outlined text-blue-200">payments</span>
+                                            <span className="text-xs font-medium bg-blue-400/30 px-2 py-0.5 rounded-full">Doanh thu</span>
+                                        </div>
+                                        <p className="text-2xl font-black">{totalRevenue.toLocaleString()}</p>
+                                        <p className="text-xs text-blue-100 mt-1">Đã thu: {totalRevenuePaid.toLocaleString()} ({totalRevenue > 0 ? ((totalRevenuePaid / totalRevenue) * 100).toFixed(0) : 0}%)</p>
+                                    </div>
+
+                                    {/* Total Expense */}
+                                    <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-5 rounded-xl shadow-lg shadow-orange-500/20">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="material-symbols-outlined text-orange-200">account_balance_wallet</span>
+                                            <span className="text-xs font-medium bg-orange-400/30 px-2 py-0.5 rounded-full">Chi phí</span>
+                                        </div>
+                                        <p className="text-2xl font-black">{totalExpense.toLocaleString()}</p>
+                                        <p className="text-xs text-orange-100 mt-1">Đã chi: {totalExpensePaid.toLocaleString()} ({totalExpense > 0 ? ((totalExpensePaid / totalExpense) * 100).toFixed(0) : 0}%)</p>
+                                    </div>
+
+                                    {/* Gross Margin */}
+                                    <div className={`bg-gradient-to-br ${grossMargin >= 0 ? 'from-emerald-500 to-emerald-600 shadow-emerald-500/20' : 'from-red-500 to-red-600 shadow-red-500/20'} text-white p-5 rounded-xl shadow-lg`}>
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="material-symbols-outlined text-white/70">trending_up</span>
+                                            <span className={`text-xs font-medium ${grossMargin >= 0 ? 'bg-emerald-400/30' : 'bg-red-400/30'} px-2 py-0.5 rounded-full`}>Lợi nhuận gộp</span>
+                                        </div>
+                                        <p className="text-2xl font-black">{grossMargin.toLocaleString()}</p>
+                                        <p className="text-xs text-white/80 mt-1">Tỷ suất: {marginPercent}%</p>
+                                    </div>
+
+                                    {/* Budget Usage */}
+                                    <div className={`bg-gradient-to-br ${isBudgetOverrun ? 'from-red-500 to-red-600 shadow-red-500/20' : 'from-slate-600 to-slate-700 shadow-slate-500/20'} text-white p-5 rounded-xl shadow-lg`}>
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="material-symbols-outlined text-white/70">pie_chart</span>
+                                            <span className={`text-xs font-medium ${isBudgetOverrun ? 'bg-red-400/30' : 'bg-slate-500/30'} px-2 py-0.5 rounded-full`}>{isBudgetOverrun ? '⚠️ Vượt NS' : 'Ngân sách'}</span>
+                                        </div>
+                                        <p className="text-2xl font-black">{budgetUsedPercent}%</p>
+                                        <p className="text-xs text-white/80 mt-1">Đã dùng {totalActual.toLocaleString()} / {totalBudget.toLocaleString()}</p>
+                                    </div>
                                 </div>
-                                <table className="w-full text-left">
-                                    <thead className="bg-white text-xs text-slate-500 uppercase font-semibold border-b border-slate-100">
-                                        <tr>
-                                            <th className="px-4 py-3">Khoản mục chi phí</th>
-                                            <th className="px-4 py-3 text-right">Ngân sách (Budget)</th>
-                                            <th className="px-4 py-3 text-right">Thực tế (Actual)</th>
-                                            <th className="px-4 py-3 text-right">Đã cam kết (Committed)</th>
-                                            <th className="px-4 py-3 text-right">Tỷ lệ (%)</th>
-                                            <th className="px-4 py-3 text-right">Còn lại (Remaining)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {budget.length > 0 ? budget.map(item => (
-                                            <BudgetRow key={item.id} item={item} />
-                                        )) : (
-                                            <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500">Chưa có dữ liệu ngân sách.</td></tr>
-                                        )}
-                                    </tbody>
-                                </table>
+
+                                {/* Budget Breakdown Chart (Simple Bar Representation) */}
+                                <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
+                                    <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-indigo-600">bar_chart</span>
+                                        Phân bổ Ngân sách theo Hạng mục
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {budget.map(item => {
+                                            const percent = item.budget_amount > 0 ? Math.round((item.actual_amount / item.budget_amount) * 100) : 0;
+                                            const isOver = item.actual_amount > item.budget_amount;
+                                            return (
+                                                <div key={item.id} className="flex items-center gap-4">
+                                                    <div className="w-32 text-sm font-medium text-slate-700 truncate">{item.category}</div>
+                                                    <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden relative">
+                                                        <div
+                                                            className={`h-full rounded-full transition-all duration-500 ${isOver ? 'bg-red-500' : 'bg-indigo-500'}`}
+                                                            style={{ width: `${Math.min(percent, 100)}%` }}
+                                                        ></div>
+                                                        {isOver && (
+                                                            <div className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-red-600 bg-red-100 px-1.5 rounded">
+                                                                +{(percent - 100).toFixed(0)}%
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="w-20 text-right text-xs font-bold text-slate-600">{percent}%</div>
+                                                </div>
+                                            );
+                                        })}
+                                        {budget.length === 0 && <p className="text-sm text-slate-400 italic">Chưa có dữ liệu ngân sách.</p>}
+                                    </div>
+                                </div>
+
+                                {/* Revenue Contracts (A-B) */}
+                                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <div className="p-4 bg-blue-50/50 border-b border-blue-100 flex justify-between items-center">
+                                        <div className="flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-blue-600">domain_add</span>
+                                            <h3 className="font-bold text-slate-800">Hợp đồng với Chủ Đầu Tư (Đầu ra)</h3>
+                                        </div>
+                                        <button className="text-xs font-bold text-blue-600 bg-white border border-blue-200 px-3 py-1.5 rounded hover:bg-blue-50 transition-colors">
+                                            + Thêm HĐ Chủ đầu tư
+                                        </button>
+                                    </div>
+                                    <table className="w-full text-left">
+                                        <thead className="bg-white text-xs text-slate-500 uppercase font-semibold border-b border-slate-100">
+                                            <tr>
+                                                <th className="px-4 py-3">Mã HĐ</th>
+                                                <th className="px-4 py-3">Chủ đầu tư</th>
+                                                <th className="px-4 py-3 text-right">Giá trị HĐ</th>
+                                                <th className="px-4 py-3 text-right">Đã thanh toán</th>
+                                                <th className="px-4 py-3 text-right">Giữ lại</th>
+                                                <th className="px-4 py-3 text-right">Tiến độ TT</th>
+                                                <th className="px-4 py-3 text-right">Trạng thái</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {contracts.filter(c => c.type === 'revenue' || c.contract_code.includes('TS-001')).length > 0 ?
+                                                contracts.filter(c => c.type === 'revenue' || c.contract_code.includes('TS-001')).map(contract => (
+                                                    <ContractRow key={contract.id} contract={contract} />
+                                                )) : (
+                                                    contracts.some(c => !c.type && c.contract_code.includes('TS-001')) ?
+                                                        contracts.filter(c => c.contract_code.includes('TS-001')).map(contract => (
+                                                            <ContractRow key={contract.id} contract={contract} />
+                                                        )) :
+                                                        <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">Chưa có hợp đồng chủ đầu tư.</td></tr>
+                                                )}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Expense Contracts (B-B) */}
+                                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
+                                    <div className="p-4 bg-orange-50/50 border-b border-orange-100 flex justify-between items-center">
+                                        <div className="flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-orange-600">engineering</span>
+                                            <h3 className="font-bold text-slate-800">Hợp đồng Thầu phụ & Nhà cung cấp (Đầu vào)</h3>
+                                        </div>
+                                        <button className="text-xs font-bold text-orange-600 bg-white border border-orange-200 px-3 py-1.5 rounded hover:bg-orange-50 transition-colors">
+                                            + Thêm HĐ Thầu phụ
+                                        </button>
+                                    </div>
+                                    <table className="w-full text-left">
+                                        <thead className="bg-white text-xs text-slate-500 uppercase font-semibold border-b border-slate-100">
+                                            <tr>
+                                                <th className="px-4 py-3">Mã HĐ</th>
+                                                <th className="px-4 py-3">Đối tác</th>
+                                                <th className="px-4 py-3 text-right">Giá trị HĐ</th>
+                                                <th className="px-4 py-3 text-right">Đã thanh toán</th>
+                                                <th className="px-4 py-3 text-right">Giữ lại</th>
+                                                <th className="px-4 py-3 text-right">Tiến độ TT</th>
+                                                <th className="px-4 py-3 text-right">Trạng thái</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {contracts.filter(c => c.type === 'expense' || (c.type !== 'revenue' && !c.contract_code.includes('TS-001'))).length > 0 ?
+                                                contracts.filter(c => c.type === 'expense' || (c.type !== 'revenue' && !c.contract_code.includes('TS-001'))).map(contract => (
+                                                    <ContractRow key={contract.id} contract={contract} />
+                                                )) : (
+                                                    <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">Chưa có hợp đồng thầu phụ.</td></tr>
+                                                )}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Budget Section (Existing) */}
+                                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <div className="p-4 bg-slate-50 border-b border-slate-200">
+                                        <h3 className="font-bold text-slate-700">Ngân sách & Chi phí Dự án</h3>
+                                    </div>
+                                    <table className="w-full text-left">
+                                        <thead className="bg-white text-xs text-slate-500 uppercase font-semibold border-b border-slate-100">
+                                            <tr>
+                                                <th className="px-4 py-3">Khoản mục chi phí</th>
+                                                <th className="px-4 py-3 text-right">Ngân sách (Budget)</th>
+                                                <th className="px-4 py-3 text-right">Thực tế (Actual)</th>
+                                                <th className="px-4 py-3 text-right">Đã cam kết (Committed)</th>
+                                                <th className="px-4 py-3 text-right">Tỷ lệ (%)</th>
+                                                <th className="px-4 py-3 text-right">Còn lại (Remaining)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {budget.length > 0 ? budget.map(item => (
+                                                <BudgetRow key={item.id} item={item} />
+                                            )) : (
+                                                <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-500">Chưa có dữ liệu ngân sách.</td></tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        );
+                    })()}
 
                     {/* Other tabs can be placeholders for now */}
                     {(activeTab === 'diary' || activeTab === 'documents') && (
