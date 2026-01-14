@@ -897,14 +897,11 @@ export default function ProjectDetail() {
                                                 </div>
                                             }>
                                                 <BimViewer
-                                                    modelUrl="/models/sample_structure.glb"
+                                                    // Use a public sample model for demo purposes since local file is missing
+                                                    modelUrl="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF-Binary/Box.glb"
                                                     autoRotate={true}
                                                     progressUpdate={{
-                                                        "Column_01": "completed",
-                                                        "Column_02": "completed",
-                                                        "Floor_01": "completed",
-                                                        "Wall_01": "in_progress",
-                                                        "Beam_01": "in_progress"
+                                                        "Mesh": "completed" // Box model usually has a node named Mesh or similar
                                                     }}
                                                 />
                                             </Suspense>
