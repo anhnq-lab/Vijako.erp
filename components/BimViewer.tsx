@@ -17,55 +17,26 @@ const statusColors = {
     default: new THREE.Color('#cbd5e1')
 };
 
-function Model({ url, progressUpdate, file }: { url?: string; file?: File; progressUpdate?: Record<string, string> }) {
-    const [object, setObject] = useState<THREE.Object3D | null>(null);
+const GLTFModel = ({ url, progressUpdate }: { url: string; progressUpdate?: Record<string, string> }) => {
+    const { scene } = useGLTF(url, true);
+    const [clonedScene, setClonedScene] = useState<THREE.Object3D | null>(null);
 
-    // Load GLB/GLTF
-    const { scene: gltfScene } = useGLTF(url && url.endsWith('.glb') ? url : '', true) as any || { scene: null };
-
-    // Load IFC
     useEffect(() => {
-        if (file) {
-            const ifcLoader = new IFCLoader();
-            // Use absolute CDN path to avoid local routing issues
-            // This is the most reliable way to load WASM in Vercel/SPA environments
-            ifcLoader.ifcManager.setWasmPath('https://unpkg.com/web-ifc@0.0.53/');
-
-            const ifcURL = URL.createObjectURL(file);
-            ifcLoader.load(
-                ifcURL,
-                (ifcModel) => {
-                    setObject(ifcModel);
-                },
-                (progress) => {
-                    // console.log('Loading IFC:', progress);
-                },
-                (error) => {
-                    console.error('Error loading IFC:', error);
-                    // Force ErrorBoundary to catch
-                    // Note: Async errors in event handlers aren't caught by ErrorBoundary automatically usually, 
-                    // but we can log it visible to user or set state
-                    alert(`Không thể tải file IFC: ${error instanceof Error ? error.message : 'Lỗi không xác định'}`);
-                }
-            );
-            return () => URL.revokeObjectURL(ifcURL);
-        } else if (url && url.endsWith('.glb') && gltfScene) {
-            setObject(gltfScene.clone());
+        if (scene) {
+            setClonedScene(scene.clone());
         }
-    }, [url, file, gltfScene]);
+    }, [scene]);
 
     // Apply colors
     useMemo(() => {
-        if (!object || !progressUpdate) return;
+        if (!clonedScene || !progressUpdate) return;
 
-        object.traverse((child) => {
+        clonedScene.traverse((child) => {
             if ((child as THREE.Mesh).isMesh) {
                 const mesh = child as THREE.Mesh;
-                // IFC often puts ID in userData, or name might be expressID
-                // Simplified matching logic:
                 const status = progressUpdate[mesh.name] ||
                     progressUpdate[mesh.userData.name] ||
-                    progressUpdate[mesh.uuid]; // Fallback
+                    progressUpdate[mesh.uuid];
 
                 if (status) {
                     const material = new THREE.MeshStandardMaterial({
@@ -77,10 +48,80 @@ function Model({ url, progressUpdate, file }: { url?: string; file?: File; progr
                 }
             }
         });
-    }, [object, progressUpdate]);
+    }, [clonedScene, progressUpdate]);
 
-    if (!object) return null;
-    return <primitive object={object} />;
+    if (!clonedScene) return null;
+    return <primitive object={clonedScene} />;
+};
+
+const IFCModel = ({ url, file, progressUpdate }: { url?: string; file?: File; progressUpdate?: Record<string, string> }) => {
+    const [model, setModel] = useState<THREE.Object3D | null>(null);
+
+    useEffect(() => {
+        const loadIfc = async () => {
+            const ifcLoader = new IFCLoader();
+            ifcLoader.ifcManager.setWasmPath('/');
+
+            const onLoad = (ifcModel: THREE.Object3D) => {
+                setModel(ifcModel);
+            };
+
+            const onError = (error: any) => {
+                console.error('Error loading IFC:', error);
+            };
+
+            if (file) {
+                const ifcURL = URL.createObjectURL(file);
+                ifcLoader.load(ifcURL, onLoad, undefined, onError);
+                return () => URL.revokeObjectURL(ifcURL);
+            } else if (url) {
+                ifcLoader.load(url, onLoad, undefined, onError);
+            }
+        };
+
+        loadIfc();
+    }, [url, file]);
+
+    // Apply colors
+    useMemo(() => {
+        if (!model || !progressUpdate) return;
+
+        model.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+                const mesh = child as THREE.Mesh;
+                const status = progressUpdate[mesh.name] ||
+                    progressUpdate[mesh.userData.name] ||
+                    progressUpdate[mesh.uuid];
+
+                if (status) {
+                    const material = new THREE.MeshStandardMaterial({
+                        color: statusColors[status as keyof typeof statusColors] || statusColors.default,
+                        metalness: 0.5,
+                        roughness: 0.5
+                    });
+                    mesh.material = material;
+                }
+            }
+        });
+    }, [model, progressUpdate]);
+
+    if (!model) return null;
+    return <primitive object={model} />;
+};
+
+function Model({ url, progressUpdate, file }: { url?: string; file?: File; progressUpdate?: Record<string, string> }) {
+    // Determine type
+    const isGlb = url && (url.endsWith('.glb') || url.endsWith('.gltf'));
+
+    if (file || (url && !isGlb)) {
+        return <IFCModel url={url} file={file} progressUpdate={progressUpdate} />;
+    }
+
+    if (isGlb && url) {
+        return <GLTFModel url={url} progressUpdate={progressUpdate} />;
+    }
+
+    return null;
 }
 
 const BimViewer: React.FC<BimViewerProps> = ({ modelUrl, progressUpdate, autoRotate = false }) => {
@@ -139,7 +180,7 @@ const BimViewer: React.FC<BimViewerProps> = ({ modelUrl, progressUpdate, autoRot
             </div>
 
             <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow text-xs font-mono text-slate-600">
-                {localFile ? localFile.name : 'Demo Model'}
+                {localFile ? localFile.name : (modelUrl ? modelUrl.split('/').pop() : 'No Model')}
             </div>
         </div>
     );

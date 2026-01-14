@@ -189,6 +189,7 @@ export default function ProjectDetail() {
     const [wbsView, setWbsView] = useState<'list' | 'gantt'>('list');
     const [loading, setLoading] = useState(true);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const modelInputRef = React.useRef<HTMLInputElement>(null);
 
     // Contract Modal State
     const [isContractModalOpen, setIsContractModalOpen] = useState(false);
@@ -293,6 +294,33 @@ export default function ProjectDetail() {
         }
     };
 
+    const handleModelUploadClick = () => {
+        modelInputRef.current?.click();
+    };
+
+    const handleModelFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file || !id) return;
+
+        if (confirm(`Bạn có chắc muốn upload mô hình "${file.name}"?`)) {
+            try {
+                // setLoading(true); // Optional
+                const publicUrl = await projectService.uploadProjectModel(id, file);
+                if (publicUrl) {
+                    setProject(prev => prev ? { ...prev, model_url: publicUrl } : null);
+                    alert('Upload mô hình thành công!');
+                }
+            } catch (error: any) {
+                console.error(error);
+                alert('Lỗi khi upload mô hình: ' + (error.message || 'Unknown error'));
+            } finally {
+                if (modelInputRef.current) modelInputRef.current.value = '';
+            }
+        } else {
+            if (modelInputRef.current) modelInputRef.current.value = '';
+        }
+    };
+
     useEffect(() => {
         if (id) {
             fetchProjectData(id);
@@ -366,7 +394,7 @@ export default function ProjectDetail() {
                         <div className="flex gap-4">
                             <div className="px-4 py-2 bg-slate-50 rounded-lg border border-slate-100">
                                 <p className="text-[10px] text-slate-500 uppercase font-bold">Tiến độ</p>
-                                <p className="text-lg font-black text-slate-800">{project.progress}% <span className="text-xs font-medium text-green-600">(Plan: {project.planProgress}%)</span></p>
+                                <p className="text-lg font-black text-slate-800">{project.progress}% <span className="text-xs font-medium text-green-600">(Plan: {project.plan_progress || 0}%)</span></p>
                             </div>
                             <div className="px-4 py-2 bg-slate-50 rounded-lg border border-slate-100">
                                 <p className="text-[10px] text-slate-500 uppercase font-bold">Ngân sách (EAC)</p>
@@ -872,7 +900,22 @@ export default function ProjectDetail() {
                                             <span className="material-symbols-outlined text-indigo-600">view_in_ar</span>
                                             Mô Hình BIM (Digital Twin)
                                         </h3>
-                                        <div className="flex gap-2 text-xs">
+                                        <div className="flex gap-2 text-xs items-center">
+                                            <button
+                                                onClick={handleModelUploadClick}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors font-semibold"
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">cloud_upload</span>
+                                                Upload IFC/GLB
+                                            </button>
+                                            <input
+                                                type="file"
+                                                ref={modelInputRef}
+                                                onChange={handleModelFileChange}
+                                                className="hidden"
+                                                accept=".ifc,.glb,.gltf"
+                                            />
+                                            <div className="h-4 w-px bg-slate-200 mx-1"></div>
                                             <div className="flex items-center gap-1.5 px-2 py-1 bg-green-50 text-green-700 rounded border border-green-100">
                                                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
                                                 Hoàn thành
@@ -891,8 +934,8 @@ export default function ProjectDetail() {
                                                 </div>
                                             }>
                                                 <BimViewer
-                                                    // Use a public sample model for demo purposes since local file is missing
-                                                    modelUrl="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF-Binary/Box.glb"
+                                                    // Use project.model_url if available, else fallback to demo
+                                                    modelUrl={project.model_url || "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF-Binary/Box.glb"}
                                                     autoRotate={true}
                                                     progressUpdate={{
                                                         "Mesh": "completed" // Box model usually has a node named Mesh or similar

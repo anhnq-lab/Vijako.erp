@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { diaryService, DailyLog } from '../src/services/diaryService';
+import { diaryService } from '../src/services/diaryService';
+import { DailyLog } from '../types';
 
 interface DiaryFeedProps {
     projectId: string;
@@ -70,36 +71,113 @@ const DiaryFeed: React.FC<DiaryFeedProps> = ({ projectId }) => {
                                         <span className="material-symbols-outlined text-[16px]">groups</span>
                                         <span>{log.manpower_total} nhân sự</span>
                                     </div>
+                                    {log.status && (
+                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${log.status === 'Approved' ? 'bg-green-50 text-green-600 border-green-200' :
+                                                log.status === 'Submitted' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                                                    log.status === 'Rejected' ? 'bg-red-50 text-red-600 border-red-200' :
+                                                        'bg-slate-100 text-slate-500 border-slate-200' // Draft
+                                            }`}>
+                                            {log.status === 'Approved' ? 'Đã duyệt' :
+                                                log.status === 'Submitted' ? 'Đã nộp' :
+                                                    log.status === 'Rejected' ? 'Từ chối' : 'Nháp'}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="text-sm text-slate-600 space-y-2">
-                            <p className="whitespace-pre-line">{log.work_content}</p>
-                            {log.issues && (
-                                <div className="p-2 bg-red-50 text-red-700 rounded text-xs border border-red-100 flex gap-2">
-                                    <span className="material-symbols-outlined text-[16px]">warning</span>
-                                    {log.issues}
+                        <div className="text-sm text-slate-600 space-y-4">
+                            {/* Work Content */}
+                            <div>
+                                <h5 className="text-xs font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[14px]">engineering</span>
+                                    Nội dung công việc
+                                </h5>
+                                <p className="whitespace-pre-line pl-5 border-l-2 border-slate-100">{log.work_content}</p>
+                            </div>
+
+                            {/* Manpower Details */}
+                            {log.manpower_details && log.manpower_details.length > 0 && (
+                                <div>
+                                    <h5 className="text-xs font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-[14px]">group</span>
+                                        Chi tiết nhân lực
+                                    </h5>
+                                    <div className="grid grid-cols-2 gap-2 pl-5">
+                                        {log.manpower_details.map((m, idx) => (
+                                            <div key={idx} className="flex justify-between text-xs bg-slate-50 p-1.5 rounded">
+                                                <span>{m.role}</span>
+                                                <span className="font-bold">{m.count}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Equipment Details */}
+                            {log.equipment_details && log.equipment_details.length > 0 && (
+                                <div>
+                                    <h5 className="text-xs font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-[14px]">agriculture</span>
+                                        Máy móc thiết bị
+                                    </h5>
+                                    <div className="grid grid-cols-2 gap-2 pl-5">
+                                        {log.equipment_details.map((e, idx) => (
+                                            <div key={idx} className="flex justify-between text-xs bg-slate-50 p-1.5 rounded border border-slate-100">
+                                                <span>{e.name}</span>
+                                                <span className={`font-bold ${e.status === 'Working' ? 'text-green-600' : 'text-orange-500'}`}>
+                                                    {e.count}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Safety & Issues */}
+                            {(log.issues || log.safety_details) && (
+                                <div className="space-y-2">
+                                    {log.safety_details && (
+                                        <div className="p-2 bg-orange-50 text-orange-800 rounded text-xs border border-orange-100 flex gap-2">
+                                            <span className="material-symbols-outlined text-[16px]">health_and_safety</span>
+                                            <div>
+                                                <span className="font-bold">An toàn: </span>
+                                                {log.safety_details}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {log.issues && (
+                                        <div className="p-2 bg-red-50 text-red-700 rounded text-xs border border-red-100 flex gap-2">
+                                            <span className="material-symbols-outlined text-[16px]">warning</span>
+                                            <div>
+                                                <span className="font-bold">Sự cố/Vướng mắc: </span>
+                                                {log.issues}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
 
                         {log.images && log.images.length > 0 && (
-                            <div className="mt-3 flex gap-2 overflow-x-auto pb-2">
-                                {log.images.map((img, idx) => (
-                                    <img
-                                        key={idx}
-                                        src={img}
-                                        alt={`Site photo ${idx}`}
-                                        className="h-20 w-20 object-cover rounded-lg border border-slate-100 cursor-pointer hover:opacity-90"
-                                    />
-                                ))}
+                            <div className="mt-4">
+                                <h5 className="text-xs font-bold text-slate-700 uppercase mb-2">Hình ảnh thực tế</h5>
+                                <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                                    {log.images.map((img, idx) => (
+                                        <img
+                                            key={idx}
+                                            src={img}
+                                            alt={`Site photo ${idx}`}
+                                            className="h-24 w-auto object-cover rounded-lg border border-slate-100 cursor-pointer hover:opacity-90 transition-opacity"
+                                        />
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
                 </div>
             ))}
-        </div>
+        </div >
     );
 };
 

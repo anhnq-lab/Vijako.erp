@@ -1,0 +1,1 @@
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS model_url TEXT;

@@ -17,6 +17,7 @@ export interface Project {
   description?: string;
   area?: string;
   budget?: number;
+  model_url?: string;
 }
 
 export interface Contract {
@@ -98,4 +99,42 @@ export interface InventoryItem {
   unit: string;
   min_quantity: number;
   status: 'Low' | 'Normal';
+}
+
+export type DiaryStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected';
+
+export interface ManpowerDetail {
+  role: string;
+  count: number;
+  company?: string;
+  notes?: string;
+}
+
+export interface EquipmentDetail {
+  name: string;
+  count: number;
+  status: 'Working' | 'Maintenance' | 'Idle';
+  notes?: string;
+}
+
+export interface DailyLog {
+  id: string;
+  project_id: string;
+  date: string;
+  weather: {
+    temp: number;
+    condition: string;
+    humidity: number;
+  };
+  manpower_total: number;
+  manpower_details?: ManpowerDetail[];
+  equipment_details?: EquipmentDetail[];
+  work_content: string;
+  issues: string;
+  safety_details?: string;
+  images: string[];
+  progress_update: Record<string, string>; // { "wbs_id": "completed", "node_id": "in_progress" }
+  status: DiaryStatus;
+  created_at: string;
+  updated_at: string;
 }

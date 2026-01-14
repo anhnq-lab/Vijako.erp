@@ -327,5 +327,35 @@ export const projectService = {
         }
 
         return true;
+    },
+    async uploadProjectModel(projectId: string, file: File): Promise<string | null> {
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${projectId}/model_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('project-files')
+                .upload(filePath, file);
+
+            if (uploadError) {
+                console.error('Error uploading file:', uploadError);
+                throw uploadError;
+            }
+
+            const { data } = supabase.storage
+                .from('project-files')
+                .getPublicUrl(filePath);
+
+            const publicUrl = data.publicUrl;
+
+            // Update project with model_url
+            await this.updateProject(projectId, { model_url: publicUrl });
+
+            return publicUrl;
+        } catch (error) {
+            console.error('Error in uploadProjectModel:', error);
+            throw error;
+        }
     }
 };
