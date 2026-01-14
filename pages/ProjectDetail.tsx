@@ -14,6 +14,8 @@ import DiaryFormModal from '../components/DiaryFormModal'; // New Import
 import BimViewer from '../components/BimViewer';
 import ErrorBoundary from '../components/ErrorBoundary';
 import IssueModal from '../components/IssueModal'; // New Import
+import { InvoiceScanModal } from '../components/InvoiceScanModal';
+import { ExtractedInvoice } from '../src/services/invoiceService';
 import { Suspense } from 'react';
 
 // Mock Chart Data (Keep for visual until backend supports time-series)
@@ -202,6 +204,9 @@ export default function ProjectDetail() {
     const [isIssueModalOpen, setIsIssueModalOpen] = useState(false);
     const [editingIssue, setEditingIssue] = useState<ProjectIssue | null>(null);
 
+    // AI Scan Modal State
+    const [isInvoiceScanModalOpen, setIsInvoiceScanModalOpen] = useState(false);
+
     const openAddIssueModal = () => {
         setEditingIssue(null);
         setIsIssueModalOpen(true);
@@ -348,6 +353,36 @@ export default function ProjectDetail() {
         if (id) {
             const budgetData = await projectService.getProjectBudget(id);
             setBudget(budgetData);
+        }
+    };
+
+    const handleSaveScannedInvoice = async (data: ExtractedInvoice & { project_id: string }) => {
+        try {
+            await financeService.createContract({
+                contract_code: data.invoice_code || `INV-${Date.now().toString().slice(-6)}`,
+                partner_name: data.vendor_name,
+                project_id: data.project_id,
+                value: data.amount,
+                paid_amount: data.amount,
+                retention_amount: 0,
+                status: 'completed',
+                type: data.type,
+                budget_category: data.suggested_budget_category
+            });
+
+            // Refresh data
+            if (id) {
+                const [c, b] = await Promise.all([
+                    financeService.getContractsByProjectId(id),
+                    projectService.getProjectBudget(id)
+                ]);
+                setContracts(c);
+                setBudget(b);
+            }
+            alert('Đã lưu hóa đơn vào hệ thống!');
+        } catch (error) {
+            console.error('Error saving scanned invoice:', error);
+            alert('Lỗi khi lưu hóa đơn');
         }
     };
 
@@ -1043,6 +1078,13 @@ export default function ProjectDetail() {
                                         <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                                             <h3 className="font-bold text-slate-700">Ngân sách & Chi phí Dự án</h3>
                                             <button
+                                                onClick={() => setIsInvoiceScanModalOpen(true)}
+                                                className="text-xs font-bold text-white bg-indigo-600 px-3 py-1.5 rounded hover:bg-indigo-700 transition-colors flex items-center gap-1 shadow-sm"
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+                                                Quét hóa đơn AI
+                                            </button>
+                                            <button
                                                 onClick={openAddBudgetModal}
                                                 className="text-xs font-bold text-indigo-600 bg-white border border-indigo-200 px-3 py-1.5 rounded hover:bg-indigo-50 transition-colors"
                                             >
@@ -1312,6 +1354,16 @@ export default function ProjectDetail() {
                 projectId={id || ''}
                 existingIssue={editingIssue}
             />
+
+            {project && (
+                <InvoiceScanModal
+                    isOpen={isInvoiceScanModalOpen}
+                    onClose={() => setIsInvoiceScanModalOpen(false)}
+                    onSave={handleSaveScannedInvoice}
+                    projects={[project]}
+                    defaultProjectId={project.id}
+                />
+            )}
         </>
     )
 }
