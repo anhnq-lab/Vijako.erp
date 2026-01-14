@@ -146,5 +146,139 @@ export const financeService = {
             chi: Number(cf.outflow),
             net: Number(cf.net_flow)
         }));
+    },
+
+    // === Bank Guarantees CRUD ===
+    async getBankGuaranteeById(id: string): Promise<BankGuarantee | null> {
+        const { data, error } = await supabase
+            .from('bank_guarantees')
+            .select('*, projects(name)')
+            .eq('id', id)
+            .single();
+
+        if (error) {
+            console.error(`Error fetching bank guarantee ${id}:`, error);
+            return null;
+        }
+
+        return { ...data, project_name: (data.projects as any)?.name };
+    },
+
+    async createBankGuarantee(guarantee: Omit<BankGuarantee, 'id'>): Promise<BankGuarantee | null> {
+        const { data, error } = await supabase
+            .from('bank_guarantees')
+            .insert(guarantee)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error creating bank guarantee:', error);
+            throw error;
+        }
+
+        return data;
+    },
+
+    async updateBankGuarantee(id: string, updates: Partial<BankGuarantee>): Promise<BankGuarantee | null> {
+        const { data, error } = await supabase
+            .from('bank_guarantees')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error(`Error updating bank guarantee ${id}:`, error);
+            throw error;
+        }
+
+        return data;
+    },
+
+    async deleteBankGuarantee(id: string): Promise<boolean> {
+        const { error } = await supabase
+            .from('bank_guarantees')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error(`Error deleting bank guarantee ${id}:`, error);
+            throw error;
+        }
+
+        return true;
+    },
+
+    // === Payment Requests CRUD ===
+    async getPaymentRequestById(id: string): Promise<PaymentRequest | null> {
+        const { data, error } = await supabase
+            .from('payment_requests')
+            .select('*, contracts(partner_name), projects(name)')
+            .eq('id', id)
+            .single();
+
+        if (error) {
+            console.error(`Error fetching payment request ${id}:`, error);
+            return null;
+        }
+
+        return {
+            ...data,
+            partner_name: (data.contracts as any)?.partner_name,
+            project_name: (data.projects as any)?.name
+        };
+    },
+
+    async createPaymentRequest(request: Omit<PaymentRequest, 'id'>): Promise<PaymentRequest | null> {
+        const { data, error } = await supabase
+            .from('payment_requests')
+            .insert(request)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error creating payment request:', error);
+            throw error;
+        }
+
+        return data;
+    },
+
+    async updatePaymentRequest(id: string, updates: Partial<PaymentRequest>): Promise<PaymentRequest | null> {
+        const { data, error } = await supabase
+            .from('payment_requests')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error(`Error updating payment request ${id}:`, error);
+            throw error;
+        }
+
+        return data;
+    },
+
+    async deletePaymentRequest(id: string): Promise<boolean> {
+        const { error } = await supabase
+            .from('payment_requests')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error(`Error deleting payment request ${id}:`, error);
+            throw error;
+        }
+
+        return true;
+    },
+
+    async approvePaymentRequest(id: string): Promise<PaymentRequest | null> {
+        return this.updatePaymentRequest(id, { status: 'approved' });
+    },
+
+    async rejectPaymentRequest(id: string, reason?: string): Promise<PaymentRequest | null> {
+        return this.updatePaymentRequest(id, { status: 'rejected', block_reason: reason });
     }
 };

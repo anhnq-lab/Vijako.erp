@@ -6,7 +6,8 @@ import {
 import ProjectMap from '../src/components/Dashboard/ProjectMap';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { projectService } from '../src/services/projectService';
-import { Project } from '../types';
+import { riskService } from '../src/services/riskService';
+import { Project, RiskMatrixData } from '../types';
 
 // --- Data Simulation ---
 
@@ -35,13 +36,13 @@ const resourceData = [
   { name: 'T8', workers: 400, machines: 30 },
 ];
 
-// Risk Matrix Data (X: Probability, Y: Impact, Z: Severity Score)
-const riskData = [
-  { x: 15, y: 20, z: 100, name: 'The Nine', status: 'Low', color: '#07883d' },
-  { x: 30, y: 50, z: 250, name: 'Foxconn BG', status: 'Medium', color: '#FACC15' },
-  { x: 85, y: 90, z: 600, name: 'Sun Urban', status: 'Critical', color: '#EF4444' },
-  { x: 60, y: 40, z: 300, name: 'Aeon Mall', status: 'High', color: '#F97316' },
-  { x: 20, y: 80, z: 200, name: 'Mỹ Thuận 2', status: 'Watch', color: '#3b82f6' },
+// Fallback Risk Matrix Data (used when DB has no data)
+const fallbackRiskData: RiskMatrixData[] = [
+  { x: 20, y: 20, z: 40, name: 'The Nine', status: 'Low', color: '#07883d' },
+  { x: 60, y: 60, z: 360, name: 'Foxconn BG', status: 'Medium', color: '#FACC15' },
+  { x: 100, y: 100, z: 1000, name: 'Sun Urban', status: 'Critical', color: '#EF4444' },
+  { x: 80, y: 60, z: 480, name: 'Aeon Mall', status: 'High', color: '#F97316' },
+  { x: 40, y: 80, z: 320, name: 'Mỹ Thuận 2', status: 'Medium', color: '#3b82f6' },
 ];
 
 // --- Components ---
@@ -187,17 +188,25 @@ const RiskTooltip = ({ active, payload }: any) => {
 export default function Dashboard() {
   const [activeChart, setActiveChart] = useState<'finance' | 'manpower'>('finance');
   const [projects, setProjects] = useState<Project[]>([]);
+  const [riskData, setRiskData] = useState<RiskMatrixData[]>(fallbackRiskData);
 
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchData = async () => {
       try {
-        const data = await projectService.getAllProjects();
-        setProjects(data);
+        // Fetch projects
+        const projectsData = await projectService.getAllProjects();
+        setProjects(projectsData);
+
+        // Fetch risk matrix data
+        const risksData = await riskService.getRiskMatrix();
+        if (risksData && risksData.length > 0) {
+          setRiskData(risksData);
+        }
       } catch (error) {
-        console.error("Error fetching projects for dashboard:", error);
+        console.error("Error fetching dashboard data:", error);
       }
     };
-    fetchProjects();
+    fetchData();
   }, []);
 
   return (

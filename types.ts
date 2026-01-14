@@ -151,6 +151,47 @@ export interface ProjectDocument {
   url: string;
   uploaded_by?: string;
   created_at: string;
+  // CDE Extended fields
+  revision?: string;
+  status?: 'WIP' | 'SHARED' | 'PUBLISHED' | 'ARCHIVED' | 'OBSOLETE';
+  category?: string;
+  discipline?: string;
+  approver?: string;
+  approved_at?: string;
+  folder_path?: string;
+}
+
+export interface CDEDocument extends ProjectDocument {
+  revision: string;
+  status: 'WIP' | 'SHARED' | 'PUBLISHED' | 'ARCHIVED' | 'OBSOLETE';
+}
+
+export interface DocumentActivity {
+  id: string;
+  document_id: string;
+  user_name: string;
+  action: 'upload' | 'download' | 'approve' | 'share' | 'archive' | 'delete' | 'edit';
+  details?: Record<string, any>;
+  created_at: string;
+}
+
+export type AlertType = 'deadline' | 'risk' | 'document' | 'contract' | 'approval' | 'safety';
+export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+export interface Alert {
+  id: string;
+  project_id?: string;
+  project_name?: string;
+  type: AlertType;
+  severity: AlertSeverity;
+  title: string;
+  description?: string;
+  source_type?: string;
+  source_id?: string;
+  is_read: boolean;
+  is_dismissed: boolean;
+  due_date?: string;
+  created_at: string;
 }
 
 export interface Employee {
@@ -253,4 +294,42 @@ export interface CashFlowData {
   thu: number;
   chi: number;
   net: number;
+}
+
+// Risk Matrix Types
+export type RiskCategory = 'schedule' | 'cost' | 'safety' | 'quality' | 'legal' | 'resource';
+export type RiskStatus = 'open' | 'mitigating' | 'closed' | 'accepted';
+export type RiskSeverity = 'Low' | 'Medium' | 'High' | 'Critical';
+
+export interface ProjectRisk {
+  id: string;
+  project_id: string;
+  title: string;
+  description?: string;
+  category: RiskCategory;
+  probability: number; // 1-5
+  impact: number; // 1-5
+  risk_score: number; // computed: probability * impact (1-25)
+  status: RiskStatus;
+  mitigation_plan?: string;
+  owner_id?: string;
+  identified_date?: string;
+  review_date?: string;
+  created_at?: string;
+  updated_at?: string;
+  // Joined fields
+  project_name?: string;
+  project_code?: string;
+}
+
+export interface RiskMatrixData {
+  x: number; // probability as percentage (probability * 20)
+  y: number; // impact as percentage (impact * 20)
+  z: number; // bubble size (risk_score * 40 for visibility)
+  name: string; // project name
+  status: RiskSeverity;
+  color: string;
+  projectId?: string;
+  riskId?: string;
+  title?: string;
 }

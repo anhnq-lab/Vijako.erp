@@ -179,6 +179,136 @@ const AddContractModal = ({ isOpen, onClose, onAdd, projects }: { isOpen: boolea
     );
 };
 
+// === Bank Guarantee Modals ===
+const GuaranteeDetailModal = ({ isOpen, onClose, guarantee, onDelete }: any) => {
+    if (!isOpen || !guarantee) return null;
+    return (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
+                <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <div><h3 className="font-black text-slate-900 text-xl">Chi tiết Bảo lãnh</h3><p className="text-sm text-slate-500 font-mono">{guarantee.code}</p></div>
+                    <button onClick={onClose} className="size-10 rounded-full flex items-center justify-center hover:bg-slate-200 text-slate-400"><span className="material-symbols-outlined">close</span></button>
+                </div>
+                <div className="p-8 grid grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                        <div><p className="text-[10px] text-slate-400 font-black uppercase">Loại</p><p className="font-bold text-slate-900">{guarantee.type}</p></div>
+                        <div><p className="text-[10px] text-slate-400 font-black uppercase">Ngân hàng</p><p className="font-bold text-slate-900">{guarantee.bank_name}</p></div>
+                        <div><p className="text-[10px] text-slate-400 font-black uppercase">Dự án</p><p className="font-bold text-slate-900">{guarantee.project_name || 'N/A'}</p></div>
+                    </div>
+                    <div className="space-y-4">
+                        <div><p className="text-[10px] text-slate-400 font-black uppercase">Giá trị</p><p className="font-black text-primary text-xl">{guarantee.value?.toLocaleString()} ₫</p></div>
+                        <div><p className="text-[10px] text-slate-400 font-black uppercase">Ngày hết hạn</p><p className="font-bold text-slate-900">{new Date(guarantee.expiry_date).toLocaleDateString('vi-VN')}</p></div>
+                        <div><p className="text-[10px] text-slate-400 font-black uppercase">Trạng thái</p><span className={`px-3 py-1 rounded-full text-xs font-bold ${guarantee.status === 'warning' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>{guarantee.status === 'warning' ? 'Sắp hết hạn' : 'Còn hiệu lực'}</span></div>
+                    </div>
+                </div>
+                <div className="px-8 py-5 border-t border-slate-50 flex justify-between bg-slate-50/30">
+                    <button onClick={() => onDelete(guarantee.id)} className="px-4 py-2 text-red-600 font-bold text-sm hover:bg-red-50 rounded-xl">Xóa</button>
+                    <button onClick={onClose} className="px-6 py-2.5 bg-primary text-white font-black text-sm rounded-xl hover:bg-primary/90">Đóng</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const AddGuaranteeModal = ({ isOpen, onClose, onAdd, projects }: any) => {
+    const [formData, setFormData] = useState({ code: '', type: 'Bảo lãnh thực hiện HĐ', bank_name: '', project_id: '', value: 0, expiry_date: '', status: 'active' });
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
+                <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50"><h3 className="font-black text-slate-900 text-xl">Thêm Bảo lãnh</h3><button onClick={onClose} className="text-slate-400"><span className="material-symbols-outlined">close</span></button></div>
+                <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                    <div><label className="block text-xs font-black text-slate-400 uppercase mb-1">Mã BL</label><input type="text" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold" value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} /></div>
+                    <div><label className="block text-xs font-black text-slate-400 uppercase mb-1">Loại</label><select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold" value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })}><option>Bảo lãnh thực hiện HĐ</option><option>Bảo lãnh dự thầu</option><option>Bảo lãnh bảo hành</option></select></div>
+                    <div><label className="block text-xs font-black text-slate-400 uppercase mb-1">Ngân hàng</label><input type="text" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold" value={formData.bank_name} onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })} /></div>
+                    <div><label className="block text-xs font-black text-slate-400 uppercase mb-1">Dự án</label><select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold" value={formData.project_id} onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}><option value="">-- Chọn --</option>{projects.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+                    <div><label className="block text-xs font-black text-slate-400 uppercase mb-1">Giá trị (VNĐ)</label><input type="number" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold" value={formData.value} onChange={(e) => setFormData({ ...formData, value: Number(e.target.value) })} /></div>
+                    <div><label className="block text-xs font-black text-slate-400 uppercase mb-1">Ngày hết hạn</label><input type="date" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold" value={formData.expiry_date} onChange={(e) => setFormData({ ...formData, expiry_date: e.target.value })} /></div>
+                </div>
+                <div className="px-6 py-5 border-t border-slate-50 flex justify-end gap-3 bg-slate-50/30"><button onClick={onClose} className="px-6 py-2.5 text-slate-600 font-black text-sm hover:bg-slate-100 rounded-xl">Hủy</button><button onClick={() => onAdd(formData)} disabled={!formData.code} className="px-8 py-2.5 bg-primary text-white font-black text-sm rounded-xl disabled:opacity-50">Lưu</button></div>
+            </div>
+        </div>
+    );
+};
+
+// === Payment Request Modal ===
+const PaymentDetailModal = ({ isOpen, onClose, payment, onApprove, onReject }: any) => {
+    if (!isOpen || !payment) return null;
+    return (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
+                <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <div><h3 className="font-black text-slate-900 text-xl">Chi tiết Yêu cầu TT</h3><p className="text-sm text-slate-500 font-mono">{payment.code}</p></div>
+                    <button onClick={onClose} className="size-10 rounded-full flex items-center justify-center hover:bg-slate-200 text-slate-400"><span className="material-symbols-outlined">close</span></button>
+                </div>
+                <div className="p-8 grid grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                        <div><p className="text-[10px] text-slate-400 font-black uppercase">Nhà thầu phụ</p><p className="font-bold text-slate-900 text-lg">{payment.partner_name || 'N/A'}</p></div>
+                        <div><p className="text-[10px] text-slate-400 font-black uppercase">Dự án</p><p className="font-bold text-slate-900">{payment.project_name || 'N/A'}</p></div>
+                    </div>
+                    <div className="space-y-4">
+                        <div><p className="text-[10px] text-slate-400 font-black uppercase">Số tiền</p><p className="font-black text-primary text-2xl">{payment.amount?.toLocaleString()} ₫</p></div>
+                        <div><p className="text-[10px] text-slate-400 font-black uppercase">Trạng thái</p><span className={`px-3 py-1 rounded-full text-xs font-bold ${payment.status === 'approved' ? 'bg-green-100 text-green-700' : payment.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>{payment.status === 'approved' ? 'Đã duyệt' : payment.status === 'pending' ? 'Chờ duyệt' : 'Từ chối'}</span></div>
+                    </div>
+                </div>
+                <div className="px-8 py-5 border-t border-slate-50 flex justify-end gap-3 bg-slate-50/30">
+                    <button onClick={onClose} className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 font-black text-sm rounded-xl">Đóng</button>
+                    {payment.status === 'pending' && (<><button onClick={() => onReject(payment.id)} className="px-6 py-2.5 bg-red-500 text-white font-black text-sm rounded-xl">Từ chối</button><button onClick={() => onApprove(payment.id)} className="px-6 py-2.5 bg-green-500 text-white font-black text-sm rounded-xl">Duyệt</button></>)}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// === Bidding Package Modal ===
+const BiddingDetailModal = ({ isOpen, onClose, pkg, onDelete, onPublish }: any) => {
+    if (!isOpen || !pkg) return null;
+    return (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
+                <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <div><h3 className="font-black text-slate-900 text-xl">Chi tiết Gói thầu</h3><p className="text-sm text-slate-500">{pkg.title}</p></div>
+                    <button onClick={onClose} className="size-10 rounded-full flex items-center justify-center hover:bg-slate-200 text-slate-400"><span className="material-symbols-outlined">close</span></button>
+                </div>
+                <div className="p-8 grid grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                        <div><p className="text-[10px] text-slate-400 font-black uppercase">Tên gói</p><p className="font-bold text-slate-900 text-lg">{pkg.title}</p></div>
+                        <div><p className="text-[10px] text-slate-400 font-black uppercase">Dự án</p><p className="font-bold text-slate-900">{pkg.project_name || 'N/A'}</p></div>
+                        <div><p className="text-[10px] text-slate-400 font-black uppercase">Hạn nộp</p><p className="font-bold text-slate-900">{pkg.deadline}</p></div>
+                    </div>
+                    <div className="space-y-4">
+                        <div><p className="text-[10px] text-slate-400 font-black uppercase">Ngân sách</p><p className="font-black text-primary text-2xl">{pkg.budget ? `${(pkg.budget / 1000000000).toFixed(1)} Tỷ` : 'N/A'}</p></div>
+                        <div><p className="text-[10px] text-slate-400 font-black uppercase">Trạng thái</p><span className={`px-3 py-1 rounded-full text-xs font-bold ${pkg.status === 'published' ? 'bg-blue-100 text-blue-700' : pkg.status === 'awarded' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>{pkg.status === 'published' ? 'Đang mời thầu' : pkg.status === 'awarded' ? 'Đã chọn' : 'Bản nháp'}</span></div>
+                    </div>
+                </div>
+                <div className="px-8 py-5 border-t border-slate-50 flex justify-between bg-slate-50/30">
+                    <button onClick={() => onDelete(pkg.id)} className="px-4 py-2 text-red-600 font-bold text-sm hover:bg-red-50 rounded-xl">Xóa</button>
+                    <div className="flex gap-3"><button onClick={onClose} className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 font-black text-sm rounded-xl">Đóng</button>{pkg.status === 'draft' && <button onClick={() => onPublish(pkg.id)} className="px-6 py-2.5 bg-blue-500 text-white font-black text-sm rounded-xl">Công bố</button>}</div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const AddBiddingModal = ({ isOpen, onClose, onAdd, projects }: any) => {
+    const [formData, setFormData] = useState({ title: '', project_id: '', budget: 0, deadline: '', status: 'draft' });
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
+                <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50"><h3 className="font-black text-slate-900 text-xl">Tạo Gói thầu</h3><button onClick={onClose} className="text-slate-400"><span className="material-symbols-outlined">close</span></button></div>
+                <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                    <div><label className="block text-xs font-black text-slate-400 uppercase mb-1">Tên gói</label><input type="text" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} /></div>
+                    <div><label className="block text-xs font-black text-slate-400 uppercase mb-1">Dự án</label><select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold" value={formData.project_id} onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}><option value="">-- Chọn --</option>{projects.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+                    <div><label className="block text-xs font-black text-slate-400 uppercase mb-1">Ngân sách (VNĐ)</label><input type="number" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold" value={formData.budget} onChange={(e) => setFormData({ ...formData, budget: Number(e.target.value) })} /></div>
+                    <div><label className="block text-xs font-black text-slate-400 uppercase mb-1">Hạn nộp</label><input type="date" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold" value={formData.deadline} onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} /></div>
+                </div>
+                <div className="px-6 py-5 border-t border-slate-50 flex justify-end gap-3 bg-slate-50/30"><button onClick={onClose} className="px-6 py-2.5 text-slate-600 font-black text-sm hover:bg-slate-100 rounded-xl">Hủy</button><button onClick={() => onAdd(formData)} disabled={!formData.title} className="px-8 py-2.5 bg-primary text-white font-black text-sm rounded-xl disabled:opacity-50">Lưu</button></div>
+            </div>
+        </div>
+    );
+};
+
 const ContractCard = ({ code, partner, value, paid, retention, warning, status, onViewDetail }: any) => {
     const paidPercent = Math.round((paid / value) * 100);
     return (
@@ -229,7 +359,7 @@ const ContractCard = ({ code, partner, value, paid, retention, warning, status, 
     );
 }
 
-const PaymentRequestRow = ({ id, sub, project, amount, date, status, blocked }: any) => (
+const PaymentRequestRow = ({ id, sub, project, amount, date, status, blocked, onView }: any) => (
     <tr className={`border-b border-slate-50 hover:bg-slate-50 transition-colors ${blocked ? 'bg-red-50/30' : ''}`}>
         <td className="px-4 py-3 font-mono text-xs text-slate-500 font-bold">{id}</td>
         <td className="px-4 py-3">
@@ -247,14 +377,17 @@ const PaymentRequestRow = ({ id, sub, project, amount, date, status, blocked }: 
             </span>
         </td>
         <td className="px-4 py-3 text-right">
-            <button className={`size-8 rounded flex items-center justify-center transition-colors ${blocked ? 'text-slate-300 cursor-not-allowed' : 'text-slate-400 hover:text-primary hover:bg-blue-50'}`}>
+            <button
+                onClick={onView}
+                className="size-8 rounded flex items-center justify-center text-slate-400 hover:text-primary hover:bg-blue-50 transition-colors"
+            >
                 <span className="material-symbols-outlined text-[18px]">visibility</span>
             </button>
         </td>
     </tr>
 )
 
-const GuaranteeRow = ({ code, type, project, bank, value, expiry, status }: any) => {
+const GuaranteeRow = ({ code, type, project, bank, value, expiry, status, onView }: any) => {
     // Calculate progress for visual bar (mock logic)
     const progress = status === 'warning' ? 90 : 40;
 
@@ -278,13 +411,18 @@ const GuaranteeRow = ({ code, type, project, bank, value, expiry, status }: any)
                 </div>
             </td>
             <td className="px-4 py-3 text-right">
-                <button className="text-slate-400 hover:text-primary"><span className="material-symbols-outlined">more_vert</span></button>
+                <button
+                    onClick={onView}
+                    className="size-8 rounded flex items-center justify-center text-slate-400 hover:text-primary hover:bg-blue-50 transition-colors"
+                >
+                    <span className="material-symbols-outlined">visibility</span>
+                </button>
             </td>
         </tr>
     )
 }
 
-const BiddingPackageRow = ({ pkg }: { pkg: BiddingPackage }) => (
+const BiddingPackageRow = ({ pkg, onView }: { pkg: BiddingPackage, onView: () => void }) => (
     <tr className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
         <td className="px-4 py-3">
             <p className="text-sm font-bold text-slate-900">{pkg.title}</p>
@@ -303,7 +441,12 @@ const BiddingPackageRow = ({ pkg }: { pkg: BiddingPackage }) => (
             </span>
         </td>
         <td className="px-4 py-3 text-right">
-            <button className="text-primary text-xs font-bold hover:underline">Xem hồ sơ</button>
+            <button
+                onClick={onView}
+                className="text-primary text-xs font-bold hover:underline"
+            >
+                Xem hồ sơ
+            </button>
         </td>
     </tr>
 );
@@ -370,6 +513,20 @@ export default function Finance() {
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
 
+    // Guarantee Modal states
+    const [isAddGuaranteeModalOpen, setIsAddGuaranteeModalOpen] = useState(false);
+    const [isGuaranteeDetailModalOpen, setIsGuaranteeDetailModalOpen] = useState(false);
+    const [selectedGuarantee, setSelectedGuarantee] = useState<BankGuarantee | null>(null);
+
+    // Payment Request Modal states
+    const [isPaymentDetailModalOpen, setIsPaymentDetailModalOpen] = useState(false);
+    const [selectedPayment, setSelectedPayment] = useState<PaymentRequest | null>(null);
+
+    // Bidding Modal states
+    const [isAddBiddingModalOpen, setIsAddBiddingModalOpen] = useState(false);
+    const [isBiddingDetailModalOpen, setIsBiddingDetailModalOpen] = useState(false);
+    const [selectedBidding, setSelectedBidding] = useState<BiddingPackage | null>(null);
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -411,6 +568,101 @@ export default function Finance() {
     const handleViewDetail = (contract: Contract) => {
         setSelectedContract(contract);
         setIsDetailModalOpen(true);
+    };
+
+    // === Guarantee Handlers ===
+    const handleAddGuarantee = async (data: any) => {
+        try {
+            await financeService.createBankGuarantee(data);
+            setIsAddGuaranteeModalOpen(false);
+            fetchData();
+        } catch (error) {
+            alert('Lỗi khi lưu bảo lãnh');
+        }
+    };
+
+    const handleViewGuarantee = (guarantee: BankGuarantee) => {
+        setSelectedGuarantee(guarantee);
+        setIsGuaranteeDetailModalOpen(true);
+    };
+
+    const handleDeleteGuarantee = async (id: string) => {
+        if (confirm('Bạn có chắc chắn muốn xóa bảo lãnh này?')) {
+            try {
+                await financeService.deleteBankGuarantee(id);
+                setIsGuaranteeDetailModalOpen(false);
+                fetchData();
+            } catch (error) {
+                alert('Lỗi khi xóa bảo lãnh');
+            }
+        }
+    };
+
+    // === Payment Handlers ===
+    const handleViewPayment = (payment: PaymentRequest) => {
+        setSelectedPayment(payment);
+        setIsPaymentDetailModalOpen(true);
+    };
+
+    const handleApprovePayment = async (id: string) => {
+        try {
+            await financeService.approvePaymentRequest(id);
+            setIsPaymentDetailModalOpen(false);
+            fetchData();
+        } catch (error) {
+            alert('Lỗi khi duyệt thanh toán');
+        }
+    };
+
+    const handleRejectPayment = async (id: string) => {
+        const reason = prompt('Lý do từ chối:');
+        if (reason !== null) {
+            try {
+                await financeService.rejectPaymentRequest(id, reason);
+                setIsPaymentDetailModalOpen(false);
+                fetchData();
+            } catch (error) {
+                alert('Lỗi khi từ chối thanh toán');
+            }
+        }
+    };
+
+    // === Bidding Handlers ===
+    const handleAddBidding = async (data: any) => {
+        try {
+            await biddingService.createPackage(data);
+            setIsAddBiddingModalOpen(false);
+            fetchData();
+        } catch (error) {
+            alert('Lỗi khi tạo gói thầu');
+        }
+    };
+
+    const handleViewBidding = (pkg: BiddingPackage) => {
+        setSelectedBidding(pkg);
+        setIsBiddingDetailModalOpen(true);
+    };
+
+    const handleDeleteBidding = async (id: string) => {
+        if (confirm('Bạn có chắc chắn muốn xóa gói thầu này?')) {
+            try {
+                await biddingService.deletePackage(id);
+                setIsBiddingDetailModalOpen(false);
+                fetchData();
+            } catch (error) {
+                alert('Lỗi khi xóa gói thầu');
+            }
+        }
+    };
+
+    const handlePublishBidding = async (id: string) => {
+        try {
+            await biddingService.publishPackage(id);
+            setIsBiddingDetailModalOpen(false);
+            fetchData();
+        } catch (error) {
+            alert('Lỗi khi công bố gói thầu');
+        }
     };
 
     return (
@@ -590,7 +842,12 @@ export default function Finance() {
                             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
                                     <h3 className="font-bold text-slate-900">Danh sách Gói thầu</h3>
-                                    <button className="bg-primary text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/90">Tạo gói thầu mới</button>
+                                    <button
+                                        onClick={() => setIsAddBiddingModalOpen(true)}
+                                        className="bg-primary text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/90 transition-colors"
+                                    >
+                                        Tạo gói thầu mới
+                                    </button>
                                 </div>
                                 <table className="w-full text-left">
                                     <thead className="bg-slate-50 text-[10px] text-slate-500 uppercase font-black tracking-widest">
@@ -604,7 +861,11 @@ export default function Finance() {
                                     </thead>
                                     <tbody>
                                         {biddingPackages.length > 0 ? biddingPackages.map(pkg => (
-                                            <BiddingPackageRow key={pkg.id} pkg={pkg} />
+                                            <BiddingPackageRow
+                                                key={pkg.id}
+                                                pkg={pkg}
+                                                onView={() => handleViewBidding(pkg)}
+                                            />
                                         )) : (
                                             <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-500 font-bold">Chưa có gói thầu nào.</td></tr>
                                         )}
@@ -615,6 +876,15 @@ export default function Finance() {
 
                         {activeTab === 'guarantees' && (
                             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+                                    <h3 className="font-bold text-slate-900">Danh sách Bảo lãnh</h3>
+                                    <button
+                                        onClick={() => setIsAddGuaranteeModalOpen(true)}
+                                        className="bg-primary text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-primary/90 transition-colors"
+                                    >
+                                        Thêm bảo lãnh
+                                    </button>
+                                </div>
                                 <table className="w-full text-left">
                                     <thead className="bg-slate-50 text-xs text-slate-500 uppercase font-semibold">
                                         <tr>
@@ -638,6 +908,7 @@ export default function Finance() {
                                                 value={(bg.value / 1000000000).toFixed(1) + ' Tỷ'}
                                                 expiry={new Date(bg.expiry_date).toLocaleDateString('vi-VN')}
                                                 status={bg.status}
+                                                onView={() => handleViewGuarantee(bg)}
                                             />
                                         )) : (
                                             <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500 font-bold">Chưa có bảo lãnh nào.</td></tr>
@@ -702,6 +973,7 @@ export default function Finance() {
                                                         date={new Date(pr.submission_date).toLocaleDateString('vi-VN')}
                                                         status={pr.status === 'paid' ? 'approved' : pr.status} // Map paid to approved color for now or add more statuses
                                                         blocked={pr.is_blocked}
+                                                        onView={() => handleViewPayment(pr)}
                                                     />
                                                 )) : (
                                                     <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500 font-bold">Chưa có yêu cầu thanh toán nào.</td></tr>

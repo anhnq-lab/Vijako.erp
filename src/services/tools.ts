@@ -257,6 +257,86 @@ export const tools: Record<string, Tool> = {
                 message: data?.length ? `Dự án có ${data.length} hợp đồng, tổng giá trị ${(totalValue / 1000000000).toFixed(1)} tỷ` : "Chưa có hợp đồng"
             };
         }
+    },
+
+    get_risk_matrix: {
+        name: 'get_risk_matrix',
+        description: 'Lấy dữ liệu ma trận rủi ro của tất cả dự án hoặc dự án cụ thể. Hiển thị các rủi ro theo xác suất và mức độ ảnh hưởng.',
+        parameters: {
+            type: 'object',
+            properties: {
+                project_identifier: { type: 'string', description: 'Mã dự án (VD: P-001) hoặc Tên dự án (không bắt buộc, để trống sẽ lấy tất cả)' },
+            },
+            required: [],
+        },
+        execute: async ({ project_identifier }) => {
+            // If project specified, get risks for that project
+            if (project_identifier) {
+                const projectId = await resolveProjectId(project_identifier);
+                if (!projectId) return { error: `Không tìm thấy dự án nào khớp với "${project_identifier}"` };
+
+                const { data, error } = await supabase
+                    .from('project_risks')
+                    .select(`
+                        *,
+                        projects:project_id (name, code)
+                    `)
+                    .eq('project_id', projectId)
+                    .order('risk_score', { ascending: false });
+
+                if (error) return { error: error.message };
+
+                const risks = (data || []).map((r: any) => ({
+                    title: r.title,
+                    category: r.category,
+                    probability: r.probability,
+                    impact: r.impact,
+                    risk_score: r.risk_score,
+                    status: r.status,
+                    severity: r.risk_score >= 17 ? 'Critical' : r.risk_score >= 10 ? 'High' : r.risk_score >= 5 ? 'Medium' : 'Low'
+                }));
+
+                return {
+                    project_identifier,
+                    count: risks.length,
+                    risks,
+                    message: risks.length
+                        ? `Dự án có ${risks.length} rủi ro. Rủi ro cao nhất: ${risks[0]?.title} (điểm: ${risks[0]?.risk_score})`
+                        : "Dự án chưa có rủi ro nào được ghi nhận"
+                };
+            }
+
+            // Otherwise get all risks summary
+            const { data, error } = await supabase
+                .from('project_risks')
+                .select(`
+                    *,
+                    projects:project_id (name, code)
+                `)
+                .order('risk_score', { ascending: false });
+
+            if (error) return { error: error.message };
+
+            const bySeverity = { Critical: 0, High: 0, Medium: 0, Low: 0 };
+            for (const r of data || []) {
+                const score = r.risk_score;
+                if (score >= 17) bySeverity.Critical++;
+                else if (score >= 10) bySeverity.High++;
+                else if (score >= 5) bySeverity.Medium++;
+                else bySeverity.Low++;
+            }
+
+            const criticalRisks = (data || [])
+                .filter((r: any) => r.risk_score >= 17)
+                .map((r: any) => ({ project: r.projects?.name, title: r.title, score: r.risk_score }));
+
+            return {
+                total: data?.length || 0,
+                by_severity: bySeverity,
+                critical_risks: criticalRisks,
+                message: `Tổng ${data?.length || 0} rủi ro: ${bySeverity.Critical} Critical, ${bySeverity.High} High, ${bySeverity.Medium} Medium, ${bySeverity.Low} Low`
+            };
+        }
     }
 };
 
