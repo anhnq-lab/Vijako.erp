@@ -21,6 +21,7 @@ export interface Project {
   lat?: number;
   lng?: number;
   schedule_performance?: 'ahead' | 'on_track' | 'delayed' | 'preparing' | 'completed';
+  members?: string[];
 }
 
 export interface Contract {

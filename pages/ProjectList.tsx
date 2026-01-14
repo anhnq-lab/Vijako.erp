@@ -17,26 +17,41 @@ const LuxuryStatCard = ({ title, value, icon, color, gradient }: any) => (
     </div>
 );
 
-// --- Modal thêm/sửa dự án ---
+// --- Modal tạo dự án mới ---
 const ProjectModal = ({ isOpen, onClose, onSave, project }: { isOpen: boolean, onClose: () => void, onSave: (p: any) => void, project?: Project | null }) => {
     const [formData, setFormData] = useState<Partial<Project>>({
-        name: '', code: '', location: '', manager: '', type: 'Dân dụng', status: 'active', progress: 0, plan_progress: 0
+        name: '', code: '', location: '', manager: '', type: 'Dân dụng', status: 'active', members: []
     });
+    const [newMember, setNewMember] = useState('');
 
     useEffect(() => {
-        if (project) setFormData(project);
-        else setFormData({ name: '', code: '', location: '', manager: '', type: 'Dân dụng', status: 'active', progress: 0, plan_progress: 0 });
+        if (project) {
+            setFormData({ ...project, members: project.members || [] });
+        } else {
+            setFormData({ name: '', code: '', location: '', manager: 'Nguyễn Văn An', type: 'Dân dụng', status: 'active', members: [] });
+        }
     }, [project, isOpen]);
+
+    const addMember = () => {
+        if (newMember.trim() && !formData.members?.includes(newMember.trim())) {
+            setFormData({ ...formData, members: [...(formData.members || []), newMember.trim()] });
+            setNewMember('');
+        }
+    };
+
+    const removeMember = (m: string) => {
+        setFormData({ ...formData, members: formData.members?.filter(item => item !== m) });
+    };
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
             <div className="bg-white rounded-[40px] w-full max-w-2xl overflow-hidden shadow-premium animate-in fade-in zoom-in duration-300">
                 <div className="px-10 py-8 border-b border-slate-100 flex justify-between items-center">
                     <div>
-                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">{project ? 'Cập nhật Dự án' : 'Thêm Dự án mới'}</h2>
-                        <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Thông tin vận hành dự án</p>
+                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">{project ? 'Cập nhật Dự án' : 'Khởi tạo Dự án mới'}</h2>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1">Dành cho Giám đốc Dự án (Director Mode)</p>
                     </div>
                     <button onClick={onClose} className="size-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-red-500 transition-premium">
                         <span className="material-symbols-outlined">close</span>
@@ -44,23 +59,25 @@ const ProjectModal = ({ isOpen, onClose, onSave, project }: { isOpen: boolean, o
                 </div>
                 <div className="p-10 grid grid-cols-2 gap-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
                     <div className="col-span-2 space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tên Dự án</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tên Dự án (Pháp lý)</label>
                         <input
                             className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
+                            placeholder="Nhập tên đầy đủ của dự án..."
                             value={formData.name}
                             onChange={e => setFormData({ ...formData, name: e.target.value })}
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mã Dự án</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mã hiệu Dự án</label>
                         <input
                             className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
+                            placeholder="VD: VIJAKO-HN-01"
                             value={formData.code}
                             onChange={e => setFormData({ ...formData, code: e.target.value })}
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Loại hình</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Loại hình thi công</label>
                         <select
                             className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
                             value={formData.type}
@@ -72,44 +89,66 @@ const ProjectModal = ({ isOpen, onClose, onSave, project }: { isOpen: boolean, o
                             <option>Đô thị</option>
                         </select>
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Điểm thi công</label>
+                    <div className="col-span-2 space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Địa điểm thực hiện</label>
                         <input
                             className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
+                            placeholder="Nhập địa chỉ công trường..."
                             value={formData.location}
                             onChange={e => setFormData({ ...formData, location: e.target.value })}
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Chỉ huy trưởng (PM)</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Chỉ huy trưởng được chỉ định</label>
                         <input
                             className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
                             value={formData.manager}
                             onChange={e => setFormData({ ...formData, manager: e.target.value })}
                         />
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tiến độ KH (%)</label>
-                        <input
-                            type="number"
-                            className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
-                            value={formData.plan_progress}
-                            onChange={e => setFormData({ ...formData, plan_progress: Number(e.target.value) })}
-                        />
+
+                    {/* Thành viên tham dự */}
+                    <div className="col-span-2 mt-4 space-y-4">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nhân sự tham gia dự án</label>
+                        <div className="flex gap-2">
+                            <input
+                                className="flex-1 px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
+                                placeholder="Nhập tên nhân sự..."
+                                value={newMember}
+                                onChange={e => setNewMember(e.target.value)}
+                                onKeyPress={e => e.key === 'Enter' && addMember()}
+                            />
+                            <button
+                                onClick={addMember}
+                                className="size-12 rounded-2xl bg-primary text-white flex items-center justify-center hover:opacity-90 transition-premium"
+                            >
+                                <span className="material-symbols-outlined">add</span>
+                            </button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {formData.members?.map((m, idx) => (
+                                <div key={idx} className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-xl border border-slate-200 animate-in fade-in slide-in-from-left duration-300">
+                                    <span className="text-xs font-bold text-slate-700">{m}</span>
+                                    <button onClick={() => removeMember(m)} className="text-slate-400 hover:text-red-500">
+                                        <span className="material-symbols-outlined text-[16px]">close</span>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sản lượng TT (%)</label>
-                        <input
-                            type="number"
-                            className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
-                            value={formData.progress}
-                            onChange={e => setFormData({ ...formData, progress: Number(e.target.value) })}
-                        />
+
+                    <div className="col-span-2 pt-6">
+                        <div className="bg-emerald/5 border border-emerald/20 p-4 rounded-2xl flex items-center gap-4">
+                            <span className="material-symbols-outlined text-emerald">auto_mode</span>
+                            <p className="text-[11px] font-bold text-emerald-700 leading-relaxed uppercase tracking-tighter">
+                                Các chỉ số Tiến độ (Schedule), Sản lượng (Output) và Tài chính (Revenue) sẽ được hệ thống BI tự động cập nhật từ nhật ký và quyết toán công trường.
+                            </p>
+                        </div>
                     </div>
                 </div>
                 <div className="px-10 py-8 bg-slate-50 border-t border-slate-100 flex justify-end gap-4">
-                    <button onClick={onClose} className="px-8 py-3 rounded-2xl text-xs font-black uppercase text-slate-500 hover:bg-slate-200 transition-premium">Hủy bỏ</button>
-                    <button onClick={() => onSave(formData)} className="px-8 py-3 mesh-gradient text-white rounded-2xl text-xs font-black uppercase shadow-premium hover:opacity-90 transition-premium">Lưu thông tin</button>
+                    <button onClick={onClose} className="px-8 py-3 rounded-2xl text-xs font-black uppercase text-slate-500 hover:bg-slate-200 transition-premium">Đóng</button>
+                    <button onClick={() => onSave(formData)} className="px-8 py-3 mesh-gradient text-white rounded-2xl text-xs font-black uppercase shadow-premium hover:opacity-90 transition-premium">Lưu dự án</button>
                 </div>
             </div>
         </div>
@@ -235,22 +274,26 @@ export default function ProjectList() {
                 {
                     id: '1', code: 'PRJ-2024-001', name: 'Trường Tiểu học Tiên Sơn', location: 'Sóc Sơn, Hà Nội',
                     manager: 'Nguyễn Văn An', progress: 65, plan_progress: 75, status: 'active', type: 'Dân dụng',
-                    avatar: 'https://images.unsplash.com/photo-1541829070764-84a7d30dee3f?q=80&w=800'
+                    avatar: 'https://images.unsplash.com/photo-1541829070764-84a7d30dee3f?q=80&w=800',
+                    members: ['Trần Anh', 'Lê Bình', 'Phạm Cẩn']
                 },
                 {
                     id: '2', code: 'PRJ-2024-002', name: 'Nhà máy Foxconn Bắc Giang', location: 'KCN Quang Châu, Bắc Giang',
                     manager: 'Trần Đức Bình', progress: 40, plan_progress: 50, status: 'active', type: 'Công nghiệp',
-                    avatar: 'https://images.unsplash.com/photo-1565008480292-22621ec41da7?q=80&w=800'
+                    avatar: 'https://images.unsplash.com/photo-1565008480292-22621ec41da7?q=80&w=800',
+                    members: ['Vũ Đạt', 'Hoàng Em']
                 },
                 {
                     id: '3', code: 'PRJ-2024-003', name: 'Sun Urban City Hà Nam', location: 'Phủ Lý, Hà Nam',
                     manager: 'Lê Thị Mai', progress: 15, plan_progress: 20, status: 'active', type: 'Đô thị',
-                    avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800'
+                    avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800',
+                    members: ['Ngô Giang', 'Lý Hà']
                 },
                 {
                     id: '4', code: 'PRJ-2023-010', name: 'Aeon Mall Hải Phòng', location: 'Lê Chân, Hải Phòng',
                     manager: 'Phạm Hồng Quân', progress: 100, plan_progress: 100, status: 'completed', type: 'Thương mại',
-                    avatar: 'https://images.unsplash.com/photo-1519494026892-80bbd2d3fd0d?q=80&w=800'
+                    avatar: 'https://images.unsplash.com/photo-1519494026892-80bbd2d3fd0d?q=80&w=800',
+                    members: ['Đỗ Hùng', 'Bùi Kương']
                 }
             ];
 
@@ -350,7 +393,7 @@ export default function ProjectList() {
                             className="px-8 py-3 mesh-gradient text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-premium hover:opacity-90 transition-premium flex items-center gap-2"
                         >
                             <span className="material-symbols-outlined text-[20px]">add</span>
-                            <span>Thêm đơn vị mới</span>
+                            <span>Tạo dự án mới</span>
                         </button>
                     </div>
                 </div>
