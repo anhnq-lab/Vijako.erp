@@ -27,8 +27,9 @@ function Model({ url, progressUpdate, file }: { url?: string; file?: File; progr
     useEffect(() => {
         if (file) {
             const ifcLoader = new IFCLoader();
-            // Point to public directory where we copied the wasm files
-            ifcLoader.ifcManager.setWasmPath('/');
+            // Use absolute CDN path to avoid local routing issues
+            // This is the most reliable way to load WASM in Vercel/SPA environments
+            ifcLoader.ifcManager.setWasmPath('https://unpkg.com/web-ifc@0.0.53/');
 
             const ifcURL = URL.createObjectURL(file);
             ifcLoader.load(
