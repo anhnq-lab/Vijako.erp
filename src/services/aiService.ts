@@ -5,9 +5,9 @@ import { tools, Tool } from './tools';
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_API_KEY || '');
 
 // Define tools for Gemini
-const geminiTools = [
+const geminiTools: any = [
     {
-        function_declarations: Object.values(tools).map((tool: Tool) => ({
+        functionDeclarations: Object.values(tools).map((tool: Tool) => ({
             name: tool.name,
             description: tool.description,
             parameters: tool.parameters,
@@ -16,7 +16,7 @@ const geminiTools = [
 ];
 
 const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
+    model: "gemini-2.0-flash-lite",
     tools: geminiTools
 });
 const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
@@ -110,7 +110,8 @@ ${context}
             return response.text();
         } catch (error) {
             console.error("AI Error:", error);
-            return "Em đang gặp chút vấn đề khi kết nối. Anh vui lòng thử lại sau nhé! (Check Console logs)";
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            return `Em đang gặp chút vấn đề: ${errorMessage}. Anh vui lòng kiểm tra lại Key hoặc Console log nhé!`;
         }
     }
 };

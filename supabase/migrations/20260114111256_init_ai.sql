@@ -6,12 +6,12 @@ create table if not exists embeddings (
   id bigint primary key generated always as identity,
   content text,                    -- Text content to chunk and vectorize
   metadata jsonb,                  -- Extra info (e.g., project_id, contract_id, title)
-  embedding vector(1536)           -- 1536 is the dimension for OpenAI's text-embedding-3-small
+  embedding vector(768)           -- 768 is the dimension for Gemini text-embedding-004
 );
 
 -- Create a search function
 create or replace function match_documents (
-  query_embedding vector(1536),
+  query_embedding vector(768),
   match_threshold float,
   match_count int
 )
