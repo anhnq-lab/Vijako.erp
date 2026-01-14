@@ -184,7 +184,7 @@ const RiskTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-const Dashboard = () => {
+export default function Dashboard() {
   const [activeChart, setActiveChart] = useState<'finance' | 'manpower'>('finance');
   const [projects, setProjects] = useState<Project[]>([]);
 
