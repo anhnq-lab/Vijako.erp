@@ -264,235 +264,235 @@ export default function Contracts() {
                         <button
                             onClick={() => setActiveTab('revenue')}
                             className={`px-4 py-3 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'revenue'
-                                    ? 'border-green-600 text-green-600'
-                                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                                ? 'border-green-600 text-green-600'
+                                : 'border-transparent text-slate-500 hover:text-slate-700'
                                 }`}
                         >
                             <span className="material-symbols-outlined text-[18px]">trending_up</span>
                             Hợp Đồng Đầu Ra (A-B) ({revenueContracts.length})
                         </button>
                         <button
-                            onClick={() => setActive Tab('expense')}
-                        className={`px-4 py-3 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'expense'
+                            onClick={() => setActiveTab('expense')}
+                            className={`px-4 py-3 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'expense'
                                 ? 'border-red-600 text-red-600'
                                 : 'border-transparent text-slate-500 hover:text-slate-700'
-                            }`}
-            >
-                        <span className="material-symbols-outlined text-[18px]">trending_down</span>
-                        Hợp Đồng Đầu Vào (B-B / Thầu Phụ) ({expenseContracts.length})
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('bidding')}
-                        className={`px-4 py-3 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'bidding'
+                                }`}
+                        >
+                            <span className="material-symbols-outlined text-[18px]">trending_down</span>
+                            Hợp Đồng Đầu Vào (B-B / Thầu Phụ) ({expenseContracts.length})
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('bidding')}
+                            className={`px-4 py-3 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'bidding'
                                 ? 'border-blue-600 text-blue-600'
                                 : 'border-transparent text-slate-500 hover:text-slate-700'
-                            }`}
-                    >
-                        <span className="material-symbols-outlined text-[18px]">gavel</span>
-                        Quản Lý Đấu Thầu (Bidding) ({mockBiddingPackages.length})
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('guarantees')}
-                        className={`px-4 py-3 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'guarantees'
+                                }`}
+                        >
+                            <span className="material-symbols-outlined text-[18px]">gavel</span>
+                            Quản Lý Đấu Thầu (Bidding) ({mockBiddingPackages.length})
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('guarantees')}
+                            className={`px-4 py-3 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'guarantees'
                                 ? 'border-primary text-primary'
                                 : 'border-transparent text-slate-500 hover:text-slate-700'
-                            }`}
-                    >
-                        <span className="material-symbols-outlined text-[18px]">security</span>
-                        Bảo Lãnh (Bank Guarantees) ({mockBankGuarantees.length})
-                    </button>
-                </div>
+                                }`}
+                        >
+                            <span className="material-symbols-outlined text-[18px]">security</span>
+                            Bảo Lãnh (Bank Guarantees) ({mockBankGuarantees.length})
+                        </button>
+                    </div>
 
-                {/* Content based on active tab */}
-                <div className="bg-white rounded-xl border border-slate-100">
-                    {(activeTab === 'revenue' || activeTab === 'expense') && (
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-slate-50 border-b border-slate-100">
-                                    <tr>
-                                        <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Mã HĐ</th>
-                                        <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Đối tác</th>
-                                        <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Dự án</th>
-                                        <th className="px-6 py-4 text-right text-xs font-black text-slate-600 uppercase">Giá trị</th>
-                                        <th className="px-6 py-4 text-right text-xs font-black text-slate-600 uppercase">Đã TT</th>
-                                        <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Tiến độ</th>
-                                        <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Trạng thái</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {getCurrentData().map((contract: any) => {
-                                        const percent = Math.round((contract.paid_amount / contract.value) * 100);
-                                        return (
+                    {/* Content based on active tab */}
+                    <div className="bg-white rounded-xl border border-slate-100">
+                        {(activeTab === 'revenue' || activeTab === 'expense') && (
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead className="bg-slate-50 border-b border-slate-100">
+                                        <tr>
+                                            <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Mã HĐ</th>
+                                            <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Đối tác</th>
+                                            <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Dự án</th>
+                                            <th className="px-6 py-4 text-right text-xs font-black text-slate-600 uppercase">Giá trị</th>
+                                            <th className="px-6 py-4 text-right text-xs font-black text-slate-600 uppercase">Đã TT</th>
+                                            <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Tiến độ</th>
+                                            <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {getCurrentData().map((contract: any) => {
+                                            const percent = Math.round((contract.paid_amount / contract.value) * 100);
+                                            return (
+                                                <tr
+                                                    key={contract.id}
+                                                    onClick={() => setSelectedItem(contract)}
+                                                    className="hover:bg-slate-50 cursor-pointer transition-colors"
+                                                >
+                                                    <td className="px-6 py-4">
+                                                        <p className="font-mono text-sm font-bold text-primary">{contract.contract_code}</p>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <p className="font-bold text-slate-900">{contract.partner_name}</p>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <p className="text-sm text-slate-600">{contract.project_name}</p>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <p className="font-bold text-slate-900">
+                                                            {(contract.value / 1000000).toFixed(0)} Tr
+                                                        </p>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <p className="font-bold text-green-600">
+                                                            {(contract.paid_amount / 1000000).toFixed(0)} Tr
+                                                        </p>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="flex-1 bg-slate-200 h-2 rounded-full overflow-hidden">
+                                                                <div
+                                                                    className="bg-green-500 h-full rounded-full transition-all"
+                                                                    style={{ width: `${percent}%` }}
+                                                                />
+                                                            </div>
+                                                            <span className="text-xs font-bold text-slate-600 w-10 text-right">{percent}%</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <Badge
+                                                                label={contract.status === 'active' ? 'Hiệu lực' : 'Thanh lý'}
+                                                                variant={contract.status === 'active' ? 'success' : 'default'}
+                                                            />
+                                                            {contract.is_risk && (
+                                                                <Badge label="Rủi ro" variant="danger" size="sm" />
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        {activeTab === 'bidding' && (
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead className="bg-slate-50 border-b border-slate-100">
+                                        <tr>
+                                            <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Gói thầu</th>
+                                            <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Dự án</th>
+                                            <th className="px-6 py-4 text-right text-xs font-black text-slate-600 uppercase">Ngân sách</th>
+                                            <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Hạn nộp</th>
+                                            <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Nhà thầu</th>
+                                            <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {mockBiddingPackages.map((pkg) => (
                                             <tr
-                                                key={contract.id}
-                                                onClick={() => setSelectedItem(contract)}
+                                                key={pkg.id}
+                                                onClick={() => setSelectedItem(pkg)}
                                                 className="hover:bg-slate-50 cursor-pointer transition-colors"
                                             >
                                                 <td className="px-6 py-4">
-                                                    <p className="font-mono text-sm font-bold text-primary">{contract.contract_code}</p>
+                                                    <p className="font-bold text-slate-900">{pkg.title}</p>
+                                                    <p className="text-xs text-slate-500 font-mono">{pkg.package_code}</p>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <p className="font-bold text-slate-900">{contract.partner_name}</p>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <p className="text-sm text-slate-600">{contract.project_name}</p>
+                                                    <p className="text-sm text-slate-600">{pkg.project_name}</p>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
-                                                    <p className="font-bold text-slate-900">
-                                                        {(contract.value / 1000000).toFixed(0)} Tr
+                                                    <p className="font-bold text-primary">
+                                                        {pkg.budget ? `${(pkg.budget / 1000000000).toFixed(1)} Tỷ` : 'N/A'}
                                                     </p>
                                                 </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <p className="font-bold text-green-600">
-                                                        {(contract.paid_amount / 1000000).toFixed(0)} Tr
-                                                    </p>
+                                                <td className="px-6 py-4 text-center">
+                                                    <p className="text-sm">{pkg.deadline}</p>
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <p className="font-bold text-blue-600">{pkg.bidders_count}</p>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="flex-1 bg-slate-200 h-2 rounded-full overflow-hidden">
-                                                            <div
-                                                                className="bg-green-500 h-full rounded-full transition-all"
-                                                                style={{ width: `${percent}%` }}
-                                                            />
-                                                        </div>
-                                                        <span className="text-xs font-bold text-slate-600 w-10 text-right">{percent}%</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center justify-center gap-2">
+                                                    <div className="flex justify-center">
                                                         <Badge
-                                                            label={contract.status === 'active' ? 'Hiệu lực' : 'Thanh lý'}
-                                                            variant={contract.status === 'active' ? 'success' : 'default'}
+                                                            label={pkg.status === 'draft' ? 'Bản nháp' : pkg.status === 'published' ? 'Đang mời thầu' : 'Đã chọn thầu'}
+                                                            variant={pkg.status === 'draft' ? 'default' : pkg.status === 'published' ? 'info' : 'success'}
                                                         />
-                                                        {contract.is_risk && (
-                                                            <Badge label="Rủi ro" variant="danger" size="sm" />
-                                                        )}
                                                     </div>
                                                 </td>
                                             </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
 
-                    {activeTab === 'bidding' && (
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-slate-50 border-b border-slate-100">
-                                    <tr>
-                                        <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Gói thầu</th>
-                                        <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Dự án</th>
-                                        <th className="px-6 py-4 text-right text-xs font-black text-slate-600 uppercase">Ngân sách</th>
-                                        <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Hạn nộp</th>
-                                        <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Nhà thầu</th>
-                                        <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Trạng thái</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {mockBiddingPackages.map((pkg) => (
-                                        <tr
-                                            key={pkg.id}
-                                            onClick={() => setSelectedItem(pkg)}
-                                            className="hover:bg-slate-50 cursor-pointer transition-colors"
-                                        >
-                                            <td className="px-6 py-4">
-                                                <p className="font-bold text-slate-900">{pkg.title}</p>
-                                                <p className="text-xs text-slate-500 font-mono">{pkg.package_code}</p>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <p className="text-sm text-slate-600">{pkg.project_name}</p>
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <p className="font-bold text-primary">
-                                                    {pkg.budget ? `${(pkg.budget / 1000000000).toFixed(1)} Tỷ` : 'N/A'}
-                                                </p>
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <p className="text-sm">{pkg.deadline}</p>
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <p className="font-bold text-blue-600">{pkg.bidders_count}</p>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex justify-center">
-                                                    <Badge
-                                                        label={pkg.status === 'draft' ? 'Bản nháp' : pkg.status === 'published' ? 'Đang mời thầu' : 'Đã chọn thầu'}
-                                                        variant={pkg.status === 'draft' ? 'default' : pkg.status === 'published' ? 'info' : 'success'}
-                                                    />
-                                                </div>
-                                            </td>
+                        {activeTab === 'guarantees' && (
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead className="bg-slate-50 border-b border-slate-100">
+                                        <tr>
+                                            <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Mã BL</th>
+                                            <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Loại</th>
+                                            <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Ngân hàng</th>
+                                            <th className="px-6 py-4 text-right text-xs font-black text-slate-600 uppercase">Giá trị</th>
+                                            <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Ngày hết hạn</th>
+                                            <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Trạng thái</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {mockBankGuarantees.map((guarantee) => (
+                                            <tr
+                                                key={guarantee.id}
+                                                onClick={() => setSelectedItem(guarantee)}
+                                                className="hover:bg-slate-50 cursor-pointer transition-colors"
+                                            >
+                                                <td className="px-6 py-4">
+                                                    <p className="font-mono text-sm font-bold text-primary">{guarantee.guarantee_code}</p>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <p className="font-bold text-slate-900">{guarantee.type}</p>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <p className="text-sm text-slate-600">{guarantee.bank_name}</p>
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <p className="font-bold text-slate-900">
+                                                        {(guarantee.value / 1000000).toFixed(0)} Tr
+                                                    </p>
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <p className="text-sm">{guarantee.expiry_date}</p>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex justify-center">
+                                                        <Badge
+                                                            label={guarantee.status === 'active' ? 'Hiệu lực' : 'Hết hạn'}
+                                                            variant={guarantee.status === 'active' ? 'success' : 'default'}
+                                                        />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
 
-                    {activeTab === 'guarantees' && (
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-slate-50 border-b border-slate-100">
-                                    <tr>
-                                        <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Mã BL</th>
-                                        <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Loại</th>
-                                        <th className="px-6 py-4 text-left text-xs font-black text-slate-600 uppercase">Ngân hàng</th>
-                                        <th className="px-6 py-4 text-right text-xs font-black text-slate-600 uppercase">Giá trị</th>
-                                        <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Ngày hết hạn</th>
-                                        <th className="px-6 py-4 text-center text-xs font-black text-slate-600 uppercase">Trạng thái</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {mockBankGuarantees.map((guarantee) => (
-                                        <tr
-                                            key={guarantee.id}
-                                            onClick={() => setSelectedItem(guarantee)}
-                                            className="hover:bg-slate-50 cursor-pointer transition-colors"
-                                        >
-                                            <td className="px-6 py-4">
-                                                <p className="font-mono text-sm font-bold text-primary">{guarantee.guarantee_code}</p>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <p className="font-bold text-slate-900">{guarantee.type}</p>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <p className="text-sm text-slate-600">{guarantee.bank_name}</p>
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <p className="font-bold text-slate-900">
-                                                    {(guarantee.value / 1000000).toFixed(0)} Tr
-                                                </p>
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <p className="text-sm">{guarantee.expiry_date}</p>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex justify-center">
-                                                    <Badge
-                                                        label={guarantee.status === 'active' ? 'Hiệu lực' : 'Hết hạn'}
-                                                        variant={guarantee.status === 'active' ? 'success' : 'default'}
-                                                    />
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-
-                    {/* Empty state */}
-                    {getCurrentData().length === 0 && (
-                        <div className="p-12 text-center">
-                            <span className="material-symbols-outlined text-[64px] text-slate-300">inbox</span>
-                            <p className="mt-4 text-slate-500 font-bold">Chưa có dữ liệu hợp đồng</p>
-                            <p className="text-sm text-slate-400">Bắt đầu bằng cách tạo hợp đồng mới</p>
-                        </div>
-                    )}
+                        {/* Empty state */}
+                        {getCurrentData().length === 0 && (
+                            <div className="p-12 text-center">
+                                <span className="material-symbols-outlined text-[64px] text-slate-300">inbox</span>
+                                <p className="mt-4 text-slate-500 font-bold">Chưa có dữ liệu hợp đồng</p>
+                                <p className="text-sm text-slate-400">Bắt đầu bằng cách tạo hợp đồng mới</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
-    </div >
-  );
+        </div >
+    );
 }
