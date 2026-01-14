@@ -90,44 +90,52 @@ export const projectService = {
             {
                 id: 'wbs-1-1', wbs_code: '1.1', name: 'Công tác trắc đạc, định vị tim mốc',
                 level: 1, progress: 100, status: 'done',
-                start_date: '2024-01-01', end_date: '2024-01-05'
+                start_date: '2024-01-01', end_date: '2024-01-05',
+                assigned_to: 'Đội Trắc đạc'
             },
             {
                 id: 'wbs-1-2', wbs_code: '1.2', name: 'Chuẩn bị mặt bằng, điện nước thi công',
                 level: 1, progress: 100, status: 'done',
-                start_date: '2024-01-06', end_date: '2024-01-15'
+                start_date: '2024-01-06', end_date: '2024-01-15',
+                assigned_to: 'NTP Điện nước'
             },
 
             // 2. Phần Ngầm & Móng
             {
                 id: 'wbs-2', wbs_code: '2', name: 'Phần Ngầm & Móng',
                 level: 0, progress: 100, status: 'done',
-                start_date: '2024-01-16', end_date: '2024-03-30'
+                start_date: '2024-01-16', end_date: '2024-03-30',
+                assigned_to: 'BCH Công trường'
             },
             {
                 id: 'wbs-2-1', wbs_code: '2.1', name: 'Đào đất hố móng',
                 level: 1, progress: 100, status: 'done',
-                start_date: '2024-01-16', end_date: '2024-02-05'
+                start_date: '2024-01-16', end_date: '2024-02-05',
+                assigned_to: 'Đội xe máy'
             },
             {
                 id: 'wbs-2-2', wbs_code: '2.2', name: 'Bê tông lót móng',
                 level: 1, progress: 100, status: 'done',
-                start_date: '2024-02-06', end_date: '2024-02-10'
+                start_date: '2024-02-06', end_date: '2024-02-10',
+                assigned_to: 'Tổ nề 1'
             },
             {
                 id: 'wbs-2-3', wbs_code: '2.3', name: 'Gia công lắp dựng cốt thép móng',
                 level: 1, progress: 100, status: 'done',
-                start_date: '2024-02-11', end_date: '2024-02-25'
+                start_date: '2024-02-11', end_date: '2024-02-25',
+                assigned_to: 'Tổ sắt 1'
             },
             {
                 id: 'wbs-2-4', wbs_code: '2.4', name: 'Gia công lắp dựng ván khuôn móng',
                 level: 1, progress: 100, status: 'done',
-                start_date: '2024-02-20', end_date: '2024-03-01'
+                start_date: '2024-02-20', end_date: '2024-03-01',
+                assigned_to: 'Tổ cốp pha 1'
             },
             {
                 id: 'wbs-2-5', wbs_code: '2.5', name: 'Đổ bê tông móng',
                 level: 1, progress: 100, status: 'done',
-                start_date: '2024-03-02', end_date: '2024-03-05'
+                start_date: '2024-03-02', end_date: '2024-03-05',
+                assigned_to: 'Bê tông thương phẩm'
             },
             {
                 id: 'wbs-2-6', wbs_code: '2.6', name: 'Xây tường cổ móng',

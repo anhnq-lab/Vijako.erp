@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { ChatWidget } from './src/components/AIChat/ChatWidget';
 import Dashboard from './pages/Dashboard';
 import Workspace from './pages/Workspace';
 import ProjectList from './pages/ProjectList';
@@ -12,9 +13,8 @@ import Documents from './pages/Documents';
 const SidebarItem = ({ to, icon, label, active, count }: { to: string; icon: string; label: string; active: boolean; count?: number }) => (
   <Link
     to={to}
-    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${
-      active ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-    }`}
+    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${active ? 'bg-primary/10 text-primary font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+      }`}
   >
     <span className={`material-symbols-outlined ${active ? 'filled' : ''} group-hover:text-primary transition-colors`}>
       {icon}
@@ -51,13 +51,13 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
           <div className="px-3 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Dashboard</div>
           <SidebarItem to="/" icon="dashboard" label="Tổng quan Lãnh đạo" active={path === '/'} />
           <SidebarItem to="/workspace" icon="person" label="Dashboard Cá nhân" active={path === '/workspace'} />
-          
+
           <div className="px-3 mt-6 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Quản lý</div>
           <SidebarItem to="/projects" icon="domain" label="Dự án" active={path === '/projects' || path.startsWith('/projects/')} />
           <SidebarItem to="/finance" icon="account_balance_wallet" label="Tài chính & Hợp đồng" active={path === '/finance'} />
           <SidebarItem to="/supply" icon="inventory_2" label="Chuỗi Cung ứng" active={path === '/supply'} />
           <SidebarItem to="/hrm" icon="groups" label="Nhân sự & Đào tạo" active={path === '/hrm'} />
-          
+
           <div className="px-3 mt-6 mb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Công cụ</div>
           <SidebarItem to="/documents" icon="folder_open" label="Hồ sơ Tài liệu (CDE)" active={path === '/documents'} />
           <SidebarItem to="/alerts" icon="notifications_active" label="Trung tâm Cảnh báo" active={path === '/alerts'} count={3} />
@@ -66,9 +66,9 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
 
         <div className="p-4 border-t border-slate-50">
           <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-100">
-            <img 
-              src="https://picsum.photos/100/100" 
-              alt="User" 
+            <img
+              src="https://picsum.photos/100/100"
+              alt="User"
               className="size-9 rounded-full bg-cover bg-center object-cover"
             />
             <div className="flex-1 min-w-0">
@@ -83,6 +83,7 @@ const Layout = ({ children }: { children?: React.ReactNode }) => {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f7f7f8]">
         {children}
       </main>
+      <ChatWidget />
     </div>
   );
 };

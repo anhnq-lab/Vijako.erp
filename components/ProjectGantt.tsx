@@ -69,14 +69,17 @@ const ProjectGantt: React.FC<ProjectGanttProps> = ({ items }) => {
                 };
             }
 
-            // Generate WBS Code mock if missing (just for display if not provided)
-            // Assuming simplified flat list mapping for now, ideally backend provides it
+            // Generate WBS Code mock if missing
             const wbsCode = item.wbs_code || `${index + 1}`;
+
+            // Format name to include assignee for the bar display
+            const assignedTo = item.assigned_to ? ` (${item.assigned_to})` : '';
+            const displayName = `${item.name}${assignedTo}`;
 
             return {
                 start: startDate,
                 end: endDate,
-                name: item.name,
+                name: displayName, // Show name + assignee on bar
                 id: item.id || `task-${index}`,
                 type: item.level === 0 ? 'project' : 'task',
                 progress: item.progress,
@@ -133,6 +136,7 @@ const ProjectGantt: React.FC<ProjectGanttProps> = ({ items }) => {
                     const level = originalItem?.level || 0;
                     const paddingLeft = 16 + (level * 20); // Basic indentation
 
+                    // Allow multi-line by removing strict line-height and adding padding
                     return (
                         <div
                             key={task.id}
@@ -153,20 +157,26 @@ const ProjectGantt: React.FC<ProjectGanttProps> = ({ items }) => {
                                 paddingLeft: '16px',
                                 fontWeight: '600',
                                 color: '#64748b',
-                                borderRight: '1px solid #f1f5f9'
+                                borderRight: '1px solid #f1f5f9',
+                                display: 'flex',
+                                alignItems: 'center'
                             }}>
                                 {wbsCode}
                             </div>
                             <div style={{
                                 flex: 1,
                                 paddingLeft: `${paddingLeft}px`,
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
+                                paddingRight: '8px',
+                                whiteSpace: 'normal',
+                                lineHeight: '1.2',
+                                display: 'flex',
+                                alignItems: 'center',
+                                height: '100%',
                                 fontWeight: task.type === 'project' ? 'bold' : 'normal',
-                                color: task.type === 'project' ? '#0f172a' : '#334155'
+                                color: task.type === 'project' ? '#0f172a' : '#334155',
+                                fontSize: task.type === 'project' ? '13px' : '12px'
                             }}>
-                                {task.name}
+                                {originalItem?.name || task.name}
                             </div>
                         </div>
                     );
