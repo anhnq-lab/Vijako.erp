@@ -15,15 +15,40 @@ const ProjectGantt: React.FC<ProjectGanttProps> = ({ items }) => {
         const startDate = item.start_date ? new Date(item.start_date) : new Date();
         const endDate = item.end_date ? new Date(item.end_date) : new Date();
 
+        let color = '#cbd5e1'; // Default slate-300
+        let progressColor = '#64748b'; // Default slate-500
+
+        if (item.status === 'done') {
+            color = '#bbf7d0'; // green-200
+            progressColor = '#22c55e'; // green-500
+        } else if (item.status === 'active') {
+            color = '#bfdbfe'; // blue-200
+            progressColor = '#3b82f6'; // blue-500
+        } else if (item.status === 'delayed') {
+            color = '#fecaca'; // red-200
+            progressColor = '#ef4444'; // red-500
+        }
+
+        // Special styling for Level 0 (Phases)
+        if (item.level === 0) {
+            color = '#e2e8f0'; // slate-200
+            progressColor = '#334155'; // slate-700
+        }
+
         return {
             start: startDate,
             end: endDate,
             name: item.name,
-            id: item.id || Math.random().toString(), // Ensure ID
-            type: 'task',
+            id: item.id || Math.random().toString(),
+            type: item.level === 0 ? 'project' : 'task',
             progress: item.progress,
-            isDisabled: true, // Disable editing for now
-            styles: { progressColor: '#3b82f6', progressSelectedColor: '#2563eb' }
+            isDisabled: true,
+            styles: {
+                backgroundColor: color,
+                progressColor: progressColor,
+                progressSelectedColor: progressColor,
+                backgroundSelectedColor: color
+            }
         };
     });
 
@@ -61,12 +86,16 @@ const ProjectGantt: React.FC<ProjectGanttProps> = ({ items }) => {
                     tasks={tasks}
                     viewMode={viewMode}
                     locale="vi"
-                    columnWidth={viewMode === ViewMode.Month ? 300 : 65}
-                    listCellWidth="155px"
-                    barFill={80}
-                    projectBackgroundColor="#f8fafc"
-                    projectProgressColor="#3b82f6"
-                    projectProgressSelectedColor="#2563eb"
+                    columnWidth={viewMode === ViewMode.Month ? 300 : 80} // Wider columns
+                    listCellWidth="200px" // Wider name column
+                    barFill={50} // 60% height (thinner bars)
+                    barCornerRadius={4}
+                    rowHeight={50}
+                    projectBackgroundColor="#f1f5f9"
+                    projectProgressColor="#475569"
+                    projectProgressSelectedColor="#334155"
+                    fontFamily="Inter, sans-serif"
+                    fontSize="12px"
                 />
             </div>
         </div>
