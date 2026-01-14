@@ -8,6 +8,8 @@ import { Project, WBSItem, ProjectIssue, ProjectBudget, Contract } from '../type
 import ProjectGantt from '../components/ProjectGantt';
 import ContractModal from '../components/ContractModal';
 import BudgetModal from '../components/BudgetModal';
+import DiaryFeed from '../components/DiaryFeed';
+import BimViewer from '../components/BimViewer';
 
 // Mock Chart Data (Keep for visual until backend supports time-series)
 const costData = [
@@ -840,10 +842,76 @@ export default function ProjectDetail() {
                         })()}
 
                         {/* Other tabs can be placeholders for now */}
-                        {(activeTab === 'diary' || activeTab === 'documents') && (
+                        {/* Construction Diary Tab */}
+                        {activeTab === 'diary' && (
+                            <div className="grid grid-cols-12 gap-6 h-[calc(100vh-200px)] animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                {/* Left Panel: Diary Feed (40%) */}
+                                <div className="col-span-5 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+                                    <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                                        <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-indigo-600">history_edu</span>
+                                            Nhật Ký Thi Công
+                                        </h3>
+                                        <div className="flex gap-2">
+                                            <span className="text-xs font-semibold text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">
+                                                7 ngày gần nhất
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                                        <DiaryFeed projectId={id || ''} />
+                                    </div>
+                                </div>
+
+                                {/* Right Panel: BIM Twin (60%) */}
+                                <div className="col-span-7 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">
+                                    <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                                        <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-indigo-600">view_in_ar</span>
+                                            Mô Hình BIM (Digital Twin)
+                                        </h3>
+                                        <div className="flex gap-2 text-xs">
+                                            <div className="flex items-center gap-1.5 px-2 py-1 bg-green-50 text-green-700 rounded border border-green-100">
+                                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                                Hoàn thành
+                                            </div>
+                                            <div className="flex items-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-700 rounded border border-blue-100">
+                                                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                                Đang thực hiện
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 bg-slate-900 relative">
+                                        <BimViewer
+                                            modelUrl="/models/sample_structure.glb"
+                                            autoRotate={true}
+                                            progressUpdate={{
+                                                "Column_01": "completed",
+                                                "Column_02": "completed",
+                                                "Floor_01": "completed",
+                                                "Wall_01": "in_progress",
+                                                "Beam_01": "in_progress"
+                                            }}
+                                        />
+
+                                        {/* Overlay Controls */}
+                                        <div className="absolute bottom-4 right-4 flex gap-2">
+                                            <button className="p-2 bg-white/10 backdrop-blur text-white rounded hover:bg-white/20 transition-colors" title="Toàn màn hình">
+                                                <span className="material-symbols-outlined">fullscreen</span>
+                                            </button>
+                                            <button className="p-2 bg-white/10 backdrop-blur text-white rounded hover:bg-white/20 transition-colors" title="Cài đặt mô hình">
+                                                <span className="material-symbols-outlined">settings</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'documents' && (
                             <div className="flex flex-col items-center justify-center p-12 bg-white rounded-xl border border-slate-200 text-slate-400">
-                                <span className="material-symbols-outlined text-[48px] mb-2">construction</span>
-                                <p>Chức năng đang được phát triển...</p>
+                                <span className="material-symbols-outlined text-[48px] mb-2">folder_open</span>
+                                <p>Chức năng Quản lý Hồ sơ đang được phát triển...</p>
                             </div>
                         )}
                     </div>

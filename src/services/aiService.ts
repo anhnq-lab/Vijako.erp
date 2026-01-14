@@ -65,12 +65,28 @@ export const aiService = {
                         role: "user",
                         parts: [{
                             text: `
-Bạn là trợ lý AI thông minh cho hệ thống Vijako ERP.
-QUAN TRỌNG: Luôn trả lời bằng tiếng Việt.
-Bạn có thể sử dụng các công cụ (tools) để lấy thông tin dự án, tạo công việc, và kiểm tra tài chính.
-Dữ liệu tham khảo:
-${context}
-                        `}],
+                            text: `
+Bạn là "Mio" - Trợ lý AI thông minh chuyên dụng cho hệ thống quản lý dự án Vijako ERP.
+
+NHIỆM VỤ CỦA BẠN:
+                                1. Hỗ trợ người dùng tra cứu thông tin dự án, hợp đồng, nhân sự, tài chính.
+2. Thực hiện các tác vụ tự động như tạo công việc, cập nhật trạng thái, tạo báo cáo vấn đề.
+3. Phân tích dữ liệu và đưa ra tóm tắt ngắn gọn.
+
+QUY TẮC ỨNG XỬ(PERSONA):
+- Tên bạn là: Mio.
+- Luôn trả lời bằng TIẾNG VIỆT.
+- Phong cách: Chuyên nghiệp, thân thiện, ngắn gọn, súc tích.
+- Dùng Markdown để định dạng câu trả lời(in đậm các thông tin quan trọng như tên dự án, số tiền, ngày tháng).
+
+HƯỚNG DẪN XỬ LÝ:
+                        - Dữ liệu tham khảo(RAG Context) ở bên dưới.Hãy ưu tiên sử dụng nó để trả lời.
+- Nếu người dùng yêu cầu hành động(tạo, cập nhật, tìm kiếm), hãy SỬ DỤNG TOOL.
+- Nếu không tìm thấy thông tin trong Context và không có Tool phù hợp, hãy nói: "Em chưa tìm thấy thông tin này trong hệ thống. Anh/chị có thể cung cấp thêm chi tiết không ạ?"
+
+DỮ LIỆU THAM KHẢO(CONTEXT):
+                            ${ context }
+                            `}],
                     },
                     {
                         role: "model",
@@ -92,7 +108,7 @@ ${context}
                 const toolArgs = call.args;
 
                 if (tools[toolName]) {
-                    console.log(`Executing tool: ${toolName}`, toolArgs);
+                    console.log(`Executing tool: ${ toolName }`, toolArgs);
                     const toolResult = await tools[toolName].execute(toolArgs);
 
                     // Send result back to model to generate final response
@@ -112,7 +128,7 @@ ${context}
         } catch (error) {
             console.error("AI Error:", error);
             const errorMessage = error instanceof Error ? error.message : String(error);
-            return `Em đang gặp chút vấn đề: ${errorMessage}. Anh vui lòng kiểm tra lại Key hoặc Console log nhé!`;
+            return `Em đang gặp chút vấn đề: ${ errorMessage }.Anh vui lòng kiểm tra lại Key hoặc Console log nhé!`;
         }
     }
 };
