@@ -245,7 +245,7 @@ export default function ProjectDetail() {
             </header>
 
             <div className="flex-1 overflow-y-auto p-6 scroll-smooth">
-                <div className="max-w-[1600px] mx-auto space-y-6">
+                <div className="w-full mx-auto space-y-6">
 
                     {/* Render Content Based on Active Tab */}
                     {activeTab === 'overview' && (
