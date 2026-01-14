@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, CartesianGrid, YAxis } from 'recharts';
 import { projectService } from '../src/services/projectService';
 import { financeService } from '../src/services/financeService';
+import { diaryService } from '../src/services/diaryService';
 import { importService } from '../src/services/importService'; // New Import
 import { Project, WBSItem, ProjectIssue, ProjectBudget, Contract } from '../types';
 import ProjectGantt from '../components/ProjectGantt';
@@ -296,6 +297,95 @@ export default function ProjectDetail() {
 
     const handleModelUploadClick = () => {
         modelInputRef.current?.click();
+    };
+
+    const handleExportDiary = async () => {
+        if (!id) return;
+        try {
+            // Fetch last 30 days for report
+            const logs = await diaryService.getRecentLogs(id, 30);
+
+            const reportWindow = window.open('', '_blank');
+            if (reportWindow) {
+                const htmlContent = `
+                    <html>
+                    <head>
+                        <title>Báo cáo Nhật ký Thi công - ${project?.name}</title>
+                        <style>
+                            body { font-family: 'Times New Roman', serif; padding: 40px; }
+                            h1, h2, h3 { text-align: center; }
+                            .header { margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+                            .log-entry { margin-bottom: 30px; border: 1px solid #ccc; padding: 15px; page-break-inside: avoid; }
+                            .log-header { font-weight: bold; background: #eee; padding: 5px; margin-bottom: 10px; }
+                            .row { display: flex; margin-bottom: 5px; }
+                            .label { font-weight: bold; min-width: 150px; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                            th, td { border: 1px solid #333; padding: 5px; text-align: left; }
+                            th { background: #f0f0f0; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>NHẬT KÝ THI CÔNG</h1>
+                            <h3>Dự án: ${project?.name}</h3>
+                            <p>Địa điểm: ${project?.location}</p>
+                            <p>Thời gian xuất báo cáo: ${new Date().toLocaleDateString('vi-VN')}</p>
+                        </div>
+
+                        ${logs.map(log => `
+                            <div class="log-entry">
+                                <div class="log-header">Ngày: ${new Date(log.date).toLocaleDateString('vi-VN')} | Thời tiết: ${log.weather?.temp}°C - ${log.weather?.condition}</div>
+                                <div class="row">
+                                    <span class="label">Tổng nhân lực:</span> <span>${log.manpower_total} người</span>
+                                </div>
+                                <div class="row">
+                                    <span class="label">Nội dung công việc:</span>
+                                    <p style="white-space: pre-line; margin: 0;">${log.work_content}</p>
+                                </div>
+                                ${log.issues ? `
+                                <div class="row" style="color: red;">
+                                    <span class="label">Sự cố/Vướng mắc:</span> <span>${log.issues}</span>
+                                </div>` : ''}
+                                
+                                ${log.manpower_details && log.manpower_details.length > 0 ? `
+                                <h4>Chi tiết nhân lực:</h4>
+                                <table>
+                                    <tr><th>Vị trí</th><th>Số lượng</th><th>Ghi chú</th></tr>
+                                    ${log.manpower_details.map((m: any) => `<tr><td>${m.role}</td><td>${m.count}</td><td>${m.notes || ''}</td></tr>`).join('')}
+                                </table>` : ''}
+
+                                ${log.equipment_details && log.equipment_details.length > 0 ? `
+                                <h4>Chi tiết thiết bị:</h4>
+                                <table>
+                                    <tr><th>Tên thiết bị</th><th>Số lượng</th><th>Trạng thái</th></tr>
+                                    ${log.equipment_details.map((e: any) => `<tr><td>${e.name}</td><td>${e.count}</td><td>${e.status}</td></tr>`).join('')}
+                                </table>` : ''}
+                            </div>
+                        `).join('')}
+
+                        <div style="margin-top: 50px; display: flex; justify-content: space-between;">
+                            <div style="text-align: center;">
+                                <p><strong>Đại diện TVGS</strong></p>
+                                <br><br><br>
+                                <p>(Ký, họ tên)</p>
+                            </div>
+                            <div style="text-align: center;">
+                                <p><strong>Chỉ huy trưởng</strong></p>
+                                <br><br><br>
+                                <p>(Ký, họ tên)</p>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                `;
+                reportWindow.document.write(htmlContent);
+                reportWindow.document.close();
+                // reportWindow.print(); // Optional: Auto print
+            }
+        } catch (error) {
+            console.error('Error exporting diary:', error);
+            alert('Lỗi xuất báo cáo nhật ký');
+        }
     };
 
     const handleModelFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -882,7 +972,14 @@ export default function ProjectDetail() {
                                             <span className="material-symbols-outlined text-indigo-600">history_edu</span>
                                             Nhật Ký Thi Công
                                         </h3>
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2 items-center">
+                                            <button
+                                                onClick={handleExportDiary}
+                                                className="text-xs font-bold text-slate-600 bg-white border border-slate-300 px-3 py-1.5 rounded hover:bg-slate-50 flex items-center gap-1 transition-colors"
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">print</span>
+                                                Xuất báo cáo
+                                            </button>
                                             <span className="text-xs font-semibold text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">
                                                 7 ngày gần nhất
                                             </span>

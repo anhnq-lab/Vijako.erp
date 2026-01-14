@@ -1,6 +1,6 @@
 import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useThree, useLoader } from '@react-three/fiber';
-import { useGLTF, OrbitControls, Stage } from '@react-three/drei';
+import { useGLTF, OrbitControls, Stage, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { IFCLoader } from 'web-ifc-three/IFCLoader';
 
@@ -56,30 +56,66 @@ const GLTFModel = ({ url, progressUpdate }: { url: string; progressUpdate?: Reco
 
 const IFCModel = ({ url, file, progressUpdate }: { url?: string; file?: File; progressUpdate?: Record<string, string> }) => {
     const [model, setModel] = useState<THREE.Object3D | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const loadIfc = async () => {
-            const ifcLoader = new IFCLoader();
-            ifcLoader.ifcManager.setWasmPath('/');
+            // Reset state
+            setError(null);
+            setIsLoading(true);
+            setModel(null);
 
-            const onLoad = (ifcModel: THREE.Object3D) => {
-                setModel(ifcModel);
-            };
+            try {
+                const ifcLoader = new IFCLoader();
+                // Explicitly set WASM path. Assuming files are in public root.
+                // If this fails, we will try to copy them or alert user.
+                ifcLoader.ifcManager.setWasmPath('/');
 
-            const onError = (error: any) => {
-                console.error('Error loading IFC:', error);
-            };
+                // Optional: setup for better performance if supported by version
+                // await ifcLoader.ifcManager.useWebWorkers(true, '/web-ifc-worker.js'); // Only if we have worker
 
-            if (file) {
-                const ifcURL = URL.createObjectURL(file);
-                ifcLoader.load(ifcURL, onLoad, undefined, onError);
-                return () => URL.revokeObjectURL(ifcURL);
-            } else if (url) {
-                ifcLoader.load(url, onLoad, undefined, onError);
+                const onLoad = (ifcModel: THREE.Object3D) => {
+                    console.log('IFC Loaded successfully');
+                    setModel(ifcModel);
+                    setIsLoading(false);
+                };
+
+                const onError = (err: any) => {
+                    console.error('Error loading IFC:', err);
+                    setError(`Lỗi tải mô hình: ${err.message || 'Unknown error'}`);
+                    setIsLoading(false);
+                };
+
+                const onProgress = (event: ProgressEvent) => {
+                    // console.log(`Loading: ${event.loaded} / ${event.total}`);
+                };
+
+                if (file) {
+                    const ifcURL = URL.createObjectURL(file);
+                    // Use a slightly different approach for file object to ensure array buffer is read correctly if needed,
+                    // but cleaner is just passing the URL.
+                    ifcLoader.load(ifcURL, onLoad, onProgress, onError);
+
+                    // Cleanup
+                    return () => {
+                        URL.revokeObjectURL(ifcURL);
+                    };
+                } else if (url) {
+                    ifcLoader.load(url, onLoad, onProgress, onError);
+                } else {
+                    setIsLoading(false);
+                }
+            } catch (err: any) {
+                console.error("Setup error:", err);
+                setError(`Lỗi khởi tạo: ${err.message}`);
+                setIsLoading(false);
             }
         };
 
-        loadIfc();
+        if (url || file) {
+            loadIfc();
+        }
     }, [url, file]);
 
     // Apply colors
@@ -104,6 +140,14 @@ const IFCModel = ({ url, file, progressUpdate }: { url?: string; file?: File; pr
             }
         });
     }, [model, progressUpdate]);
+
+    if (error) {
+        return <Html center><div className="bg-red-500 text-white p-4 rounded shadow-lg whitespace-pre-wrap max-w-md">{error}</div></Html>;
+    }
+
+    if (isLoading) {
+        return <Html center><div className="text-white bg-slate-800 p-2 rounded">Đang xử lý BIM...</div></Html>;
+    }
 
     if (!model) return null;
     return <primitive object={model} />;
