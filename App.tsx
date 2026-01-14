@@ -105,6 +105,7 @@ export default function App() {
           <Route path="/hrm" element={<HRM />} />
           <Route path="/recruitment" element={<Recruitment />} />
           <Route path="/documents" element={<Documents />} />
+          <Route path="/alerts" element={<Alerts />} />
           {/* Placeholders for other routes */}
           <Route path="*" element={<div className="p-10 text-center text-slate-500">Đang phát triển...</div>} />
         </Routes>
