@@ -27,7 +27,7 @@ BEGIN
     -- Using sample specific codes to avoid deleting real data
     
     -- 2. CREATE REVENUE CONTRACTS
-    INSERT INTO public.contracts (contract_code, contract_type, partner_name, project_id, value, paid_amount, status)
+    INSERT INTO public.contracts (contract_code, contract_type, partner_name, project_id, contract_value, paid_amount, status)
     VALUES 
     ('CONT-REV-GS-01', 'revenue', 'Bất động sản LuxHome', gs_id, 45000000000, 15000000000, 'active'),
     ('CONT-REV-TS-01', 'revenue', 'UBND Tỉnh Bắc Ninh', ts_id, 120000000000, 30000000000, 'active')
@@ -37,7 +37,7 @@ BEGIN
     SELECT id INTO rev_cont_2 FROM public.contracts WHERE contract_code = 'CONT-REV-TS-01';
 
     -- 3. CREATE EXPENSE CONTRACTS
-    INSERT INTO public.contracts (contract_code, contract_type, partner_name, project_id, value, paid_amount, status)
+    INSERT INTO public.contracts (contract_code, contract_type, partner_name, project_id, contract_value, paid_amount, status)
     VALUES 
     ('CONT-EXP-GS-01', 'expense', 'Thép Hòa Phát Miền Bắc', gs_id, 12000000000, 5000000000, 'active'),
     ('CONT-EXP-BR-01', 'expense', 'Bê tông An Việt', br_id, 8000000000, 2000000000, 'active')
