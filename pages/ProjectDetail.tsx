@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell, CartesianGrid, YAxis } from 'recharts';
 import { projectService } from '../src/services/projectService';
@@ -11,12 +11,14 @@ import ContractModal from '../components/ContractModal';
 import BudgetModal from '../components/BudgetModal';
 import DiaryFeed from '../components/DiaryFeed';
 import DiaryFormModal from '../components/DiaryFormModal'; // New Import
-import BimViewer from '../components/BimViewer';
 import ErrorBoundary from '../components/ErrorBoundary';
 import IssueModal from '../components/IssueModal'; // New Import
 import { InvoiceScanModal } from '../components/InvoiceScanModal';
 import { ExtractedInvoice } from '../src/services/invoiceService';
-import { Suspense } from 'react';
+import { ComponentLoader } from '../src/components/ui/LoadingComponents';
+
+// Lazy load heavy components
+const BimViewer = lazy(() => import('../components/BimViewer'));
 
 // Mock Chart Data (Keep for visual until backend supports time-series)
 // Mock Chart Data - Progress Payment vs Plan
