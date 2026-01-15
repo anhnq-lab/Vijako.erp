@@ -136,7 +136,7 @@ export const financeService = {
 
     async getCashFlowData(): Promise<CashFlowData[]> {
         const { data, error } = await supabase
-            .from('cash_flow_monthly')
+            .from('view_cash_flow_realtime')
             .select('*')
             .order('year', { ascending: true })
             .order('month_index', { ascending: true });
@@ -147,7 +147,7 @@ export const financeService = {
         }
 
         return (data || []).map(cf => ({
-            name: cf.month_label,
+            name: `T${cf.month_index}/${cf.year}`,
             thu: Number(cf.inflow),
             chi: Number(cf.outflow),
             net: Number(cf.net_flow)
@@ -202,6 +202,21 @@ export const financeService = {
                 contract_code: contract?.contract_code
             };
         });
+    },
+
+    async createPayment(payment: Omit<PaymentRecord, 'id'>): Promise<PaymentRecord | null> {
+        const { data, error } = await supabase
+            .from('payments')
+            .insert(payment)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error creating payment:', error);
+            throw error;
+        }
+
+        return data;
     },
 
     // === Bank Guarantees CRUD ===

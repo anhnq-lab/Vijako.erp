@@ -226,7 +226,8 @@ export const paymentService = {
 
         if (error) throw error;
 
-        // Create corresponding cash flow record
+        // Create corresponding cash flow record - DEPRECATED in favor of Realtime View
+        /*
         if (data) {
             await cashFlowService.createCashFlowRecord({
                 record_date: payment.payment_date!,
@@ -237,6 +238,7 @@ export const paymentService = {
                 description: `Payment ${data.payment_code}: ${payment.partner_name}`
             });
         }
+        */
 
         return data;
     },
@@ -303,13 +305,26 @@ export const paymentService = {
 
 export const cashFlowService = {
     async getAllCashFlowRecords(): Promise<CashFlowRecord[]> {
+        // Fetch directly from payments triggers/view implies we should source from payments for realtime accuracy
         const { data, error } = await supabase
-            .from('cash_flow_records')
+            .from('payments')
             .select('*')
-            .order('record_date', { ascending: false });
+            .eq('status', 'completed')
+            .order('payment_date', { ascending: false });
 
         if (error) throw error;
-        return data || [];
+
+        // Map payments to CashFlowRecord interface
+        return (data || []).map(p => ({
+            id: p.id,
+            record_date: p.payment_date,
+            flow_type: p.payment_type === 'receipt' ? 'inflow' : 'outflow',
+            category: p.payment_type === 'receipt' ? 'Thu tiền' : 'Chi tiền',
+            payment_id: p.id,
+            amount: p.amount,
+            description: p.description || p.partner_name,
+            notes: p.notes
+        }));
     },
 
     async getCashFlowByDateRange(startDate: string, endDate: string): Promise<CashFlowRecord[]> {
@@ -337,25 +352,30 @@ export const cashFlowService = {
 
     async getCashFlowSummary(months: number = 12): Promise<CashFlowSummary[]> {
         const { data, error } = await supabase
-            .from('cash_flow_summary')
+            .from('view_cash_flow_realtime')
             .select('*')
             .limit(months);
 
         if (error) throw error;
-        return data || [];
+
+        // Map view columns to CashFlowSummary interface
+        return (data || []).map(row => ({
+            month: `T${row.month_index}/${row.year}`,
+            inflow: Number(row.inflow),
+            outflow: Number(row.outflow),
+            net: Number(row.net_flow)
+        }));
     },
 
     async getCurrentCashBalance(): Promise<number> {
+        // Sum net_flow from the realtime view
         const { data, error } = await supabase
-            .from('cash_flow_records')
-            .select('flow_type, amount');
+            .from('view_cash_flow_realtime')
+            .select('net_flow');
 
         if (error) throw error;
 
-        const balance = (data || []).reduce((acc, record) => {
-            return acc + (record.flow_type === 'inflow' ? record.amount : -record.amount);
-        }, 0);
-
+        const balance = (data || []).reduce((acc, row) => acc + Number(row.net_flow), 0);
         return balance;
     }
 };
