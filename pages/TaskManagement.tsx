@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TaskBoard } from '../src/components/TaskBoard';
+import { TaskTable } from '../src/components/TaskTable';
+import { TaskDetailModal } from '../src/components/TaskDetailModal';
 import { projectService } from '../src/services/projectService';
 import { UserTask } from '../types';
 import { showToast } from '../src/components/ui/Toast';
@@ -8,7 +10,9 @@ const TaskManagement = () => {
     const [tasks, setTasks] = useState<UserTask[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'my_tasks' | 'project_tasks'>('my_tasks');
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false); // Placeholder for future modal
+    const [viewMode, setViewMode] = useState<'board' | 'list'>('board');
+    const [selectedTask, setSelectedTask] = useState<UserTask | null>(null);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
     useEffect(() => {
         fetchTasks();
@@ -42,8 +46,12 @@ const TaskManagement = () => {
     };
 
     const handleTaskClick = (task: UserTask) => {
-        // Open detail modal (future implementation)
-        console.log('Task clicked:', task);
+        setSelectedTask(task);
+        setIsDetailModalOpen(true);
+    };
+
+    const handleTaskUpdate = (updatedTask: UserTask) => {
+        setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
     };
 
     const handleQuickCreate = async () => {
@@ -114,13 +122,31 @@ const TaskManagement = () => {
                         </button>
                     </div>
                 </div>
-                <button
-                    onClick={handleQuickCreate}
-                    className="bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-primary-light shadow-premium transition-premium flex items-center gap-2"
-                >
-                    <span className="material-symbols-outlined text-[20px]">add</span>
-                    Thêm công việc
-                </button>
+                <div className="flex items-center gap-2">
+                    <div className="bg-slate-100 p-1 rounded-lg flex">
+                        <button
+                            onClick={() => setViewMode('board')}
+                            className={`p-2 rounded-md transition-all ${viewMode === 'board' ? 'bg-white shadow text-primary' : 'text-slate-400 hover:text-slate-600'}`}
+                            title="Dạng bảng (Kanban)"
+                        >
+                            <span className="material-symbols-outlined text-[20px]">view_kanban</span>
+                        </button>
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-white shadow text-primary' : 'text-slate-400 hover:text-slate-600'}`}
+                            title="Dạng danh sách"
+                        >
+                            <span className="material-symbols-outlined text-[20px]">table_rows</span>
+                        </button>
+                    </div>
+                    <button
+                        onClick={handleQuickCreate}
+                        className="bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-primary-light shadow-premium transition-premium flex items-center gap-2"
+                    >
+                        <span className="material-symbols-outlined text-[20px]">add</span>
+                        Thêm công việc
+                    </button>
+                </div>
             </div>
 
             {/* Content */}
@@ -152,11 +178,19 @@ const TaskManagement = () => {
                     </div>
                 ) : (
                     activeTab === 'my_tasks' ? (
-                        <TaskBoard
-                            tasks={tasks}
-                            onStatusChange={handleStatusChange}
-                            onTaskClick={handleTaskClick}
-                        />
+                        viewMode === 'board' ? (
+                            <TaskBoard
+                                tasks={tasks}
+                                onStatusChange={handleStatusChange}
+                                onTaskClick={handleTaskClick}
+                            />
+                        ) : (
+                            <TaskTable
+                                tasks={tasks}
+                                onStatusChange={handleStatusChange}
+                                onTaskClick={handleTaskClick}
+                            />
+                        )
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full text-slate-400">
                             <span className="material-symbols-outlined text-[48px] mb-2">construction</span>
@@ -165,6 +199,14 @@ const TaskManagement = () => {
                     )
                 )}
             </div>
+
+            {/* Modals */}
+            <TaskDetailModal
+                task={selectedTask}
+                isOpen={isDetailModalOpen}
+                onClose={() => setIsDetailModalOpen(false)}
+                onUpdate={handleTaskUpdate}
+            />
         </div>
     );
 };
