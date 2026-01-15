@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GoogleMap, LoadScript, Marker, Circle, InfoWindow } from '@react-google-maps/api';
+import { GoogleMap, useLoadScript, Marker, Circle, InfoWindow } from '@react-google-maps/api';
 
 interface AttendanceLocation {
     id: string;
@@ -73,6 +73,10 @@ const AttendanceMap: React.FC<AttendanceMapProps> = ({ onCheckIn }) => {
     const [selectedMarker, setSelectedMarker] = useState<AttendanceLocation | null>(null);
     const apiKey = import.meta.env.VITE_GOOGLE_API_KEY || '';
 
+    const { isLoaded, loadError } = useLoadScript({
+        googleMapsApiKey: apiKey
+    });
+
     if (!apiKey) {
         return (
             <div className="flex items-center justify-center h-full bg-slate-100">
@@ -85,8 +89,31 @@ const AttendanceMap: React.FC<AttendanceMapProps> = ({ onCheckIn }) => {
         );
     }
 
+    if (loadError) {
+        return (
+            <div className="flex items-center justify-center h-full bg-slate-100">
+                <div className="text-center p-6">
+                    <span className="material-symbols-outlined text-red-500 text-5xl mb-3">error</span>
+                    <p className="text-sm text-slate-700 font-bold">Lỗi khi tải Google Maps</p>
+                    <p className="text-xs text-slate-500 mt-1">{loadError.message}</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!isLoaded) {
+        return (
+            <div className="flex items-center justify-center h-full bg-slate-100">
+                <div className="text-center p-6">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-3"></div>
+                    <p className="text-sm text-slate-700 font-bold">Đang tải bản đồ...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <LoadScript googleMapsApiKey={apiKey}>
+        <div className="relative w-full h-full">
             <GoogleMap
                 mapContainerStyle={containerStyle}
                 center={center}
@@ -194,7 +221,7 @@ const AttendanceMap: React.FC<AttendanceMapProps> = ({ onCheckIn }) => {
                     </div>
                 </div>
             </div>
-        </LoadScript>
+        </div>
     );
 };
 
