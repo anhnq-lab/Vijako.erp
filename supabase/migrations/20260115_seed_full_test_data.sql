@@ -13,19 +13,27 @@ DECLARE
     v_invoice1_id UUID;
     v_invoice2_id UUID;
 BEGIN
+    -- Ensure columns exist (idempotent)
+    BEGIN
+        ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS latitude DECIMAL(10, 8);
+        ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS longitude DECIMAL(11, 8);
+    EXCEPTION
+        WHEN duplicate_column THEN NULL;
+    END;
+
     -- 1. Create a new complex project: "Khu Đô Thị Smart City"
     INSERT INTO public.projects (
         name, code, status, start_date, end_date, 
-        description, address, city, district,
-        total_investment, contract_value, percent_complete,
-        project_manager, type
+        description, location,
+        budget, progress,
+        manager, type
     ) 
     VALUES (
-        'Khu Đô Thị Smart City', 'VJK-SC-2026', 'Construction', 
+        'Khu Đô Thị Smart City', 'VJK-SC-2026', 'active', 
         CURRENT_DATE - INTERVAL '6 months', CURRENT_DATE + INTERVAL '24 months',
         'Khu đô thị thông minh với 3 tòa tháp 45 tầng và khu thấp tầng.',
-        'Đại Lộ Thăng Long', 'Hà Nội', 'Nam Từ Liêm',
-        5000000000000, 1200000000000, 15.5,
+        'Đại Lộ Thăng Long, Nam Từ Liêm, Hà Nội',
+        5000000000000, 15,
         'Nguyễn Quốc Anh', 'Building'
     )
     RETURNING id INTO v_project_id;

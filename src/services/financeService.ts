@@ -114,7 +114,7 @@ export const financeService = {
         const { data, error } = await supabase
             .from('payment_requests')
             .select('*, contracts:contract_id(partner_name), projects:project_id(name)')
-            .order('submission_date', { ascending: false });
+            .order('request_date', { ascending: false });
 
         if (error) {
             console.error('Error fetching payment requests:', error);
@@ -128,6 +128,7 @@ export const financeService = {
             return {
                 ...pr,
                 amount: Number(pr.amount || 0),
+                submission_date: pr.request_date, // Map from DB column
                 partner_name: contract?.partner_name || pr.partner_name,
                 project_name: project?.name
             };
