@@ -458,6 +458,7 @@ export default function Finance() {
                     }}
                     projects={projects}
                 />
-            </div >
-            );
+            </div>
+        </div>
+    );
 }
