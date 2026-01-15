@@ -66,5 +66,27 @@ export const hrmService = {
         }
 
         return data;
+    },
+
+    async getTodayAttendance(): Promise<(Attendance & { employee?: Employee })[]> {
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date().toISOString().split('T')[0];
+
+        const { data, error } = await supabase
+            .from('attendance')
+            .select(`
+                *,
+                employee:employees(*)
+            `)
+            .gte('check_in', `${today}T00:00:00`)
+            .lte('check_in', `${today}T23:59:59`)
+            .order('check_in', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching today attendance:', error);
+            throw error;
+        }
+
+        return (data as (Attendance & { employee?: Employee })[]) || [];
     }
 };

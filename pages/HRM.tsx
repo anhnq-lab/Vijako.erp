@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { hrmService } from '../src/services/hrmService';
-import { Employee } from '../types';
+import { Employee, Attendance } from '../types';
 import AttendanceMap from '../components/AttendanceMap';
 
 // Data for Attendance
@@ -67,10 +67,12 @@ const StatCard = ({ title, value, sub, icon, color }: any) => (
 export default function HRM() {
     const [activeTab, setActiveTab] = useState('employees');
     const [employees, setEmployees] = useState<Employee[]>([]);
+    const [todayAttendance, setTodayAttendance] = useState<(Attendance & { employee?: Employee })[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetchEmployees();
+        fetchTodayAttendance();
     }, []);
 
     const fetchEmployees = async () => {
@@ -81,6 +83,15 @@ export default function HRM() {
             console.error('Failed to fetch employees');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchTodayAttendance = async () => {
+        try {
+            const data = await hrmService.getTodayAttendance();
+            setTodayAttendance(data);
+        } catch (error) {
+            console.error('Failed to fetch attendance:', error);
         }
     };
 
@@ -106,7 +117,8 @@ export default function HRM() {
                     site_id: 'Vijako Tower'
                 });
                 alert('Điểm danh thành công!');
-                fetchEmployees(); // Refresh list
+                fetchEmployees(); // Refresh employee list
+                fetchTodayAttendance(); // Refresh attendance map data
             } catch (error) {
                 alert('Có lỗi xảy ra khi điểm danh.');
             }
@@ -191,7 +203,7 @@ export default function HRM() {
                                     </div>
                                 </div>
                                 <div className="flex-1 relative bg-slate-100">
-                                    <AttendanceMap onCheckIn={handleCheckIn} />
+                                    <AttendanceMap onCheckIn={handleCheckIn} attendanceData={todayAttendance} />
                                 </div>
                             </div>
 
