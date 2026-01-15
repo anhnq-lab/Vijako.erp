@@ -368,3 +368,27 @@ export interface RiskMatrixData {
   riskId?: string;
   title?: string;
 }
+
+// Approval System Types
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+export type ApprovalPriority = 'low' | 'normal' | 'high' | 'urgent';
+export type ApprovalType = 'payment' | 'contract' | 'leave' | 'purchase' | 'other';
+
+export interface ApprovalRequest {
+  id: string;
+  title: string;
+  description?: string;
+  type: ApprovalType;
+  status: ApprovalStatus;
+  priority: ApprovalPriority;
+  requester_id: string;
+  approver_id?: string;
+  project_id?: string;
+  payload?: any;
+  created_at: string;
+  updated_at: string;
+  // Joined fields
+  project_name?: string;
+  requester_name?: string;
+  approver_name?: string;
+}
