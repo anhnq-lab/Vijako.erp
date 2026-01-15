@@ -604,28 +604,30 @@ export default function Finance() {
 
                             {activeTab === 'contracts' && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    {/* Contracts Section */}
+                                    {/* Revenue Contracts (Owner) */}
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-center">
-                                            <h4 className="text-xl font-black text-slate-900 tracking-tight">Danh sách Hợp đồng</h4>
-                                            <div className="flex gap-2">
-                                                <div className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-bold uppercase tracking-wider border border-emerald-100">Doanh thu: {contracts.filter(c => c.contract_type === 'revenue' || !c.contract_type).length}</div>
-                                                <div className="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-xs font-bold uppercase tracking-wider border border-red-100">Chi phí: {contracts.filter(c => c.contract_type === 'expense').length}</div>
+                                            <h4 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-blue-600">domain_add</span>
+                                                Hợp đồng với Chủ Đầu Tư (Đầu ra)
+                                            </h4>
+                                            <div className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold uppercase tracking-wider border border-blue-100">
+                                                Số lượng: {contracts.filter(c => c.contract_type === 'revenue' || c.contract_code.includes('TS-001')).length}
                                             </div>
                                         </div>
                                         <div className="overflow-x-auto rounded-2xl border border-slate-200">
                                             <table className="w-full text-left">
-                                                <thead className="bg-slate-50/50">
-                                                    <tr className="border-b border-slate-100">
+                                                <thead className="bg-blue-50/30">
+                                                    <tr className="border-b border-blue-100">
                                                         <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Mã Hợp đồng</th>
-                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Đối tác</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Chủ đầu tư</th>
                                                         <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Giá trị (₫)</th>
                                                         <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Đã thanh toán (₫)</th>
                                                         <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Trạng thái</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-slate-50">
-                                                    {contracts.map((c) => (
+                                                    {contracts.filter(c => c.contract_type === 'revenue' || c.contract_code.includes('TS-001')).map((c) => (
                                                         <tr key={c.id} className="hover:bg-slate-50/80 transition-premium group">
                                                             <td className="px-6 py-5 font-bold text-slate-700">{c.contract_code}</td>
                                                             <td className="px-6 py-5 font-bold text-slate-900">{c.partner_name}</td>
@@ -638,9 +640,55 @@ export default function Finance() {
                                                             </td>
                                                         </tr>
                                                     ))}
-                                                    {contracts.length === 0 && (
+                                                    {contracts.filter(c => c.contract_type === 'revenue' || c.contract_code.includes('TS-001')).length === 0 && (
                                                         <tr>
-                                                            <td colSpan={5} className="py-8 text-center text-slate-400 italic">Chưa có hợp đồng nào.</td>
+                                                            <td colSpan={5} className="py-8 text-center text-slate-400 italic">Chưa có hợp đồng chủ đầu tư.</td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    {/* Expense Contracts (Subcontractors) */}
+                                    <div className="space-y-4 pt-6 border-t border-slate-100">
+                                        <div className="flex justify-between items-center">
+                                            <h4 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-orange-600">engineering</span>
+                                                Hợp đồng Thầu phụ & Nhà cung cấp (Đầu vào)
+                                            </h4>
+                                            <div className="px-3 py-1 bg-orange-50 text-orange-600 rounded-lg text-xs font-bold uppercase tracking-wider border border-orange-100">
+                                                Số lượng: {contracts.filter(c => c.contract_type === 'expense' || (c.contract_type !== 'revenue' && !c.contract_code.includes('TS-001'))).length}
+                                            </div>
+                                        </div>
+                                        <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                                            <table className="w-full text-left">
+                                                <thead className="bg-orange-50/30">
+                                                    <tr className="border-b border-orange-100">
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Mã Hợp đồng</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Đối tác</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Giá trị (₫)</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Đã thanh toán (₫)</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Trạng thái</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-50">
+                                                    {contracts.filter(c => c.contract_type === 'expense' || (c.contract_type !== 'revenue' && !c.contract_code.includes('TS-001'))).map((c) => (
+                                                        <tr key={c.id} className="hover:bg-slate-50/80 transition-premium group">
+                                                            <td className="px-6 py-5 font-bold text-slate-700">{c.contract_code}</td>
+                                                            <td className="px-6 py-5 font-bold text-slate-900">{c.partner_name}</td>
+                                                            <td className="px-6 py-5 text-right font-black text-slate-900 tracking-tight">{(c.value || 0).toLocaleString()}</td>
+                                                            <td className="px-6 py-5 text-right font-bold text-emerald-600">{(c.paid_amount || 0).toLocaleString()}</td>
+                                                            <td className="px-6 py-5 text-center">
+                                                                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase ${c.status === 'active' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
+                                                                    {c.status === 'active' ? 'Hiệu lực' : c.status}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                    {contracts.filter(c => c.contract_type === 'expense' || (c.contract_type !== 'revenue' && !c.contract_code.includes('TS-001'))).length === 0 && (
+                                                        <tr>
+                                                            <td colSpan={5} className="py-8 text-center text-slate-400 italic">Chưa có hợp đồng thầu phụ.</td>
                                                         </tr>
                                                     )}
                                                 </tbody>
