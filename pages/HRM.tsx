@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { hrmService } from '../src/services/hrmService';
 import { Employee } from '../types';
+import AttendanceMap from '../components/AttendanceMap';
 
 // Data for Attendance
 const attendanceData = [
@@ -189,21 +190,8 @@ export default function HRM() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex-1 relative bg-slate-100 group">
-                                    <div className="absolute inset-0 bg-cover bg-center grayscale-[20%] transition-transform duration-1000 group-hover:scale-105" style={{ backgroundImage: "url('https://picsum.photos/seed/construction_site/1200/800')" }}></div>
-                                    <div className="absolute inset-0 bg-slate-900/10"></div>
-
-                                    {/* Geofence Visualization */}
-                                    <div className="absolute top-[20%] left-[30%] w-64 h-64 border-2 border-primary/40 bg-primary/5 rounded-full flex items-center justify-center animate-pulse"></div>
-                                    <div className="absolute top-[20%] left-[30%] w-64 h-64 flex items-center justify-center">
-                                        <span className="bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg">Site: Vijako Tower</span>
-                                    </div>
-
-                                    {/* Workers Dots */}
-                                    <div className="absolute top-[35%] left-[45%] size-3 bg-green-500 border-2 border-white rounded-full shadow-md tooltip" title="NV-01"></div>
-                                    <div className="absolute top-[40%] left-[38%] size-3 bg-green-500 border-2 border-white rounded-full shadow-md"></div>
-                                    <div className="absolute top-[45%] left-[48%] size-3 bg-green-500 border-2 border-white rounded-full shadow-md"></div>
-                                    <div className="absolute top-[85%] left-[80%] size-3 bg-red-500 border-2 border-white rounded-full shadow-md animate-bounce" title="Ngoài vùng phủ sóng"></div>
+                                <div className="flex-1 relative bg-slate-100">
+                                    <AttendanceMap onCheckIn={handleCheckIn} />
                                 </div>
                             </div>
 

@@ -1,15 +1,15 @@
 -- Seed Logically Linked Finance Data
 -- Created: 2026-01-15 10:15
+-- Updated: 2026-01-15 10:27 - Fixed to use existing or create demo projects
 -- Logic: Revenue Chain (Contract -> Sales Invoices -> Receipt Payments)
 --        Expense Chain (Contract -> Purchase Invoices -> Disbursement Payments)
 
 DO $$ 
 DECLARE
     -- Project IDs
-    gs_id UUID := (SELECT id FROM projects WHERE code = 'P-GREENSHADE' LIMIT 1);
-    br_id UUID := (SELECT id FROM projects WHERE code = 'P-BROTHER' LIMIT 1);
-    tci_id UUID := (SELECT id FROM projects WHERE code = 'P-TCI-PRECISION' LIMIT 1);
-    ts_id UUID := (SELECT id FROM projects WHERE code = 'P-005' LIMIT 1);
+    gs_id UUID;
+    br_id UUID;
+    ts_id UUID;
     
     -- Contract IDs
     rev_cont_1 UUID;
@@ -23,8 +23,30 @@ DECLARE
     inv_exp_1 UUID;
     inv_exp_2 UUID;
 BEGIN
-    -- 1. CLEANUP (Optional, or just use ON CONFLICT)
-    -- Using sample specific codes to avoid deleting real data
+    -- 1. GET OR CREATE DEMO PROJECTS
+    -- Try to get existing projects first
+    SELECT id INTO gs_id FROM projects WHERE code = 'P-GREENSHADE' LIMIT 1;
+    SELECT id INTO br_id FROM projects WHERE code = 'P-BROTHER' LIMIT 1;
+    SELECT id INTO ts_id FROM projects WHERE code = 'P-005' LIMIT 1;
+    
+    -- If projects don't exist, create them
+    IF gs_id IS NULL THEN
+        INSERT INTO projects (code, name, location, manager, status, progress, start_date, end_date)
+        VALUES ('P-GREENSHADE', 'Dự án Green Shade Residence', 'Hà Nội', 'Nguyễn Quốc Anh', 'active', 65, '2024-01-15', '2025-12-31')
+        RETURNING id INTO gs_id;
+    END IF;
+    
+    IF br_id IS NULL THEN
+        INSERT INTO projects (code, name, location, manager, status, progress, start_date, end_date)
+        VALUES ('P-BROTHER', 'Dự án Brother Complex', 'TP.HCM', 'Nguyễn Quốc Anh', 'active', 45, '2024-03-01', '2025-09-30')
+        RETURNING id INTO br_id;
+    END IF;
+    
+    IF ts_id IS NULL THEN
+        INSERT INTO projects (code, name, location, manager, status, progress, start_date, end_date)
+        VALUES ('P-005', 'Dự án Tiên Sơn', 'Bắc Ninh', 'Nguyễn Quốc Anh', 'active', 78, '2023-06-01', '2025-06-30')
+        RETURNING id INTO ts_id;
+    END IF;
     
     -- 2. CREATE REVENUE CONTRACTS
     INSERT INTO public.contracts (contract_code, contract_type, partner_name, project_id, contract_value, paid_amount, status)
@@ -54,7 +76,7 @@ BEGIN
     ('INV-SLV-001', 'sales', gs_id, rev_cont_1, 'Vijako ERP', '2024-11-20', '2024-12-20', 5000000000, 5000000000, 5000000000, 0, 'paid'),
     ('INV-SLV-002', 'sales', gs_id, rev_cont_1, 'Vijako ERP', '2024-12-15', '2025-01-15', 10000000000, 10000000000, 0, 10000000000, 'pending'),
     ('INV-SLV-003', 'sales', ts_id, rev_cont_2, 'Vijako ERP', '2024-12-01', '2025-01-01', 30000000000, 30000000000, 30000000000, 0, 'paid')
-    ON CONFLICT (invoice_code) DO UPDATE SET id = invoices.id;
+    ON CONFLICT (invoice_code) DO UPDATE SET total_amount = EXCLUDED.total_amount;
 
     SELECT id INTO inv_rev_1 FROM invoices WHERE invoice_code = 'INV-SLV-001';
     SELECT id INTO inv_rev_2 FROM invoices WHERE invoice_code = 'INV-SLV-002';
@@ -65,7 +87,7 @@ BEGIN
     ('INV-PUR-001', 'purchase', gs_id, exp_cont_1, 'Thép Hòa Phát Miền Bắc', '2024-11-25', '2024-12-25', 2000000000, 2000000000, 2000000000, 0, 'paid'),
     ('INV-PUR-002', 'purchase', gs_id, exp_cont_1, 'Thép Hòa Phát Miền Bắc', '2024-12-10', '2025-01-10', 3000000000, 3000000000, 0, 3000000000, 'pending'),
     ('INV-PUR-003', 'purchase', br_id, exp_cont_2, 'Bê tông An Việt', '2024-12-20', '2025-01-20', 2000000000, 2000000000, 2000000000, 0, 'paid')
-    ON CONFLICT (invoice_code) DO UPDATE SET id = invoices.id;
+    ON CONFLICT (invoice_code) DO UPDATE SET total_amount = EXCLUDED.total_amount;
 
     SELECT id INTO inv_exp_1 FROM invoices WHERE invoice_code = 'INV-PUR-001';
     SELECT id INTO inv_exp_2 FROM invoices WHERE invoice_code = 'INV-PUR-002';
@@ -98,5 +120,8 @@ BEGIN
     ('T10', 10, 2024, 45000000000, 35000000000),
     ('T11', 11, 2024, 55000000000, 42000000000),
     ('T12', 12, 2024, 48000000000, 40000000000);
+
+    RAISE NOTICE 'Finance demo data seeded successfully!';
+    RAISE NOTICE 'Created/Used Projects: GS=%, BR=%, TS=%', gs_id, br_id, ts_id;
 
 END $$;
