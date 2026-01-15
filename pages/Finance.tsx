@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-    ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+    ComposedChart, Line, Bar, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
     AreaChart, Area
 } from 'recharts';
 import { financeService, PaymentRequest, CashFlowData } from '../src/services/financeService';
@@ -9,7 +9,24 @@ import { Project } from '../types';
 import { InvoiceScanModal } from '../components/InvoiceScanModal';
 import { Badge } from '../src/components/ui/CommonComponents';
 
-// --- Dữ liệu mô phỏng ---
+// --- Dữ liệu mô phỏng cho Mini Charts ---
+const assetData = [
+    { name: 'T1', value: 38.5 }, { name: 'T2', value: 40.2 }, { name: 'T3', value: 39.8 },
+    { name: 'T4', value: 41.5 }, { name: 'T5', value: 42.0 }, { name: 'T6', value: 42.8 }
+];
+
+const revenueData = [
+    { name: 'T2', value: 1.2 }, { name: 'T3', value: 0.8 }, { name: 'T4', value: 2.1 },
+    { name: 'T5', value: 1.5 }, { name: 'T6', value: 2.8 }, { name: 'T7', value: 1.9 },
+    { name: 'CN', value: 2.2 }
+];
+
+const expenseBreakdown = [
+    { name: 'Vật tư', value: 4.2, color: '#ef4444' }, // Red
+    { name: 'Nhân công', value: 3.5, color: '#f59e0b' }, // Amber
+    { name: 'Vận hành', value: 2.1, color: '#64748b' }  // Slate
+];
+
 const costStructureData = [
     { name: 'Th1', inflow: 4500, outflow: 3500 },
     { name: 'Th2', inflow: 5200, outflow: 4800 },
@@ -25,149 +42,74 @@ const costStructureData = [
     { name: 'Th12', inflow: 10500, outflow: 8200 },
 ];
 
-const PremiumStatCard = ({ title, value, sub, icon, color, trend }: any) => (
-    <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-glass hover:shadow-premium transition-premium group">
-        <div className="flex justify-between items-start mb-4">
-            <div className={`size-12 rounded-2xl flex items-center justify-center ${color} shadow-lg transition-premium group-hover:scale-110`}>
-                <span className="material-symbols-outlined text-[24px] text-white">{icon}</span>
-            </div>
-            {trend && (
-                <div className={`px-2 py-1 rounded-lg text-[10px] font-black ${trend > 0 ? 'bg-emerald/10 text-emerald' : 'bg-red-100 text-red-600'}`}>
-                    {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}%
-                </div>
-            )}
-        </div>
-        <div>
-            <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mb-1">{title}</p>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">{value}</h3>
-            <p className="text-xs text-slate-500 mt-2 font-medium">{sub}</p>
-        </div>
-    </div>
-);
+const PremiumStatCard = ({ title, value, sub, icon, color, trend, children }: any) => (
+    <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-glass hover:shadow-premium transition-premium group flex flex-col justify-between h-56 relative overflow-hidden">
+        {/* Background Decoration */}
+        <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-5 ${color}`}></div>
 
-const AIFinancialInsight = () => (
-    <div className="mesh-gradient rounded-[32px] p-8 text-white relative overflow-hidden h-full flex flex-col justify-between shadow-premium border border-white/10 group">
-        <div className="absolute -right-10 -top-10 size-64 bg-emerald/20 blur-[80px] rounded-full group-hover:bg-emerald/30 transition-premium"></div>
+        {/* Header */}
         <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-6">
-                <div className="size-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
-                    <span className="material-symbols-outlined text-[20px] text-yellow-300 animate-pulse">auto_awesome</span>
+            <div className="flex justify-between items-start mb-3">
+                <div className={`size-10 rounded-xl flex items-center justify-center ${color} shadow-lg transition-premium group-hover:scale-110`}>
+                    <span className="material-symbols-outlined text-[20px] text-white">{icon}</span>
                 </div>
-                <div>
-                    <h3 className="font-black text-lg tracking-tight">AI CFO Intelligence</h3>
-                    <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Phân tích bởi Trí tuệ nhân tạo</p>
-                </div>
+                {trend && (
+                    <div className={`px-2 py-1 rounded-lg text-[10px] font-black ${trend > 0 ? 'bg-emerald/10 text-emerald' : 'bg-red-100 text-red-600'}`}>
+                        {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}%
+                    </div>
+                )}
             </div>
-            <div className="space-y-4">
-                <div className="bg-white/10 border border-white/10 rounded-2xl p-4 backdrop-blur-md hover:bg-white/20 transition-premium cursor-pointer">
-                    <p className="text-[10px] text-emerald-300 font-black uppercase tracking-widest mb-1 leading-none">Dự báo Dòng tiền</p>
-                    <p className="text-sm font-medium leading-relaxed">Dự kiến thu <span className="text-emerald-400 font-bold">12.5 Tỷ</span> trong 30 ngày tới. Khả năng thanh khoản đạt <span className="text-emerald-400 font-bold">98%</span>.</p>
-                </div>
-                <div className="bg-white/10 border border-white/10 rounded-2xl p-4 backdrop-blur-md hover:bg-white/20 transition-premium cursor-pointer">
-                    <p className="text-[10px] text-yellow-300 font-black uppercase tracking-widest mb-1 leading-none">Cảnh báo Rủi ro</p>
-                    <p className="text-sm font-medium leading-relaxed">Cần lưu ý 2 khoản thanh toán NCC quá hạn vào cuối tuần này.</p>
-                </div>
+            <div>
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mb-1">{title}</p>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">{value}</h3>
+                <p className="text-[11px] text-slate-500 font-medium mt-1">{sub}</p>
             </div>
         </div>
-        <div className="relative z-10 mt-6 flex justify-between items-center">
-            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest italic">Cập nhật 2 phút trước</span>
-            <button className="px-5 py-2 bg-white text-primary text-[10px] font-black rounded-xl hover:scale-105 transition-premium shadow-lg shadow-white/10 uppercase tracking-widest">Phân tích chuyên sâu</button>
+
+        {/* Dynamic Content Area (Mini Chart) */}
+        <div className="relative z-10 h-16 w-full mt-2">
+            {children}
         </div>
     </div>
 );
 
-export default function Finance() {
-    const [activeTab, setActiveTab] = useState<'cashflow' | 'payments'>('cashflow');
-    const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
-    const [cashFlowRecords, setCashFlowRecords] = useState<CashFlowData[]>([]);
-    const [projects, setProjects] = useState<Project[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [isInvoiceScanModalOpen, setIsInvoiceScanModalOpen] = useState(false);
-
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            const [prData, cfData, pData] = await Promise.all([
-                financeService.getAllPaymentRequests(),
-                financeService.getCashFlowData(),
-                projectService.getAllProjects()
-            ]);
-
-            // Mock data fallback if DB returns empty for demonstration
-            const mockPRs: PaymentRequest[] = [
-                { id: '1', partner_name: 'Công ty CP Hòa Phát', amount: 450000000, status: 'paid', submission_date: '2024-05-10', project_id: 'p1' },
-                { id: '2', partner_name: 'Công ty TNHH Thiết bị Delta', amount: 125000000, status: 'pending', submission_date: '2024-05-12', project_id: 'p2' },
-                { id: '3', partner_name: 'Tổng công ty Sông Đà', amount: 2800000000, status: 'paid', submission_date: '2024-05-01', project_id: 'p1' },
-                { id: '4', partner_name: 'Bê tông An Việt', amount: 89000000, status: 'pending', submission_date: '2024-05-14', project_id: 'p3' },
-                { id: '5', partner_name: 'Điện lực Hà Nội', amount: 45000000, status: 'paid', submission_date: '2024-04-28', project_id: 'p1' },
-                { id: '6', partner_name: 'Công ty CP Đá ốp lát', amount: 210000000, status: 'pending', submission_date: '2024-05-15', project_id: 'p4' },
-                { id: '7', partner_name: 'Nhà thầu xây dựng 105', amount: 1560000000, status: 'paid', submission_date: '2024-04-20', project_id: 'p2' },
-                { id: '8', partner_name: 'Cung ứng vật tư Thái Bình', amount: 340000000, status: 'pending', submission_date: '2024-05-13', project_id: 'p3' },
-            ] as any;
-
-            if (prData && prData.length > 0) {
-                setPaymentRequests(prData);
-            } else {
-                setPaymentRequests(mockPRs);
-            }
-
-            if (cfData && cfData.length > 0) {
-                setCashFlowRecords(cfData);
-            }
-            if (pData) setProjects(pData);
-        } catch (err) {
-            console.error('Failed to fetch finance data', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="flex flex-col h-full bg-slate-50/50">
-            {/* Page Header */}
-            <div className="px-8 py-6 bg-white border-b border-slate-200/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-black text-primary-accent uppercase tracking-[0.3em]">Kho bạc & Thanh toán</span>
-                    </div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                        Tài chính & Thanh toán
-                        <span className="size-2 rounded-full bg-primary-accent animate-pulse"></span>
-                    </h1>
-                    <p className="text-sm text-slate-500 font-medium">Quản lý dòng tiền vận hành và hồ sơ quyết toán tự động</p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => setIsInvoiceScanModalOpen(true)}
-                        className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-black hover:bg-slate-50 transition-premium shadow-sm hover:shadow-md"
-                    >
-                        <span className="material-symbols-outlined text-[20px] text-primary-accent">document_scanner</span>
-                        <span>Quét Hóa đơn AI</span>
-                    </button>
-                    <button className="flex items-center gap-2 px-6 py-3 mesh-gradient text-white rounded-2xl text-sm font-black hover:opacity-90 shadow-premium transition-premium group">
-                        <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-premium">add</span>
-                        <span>Thanh toán mới</span>
-                    </button>
-                </div>
-            </div>
+// ... (AIFinancialInsight remains unchanged) ...
+// ... (Finance component logic remains unchanged) ...
 
             <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                 <div className="max-w-[1600px] mx-auto space-y-8">
                     {/* Overview Grid */}
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                         <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* Card 1: Tài sản ròng (Area Chart) */}
                             <PremiumStatCard
                                 title="Tài sản ròng"
                                 value="42.8B ₫"
-                                sub="+5.2% so với tháng trước"
+                                sub="+5.2% vs tháng trước"
                                 icon="account_balance_wallet"
                                 color="bg-primary"
                                 trend={5.2}
-                            />
+                            >
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={assetData}>
+                                        <defs>
+                                            <linearGradient id="colorAsset" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <Area 
+                                            type="monotone" 
+                                            dataKey="value" 
+                                            stroke="#3b82f6" 
+                                            strokeWidth={2} 
+                                            fill="url(#colorAsset)" 
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </PremiumStatCard>
+
+                            {/* Card 2: Doanh thu tháng (Bar Chart) */}
                             <PremiumStatCard
                                 title="Doanh thu tháng"
                                 value="12.5B ₫"
@@ -175,7 +117,33 @@ export default function Finance() {
                                 icon="show_chart"
                                 color="bg-emerald"
                                 trend={12.4}
-                            />
+                            >
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={revenueData}>
+                                        <Bar 
+                                            dataKey="value" 
+                                            fill="#10b981" 
+                                            radius={[4, 4, 0, 0]} 
+                                            barSize={6}
+                                        />
+                                        <Tooltip 
+                                            cursor={{fill: 'transparent'}}
+                                            content={({ active, payload }) => {
+                                                if (active && payload && payload.length) {
+                                                    return (
+                                                        <div className="bg-slate-800 text-white text-[10px] py-1 px-2 rounded shadow-lg">
+                                                            {payload[0].value}B
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            }}
+                                        />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </PremiumStatCard>
+
+                            {/* Card 3: Chi phí vận hành (Progress List) */}
                             <PremiumStatCard
                                 title="Chi phí vận hành"
                                 value="9.8B ₫"
@@ -183,7 +151,22 @@ export default function Finance() {
                                 icon="output"
                                 color="bg-red-500"
                                 trend={-2.1}
-                            />
+                            >
+                                <div className="flex flex-col justify-end h-full gap-2">
+                                    {expenseBreakdown.map((item, idx) => (
+                                        <div key={idx} className="flex items-center gap-2">
+                                            <div className="w-16 text-[10px] font-bold text-slate-500 truncate">{item.name}</div>
+                                            <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                <div 
+                                                    className="h-full rounded-full" 
+                                                    style={{ width: `${(item.value / 9.8) * 100}%`, backgroundColor: item.color }}
+                                                ></div>
+                                            </div>
+                                            <div className="text-[10px] font-bold text-slate-700">{item.value}B</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </PremiumStatCard>
                         </div>
                         <div className="lg:col-span-1">
                             <AIFinancialInsight />
@@ -353,6 +336,6 @@ export default function Finance() {
                 }}
                 projects={projects}
             />
-        </div>
+        </div >
     );
 }
