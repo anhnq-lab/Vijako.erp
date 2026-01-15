@@ -3,7 +3,7 @@ import {
     ComposedChart, Line, Bar, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
     AreaChart, Area
 } from 'recharts';
-import { financeService, PaymentRequest, CashFlowData, Invoice, PaymentRecord } from '../src/services/financeService';
+import { financeService, PaymentRequest, CashFlowData, Invoice, PaymentRecord, Contract } from '../src/services/financeService';
 import { projectService } from '../src/services/projectService';
 import { Project } from '../types';
 import { InvoiceScanModal } from '../components/InvoiceScanModal';
@@ -136,37 +136,42 @@ export default function Finance() {
                 financeService.getAllPayments()
             ]);
 
-            // Mock data fallback if DB returns empty for demonstration
-            const mockPRs: PaymentRequest[] = [
-                { id: '1', partner_name: 'Công ty CP Hòa Phát', amount: 450000000, status: 'paid', submission_date: '2024-05-10', project_id: 'p1' },
-                { id: '2', partner_name: 'Công ty TNHH Thiết bị Delta', amount: 125000000, status: 'pending', submission_date: '2024-05-12', project_id: 'p2' },
-                { id: '3', partner_name: 'Tổng công ty Sông Đà', amount: 2800000000, status: 'paid', submission_date: '2024-05-01', project_id: 'p1' },
-                { id: '4', partner_name: 'Bê tông An Việt', amount: 89000000, status: 'pending', submission_date: '2024-05-14', project_id: 'p3' },
-                { id: '5', partner_name: 'Điện lực Hà Nội', amount: 45000000, status: 'paid', submission_date: '2024-04-28', project_id: 'p1' },
-                { id: '6', partner_name: 'Công ty CP Đá ốp lát', amount: 210000000, status: 'pending', submission_date: '2024-05-15', project_id: 'p4' },
-                { id: '7', partner_name: 'Nhà thầu xây dựng 105', amount: 1560000000, status: 'paid', submission_date: '2024-04-20', project_id: 'p2' },
-                { id: '8', partner_name: 'Cung ứng vật tư Thái Bình', amount: 340000000, status: 'pending', submission_date: '2024-05-13', project_id: 'p3' },
-            ] as any;
-
-            if (prData && prData.length > 0) {
-                setPaymentRequests(prData);
-            } else {
-                setPaymentRequests(mockPRs);
-            }
-
-            if (invData) setInvoices(invData);
-            if (payData) setPayments(payData);
-
-            if (cfData && cfData.length > 0) {
-                setCashFlowRecords(cfData);
-            }
-            if (pData) setProjects(pData);
+            setPaymentRequests(prData || []);
+            setInvoices(invData || []);
+            setPayments(payData || []);
+            setCashFlowRecords(cfData || []);
+            setProjects(pData || []);
         } catch (err) {
             console.error('Failed to fetch finance data', err);
         } finally {
             setLoading(false);
         }
     };
+
+    // Derived data for charts and lists
+    const revenueByProject = payments
+        .filter(p => p.payment_type === 'receipt')
+        .reduce((acc, p) => {
+            const name = p.project_name || 'Khác';
+            acc[name] = (acc[name] || 0) + p.amount;
+            return acc;
+        }, {} as Record<string, number>);
+
+    const topRevenueSources = Object.entries(revenueByProject)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+
+    const expenseByProject = payments
+        .filter(p => p.payment_type === 'disbursement')
+        .reduce((acc, p) => {
+            const name = p.project_name || 'Khác';
+            acc[name] = (acc[name] || 0) + p.amount;
+            return acc;
+        }, {} as Record<string, number>);
+
+    const topExpenseCategories = Object.entries(expenseByProject)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
 
     return (
         <div className="flex flex-col h-full bg-slate-50/50">
@@ -365,7 +370,7 @@ export default function Finance() {
                                             <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">So sánh: Dòng thu vs Dòng chi vs Dòng tiền thuần</p>
                                         </div>
                                         <ResponsiveContainer width="100%" height="100%">
-                                            <ComposedChart data={costStructureData} margin={{ top: 70, right: 10, left: -20, bottom: 0 }}>
+                                            <ComposedChart data={cashFlowRecords.length > 0 ? cashFlowRecords : costStructureData} margin={{ top: 70, right: 10, left: -20, bottom: 0 }}>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} dy={10} />
                                                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} />
@@ -374,44 +379,46 @@ export default function Finance() {
                                                     cursor={{ fill: '#f8fafc' }}
                                                 />
                                                 <Legend verticalAlign="top" align="right" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }} />
-                                                <Bar dataKey="inflow" name="Dòng thu" fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
-                                                <Bar dataKey="outflow" name="Dòng chi" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={20} />
-                                                <Line type="monotone" dataKey="netFlow" name="Dòng tiền thuần" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }} activeDot={{ r: 6 }} />
+                                                <Bar dataKey="thu" name="Dòng thu" fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
+                                                <Bar dataKey="chi" name="Dòng chi" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={20} />
+                                                <Line type="monotone" dataKey="net" name="Dòng tiền thuần" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }} activeDot={{ r: 6 }} />
                                             </ComposedChart>
                                         </ResponsiveContainer>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-slate-100">
                                         <div className="space-y-4">
-                                            <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nguồn thu chính</h5>
+                                            <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nguồn thu chính (Dự án)</h5>
                                             <div className="space-y-3">
-                                                {[1, 2].map(i => (
+                                                {topRevenueSources.map(([name, amount], i) => (
                                                     <div key={i} className="flex justify-between items-center bg-slate-50/50 p-4 rounded-2xl hover:bg-slate-100 transition-premium cursor-pointer group">
                                                         <div className="flex items-center gap-3">
                                                             <div className="size-10 rounded-xl bg-emerald/10 flex items-center justify-center text-emerald">
                                                                 <span className="material-symbols-outlined text-[20px]">domain</span>
                                                             </div>
-                                                            <span className="text-sm font-black text-slate-700 group-hover:text-slate-900 transition-premium">Dự án Tiên Sơn {i}</span>
+                                                            <span className="text-sm font-black text-slate-700 group-hover:text-slate-900 transition-premium">{name}</span>
                                                         </div>
-                                                        <span className="text-sm font-black text-emerald">+12.4B ₫</span>
+                                                        <span className="text-sm font-black text-emerald">+{amount.toLocaleString()} ₫</span>
                                                     </div>
                                                 ))}
+                                                {topRevenueSources.length === 0 && <p className="text-xs text-slate-400 italic">Chưa có dữ liệu doanh thu</p>}
                                             </div>
                                         </div>
                                         <div className="space-y-4">
-                                            <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hạng mục chi chính</h5>
+                                            <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hạng mục chi chính (Dự án)</h5>
                                             <div className="space-y-3">
-                                                {[1, 2].map(i => (
+                                                {topExpenseCategories.map(([name, amount], i) => (
                                                     <div key={i} className="flex justify-between items-center bg-slate-50/50 p-4 rounded-2xl hover:bg-slate-100 transition-premium cursor-pointer group">
                                                         <div className="flex items-center gap-3">
                                                             <div className="size-10 rounded-xl bg-red-100 flex items-center justify-center text-red-600">
                                                                 <span className="material-symbols-outlined text-[20px]">engineering</span>
                                                             </div>
-                                                            <span className="text-sm font-black text-slate-700 group-hover:text-slate-900 transition-premium">Thi công móng {i}</span>
+                                                            <span className="text-sm font-black text-slate-700 group-hover:text-slate-900 transition-premium">{name}</span>
                                                         </div>
-                                                        <span className="text-sm font-black text-red-600">-2.8B ₫</span>
+                                                        <span className="text-sm font-black text-red-600">-{amount.toLocaleString()} ₫</span>
                                                     </div>
                                                 ))}
+                                                {topExpenseCategories.length === 0 && <p className="text-xs text-slate-400 italic">Chưa có dữ liệu chi phí</p>}
                                             </div>
                                         </div>
                                     </div>
@@ -442,7 +449,15 @@ export default function Finance() {
                                                                 </div>
                                                                 <div>
                                                                     <p className="font-black text-slate-900">{inv.vendor_name}</p>
-                                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 italic">Hóa đơn: {inv.invoice_code}</p>
+                                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">Hóa đơn: {inv.invoice_code}</p>
+                                                                        {inv.contract_code && (
+                                                                            <>
+                                                                                <span className="text-[10px] text-slate-300">•</span>
+                                                                                <p className="text-[10px] font-bold text-primary uppercase tracking-widest">HĐ: {inv.contract_code}</p>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </td>
@@ -480,7 +495,15 @@ export default function Finance() {
                                                                 </div>
                                                                 <div>
                                                                     <p className="font-black text-slate-900">{pay.partner_name}</p>
-                                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 italic">Giao dịch: {pay.payment_code}</p>
+                                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">Giao dịch: {pay.payment_code}</p>
+                                                                        {pay.contract_code && (
+                                                                            <>
+                                                                                <span className="text-[10px] text-slate-300">•</span>
+                                                                                <p className="text-[10px] font-bold text-primary uppercase tracking-widest">HĐ: {pay.contract_code}</p>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </td>

@@ -308,6 +308,8 @@ export interface Invoice {
   invoice_type: 'sales' | 'purchase';
   project_id: string;
   project_name?: string;
+  contract_id?: string;
+  contract_code?: string;
   vendor_name: string;
   invoice_date: string;
   due_date: string;
@@ -323,6 +325,8 @@ export interface PaymentRecord {
   payment_type: 'receipt' | 'disbursement';
   project_id: string;
   project_name?: string;
+  contract_id?: string;
+  contract_code?: string;
   payment_date: string;
   amount: number;
   payment_method: string;

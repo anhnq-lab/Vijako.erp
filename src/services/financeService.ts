@@ -157,7 +157,7 @@ export const financeService = {
     async getAllInvoices(): Promise<Invoice[]> {
         const { data, error } = await supabase
             .from('invoices')
-            .select('*, projects(name)')
+            .select('*, projects(name), contracts(contract_code)')
             .order('invoice_date', { ascending: false });
 
         if (error) {
@@ -166,15 +166,16 @@ export const financeService = {
         }
 
         return (data || []).map(inv => {
-            // Handle join which can be an object or an array of 1
             const project = Array.isArray(inv.projects) ? inv.projects[0] : inv.projects;
+            const contract = Array.isArray(inv.contracts) ? inv.contracts[0] : inv.contracts;
 
             return {
                 ...inv,
                 total_amount: Number(inv.total_amount || 0),
                 paid_amount: Number(inv.paid_amount || 0),
                 outstanding_amount: Number(inv.outstanding_amount || 0),
-                project_name: project?.name
+                project_name: project?.name,
+                contract_code: contract?.contract_code
             };
         });
     },
@@ -182,7 +183,7 @@ export const financeService = {
     async getAllPayments(): Promise<PaymentRecord[]> {
         const { data, error } = await supabase
             .from('payments')
-            .select('*, projects(name)')
+            .select('*, projects(name), contracts(contract_code)')
             .order('payment_date', { ascending: false });
 
         if (error) {
@@ -192,11 +193,13 @@ export const financeService = {
 
         return (data || []).map(pay => {
             const project = Array.isArray(pay.projects) ? pay.projects[0] : pay.projects;
+            const contract = Array.isArray(pay.contracts) ? pay.contracts[0] : pay.contracts;
 
             return {
                 ...pay,
                 amount: Number(pay.amount || 0),
-                project_name: project?.name
+                project_name: project?.name,
+                contract_code: contract?.contract_code
             };
         });
     },
@@ -333,5 +336,22 @@ export const financeService = {
 
     async rejectPaymentRequest(id: string, reason?: string): Promise<PaymentRequest | null> {
         return this.updatePaymentRequest(id, { status: 'rejected', block_reason: reason });
+    },
+
+    async getAllBiddingPackages(): Promise<any[]> {
+        const { data, error } = await supabase
+            .from('bidding_packages')
+            .select('*, projects(name)')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching bidding packages:', error);
+            throw error;
+        }
+
+        return (data || []).map(bp => ({
+            ...bp,
+            project_name: (bp.projects as any)?.name
+        }));
     }
 };
