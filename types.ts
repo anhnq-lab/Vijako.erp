@@ -374,9 +374,38 @@ export interface RiskMatrixData {
 }
 
 // Approval System Types
-export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'cancelled' | 'skipped';
 export type ApprovalPriority = 'low' | 'normal' | 'high' | 'urgent';
 export type ApprovalType = 'payment' | 'contract' | 'leave' | 'purchase' | 'other';
+
+export interface ApprovalWorkflow {
+  id: string;
+  name: string;
+  description?: string;
+  created_at: string;
+}
+
+export interface ApprovalWorkflowStep {
+  id: string;
+  workflow_id: string;
+  step_order: number;
+  name: string;
+  approver_role: string;
+}
+
+export interface ApprovalRequestStep {
+  id: string;
+  request_id: string;
+  step_id: string;
+  status: ApprovalStatus;
+  approver_id?: string;
+  approved_at?: string;
+  comments?: string;
+  created_at: string;
+  // Joined fields
+  step_name?: string; // from step_id
+  approver_name?: string;
+}
 
 export interface ApprovalRequest {
   id: string;
@@ -386,11 +415,14 @@ export interface ApprovalRequest {
   status: ApprovalStatus;
   priority: ApprovalPriority;
   requester_id: string;
-  approver_id?: string;
+  approver_id?: string; // Legacy or generic approver
   project_id?: string;
   payload?: any;
   created_at: string;
   updated_at: string;
+  // Workflow fields
+  workflow_id?: string;
+  current_step_id?: string;
   // Joined fields
   project_name?: string;
   requester_name?: string;

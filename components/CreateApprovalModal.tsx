@@ -13,13 +13,31 @@ interface CreateApprovalModalProps {
 
 export const CreateApprovalModal: React.FC<CreateApprovalModalProps> = ({ isOpen, onClose, onCreated, projects }) => {
     const [loading, setLoading] = useState(false);
+    const [workflows, setWorkflows] = useState<any[]>([]); // Use ApprovalWorkflow type if imported
     const [form, setForm] = useState({
         title: '',
         description: '',
         type: 'payment' as ApprovalType,
         priority: 'normal' as ApprovalPriority,
         project_id: '',
+        workflow_id: '',
     });
+
+    React.useEffect(() => {
+        const loadWorkflows = async () => {
+            try {
+                const data = await approvalService.getWorkflows();
+                setWorkflows(data);
+                // Default to first workflow
+                if (data.length > 0) {
+                    setForm(prev => ({ ...prev, workflow_id: data[0].id }));
+                }
+            } catch (error) {
+                console.error('Failed to load workflows', error);
+            }
+        };
+        loadWorkflows();
+    }, []);
 
     if (!isOpen) return null;
 
@@ -42,6 +60,7 @@ export const CreateApprovalModal: React.FC<CreateApprovalModalProps> = ({ isOpen
                 type: 'payment',
                 priority: 'normal',
                 project_id: '',
+                workflow_id: workflows.length > 0 ? workflows[0].id : '',
             });
         } catch (error) {
             showToast.error('Có lỗi xảy ra khi tạo đề xuất');
@@ -76,17 +95,16 @@ export const CreateApprovalModal: React.FC<CreateApprovalModalProps> = ({ isOpen
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="text-[10px] font-bold text-slate-500 uppercase">Loại đề xuất</label>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase">Quy trình duyệt</label>
                             <select
-                                value={form.type}
-                                onChange={e => setForm({ ...form, type: e.target.value as ApprovalType })}
+                                value={form.workflow_id}
+                                onChange={e => setForm({ ...form, workflow_id: e.target.value })}
                                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm mt-1"
                             >
-                                <option value="payment">Thanh toán</option>
-                                <option value="contract">Hợp đồng</option>
-                                <option value="leave">Nghỉ phép</option>
-                                <option value="purchase">Mua sắm</option>
-                                <option value="other">Khác</option>
+                                <option value="">-- Chọn quy trình --</option>
+                                {workflows.map(wf => (
+                                    <option key={wf.id} value={wf.id}>{wf.name}</option>
+                                ))}
                             </select>
                         </div>
                         <div>
@@ -104,19 +122,35 @@ export const CreateApprovalModal: React.FC<CreateApprovalModalProps> = ({ isOpen
                         </div>
                     </div>
 
-                    <div>
-                        <label className="text-[10px] font-bold text-slate-500 uppercase">Dự án liên quan *</label>
-                        <select
-                            required
-                            value={form.project_id}
-                            onChange={e => setForm({ ...form, project_id: e.target.value })}
-                            className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm mt-1"
-                        >
-                            <option value="">Chọn dự án...</option>
-                            {projects.map(p => (
-                                <option key={p.id} value={p.id}>{p.name} ({p.code})</option>
-                            ))}
-                        </select>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase">Loại đề xuất</label>
+                            <select
+                                value={form.type}
+                                onChange={e => setForm({ ...form, type: e.target.value as ApprovalType })}
+                                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm mt-1"
+                            >
+                                <option value="payment">Thanh toán</option>
+                                <option value="contract">Hợp đồng</option>
+                                <option value="leave">Nghỉ phép</option>
+                                <option value="purchase">Mua sắm</option>
+                                <option value="other">Khác</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase">Dự án liên quan *</label>
+                            <select
+                                required
+                                value={form.project_id}
+                                onChange={e => setForm({ ...form, project_id: e.target.value })}
+                                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm mt-1"
+                            >
+                                <option value="">Chọn dự án...</option>
+                                {projects.map(p => (
+                                    <option key={p.id} value={p.id}>{p.name} ({p.code})</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     <div>

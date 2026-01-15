@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { ApprovalRequest, ApprovalStatus } from '../types';
+import { ApprovalRequest, ApprovalStatus } from '../../types';
 
 export const approvalService = {
     async getApprovalRequests() {
@@ -27,7 +27,21 @@ export const approvalService = {
             .from('approval_requests')
             .select(`
         *,
-        projects:project_id (name)
+        projects:project_id (name),
+        approval_request_steps (
+          id,
+          step_id,
+          status,
+          approver_id,
+          approved_at,
+          comments,
+          created_at,
+          approval_workflow_steps (
+            name,
+            approver_role
+          ),
+          approver:approver_id (full_name)
+        )
       `)
             .eq('id', id)
             .single();
@@ -37,10 +51,19 @@ export const approvalService = {
             throw error;
         }
 
+        // Transform nested steps
+        const steps = (data.approval_request_steps || []).map((step: any) => ({
+            ...step,
+            step_name: step.approval_workflow_steps?.name,
+            approver_role: step.approval_workflow_steps?.approver_role,
+            approver_name: step.approver?.full_name
+        })).sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
         return {
             ...data,
-            project_name: data.projects?.name
-        } as ApprovalRequest;
+            project_name: data.projects?.name,
+            steps: steps
+        } as ApprovalRequest & { steps?: any[] };
     },
 
     async createApprovalRequest(request: Partial<ApprovalRequest>) {
@@ -82,5 +105,34 @@ export const approvalService = {
         }
 
         return data as ApprovalRequest;
+    },
+
+    // --- New Workflow Methods ---
+
+    async getWorkflows() {
+        const { data, error } = await supabase
+            .from('approval_workflows')
+            .select('*')
+            .order('name');
+
+        if (error) throw error;
+        return data || [];
+    },
+
+    async updateStepStatus(stepId: string, status: ApprovalStatus, approverId: string, comments?: string) {
+        const { data, error } = await supabase
+            .from('approval_request_steps')
+            .update({
+                status,
+                approver_id: approverId,
+                approved_at: new Date().toISOString(),
+                comments,
+            })
+            .eq('id', stepId)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
     }
 };
