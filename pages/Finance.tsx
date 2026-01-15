@@ -193,116 +193,118 @@ export default function Finance() {
             <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                 <div className="max-w-[1600px] mx-auto space-y-8">
                     {/* Overview Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {/* Card 1: Tài sản ròng (Area Chart) */}
-                            <PremiumStatCard
-                                title="Tài sản ròng"
-                                value="42.8B ₫"
-                                sub="+5.2% vs tháng trước"
-                                icon="account_balance_wallet"
-                                color="bg-primary"
-                                trend={5.2}
-                            >
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={assetData}>
-                                        <defs>
-                                            <linearGradient id="colorAsset" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <Area
-                                            type="monotone"
-                                            dataKey="value"
-                                            stroke="#3b82f6"
-                                            strokeWidth={2}
-                                            fill="url(#colorAsset)"
-                                        />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </PremiumStatCard>
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
+                        <div className="lg:col-span-3 flex flex-col gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {/* Card 1: Tài sản ròng (Area Chart) */}
+                                <PremiumStatCard
+                                    title="Tài sản ròng"
+                                    value="42.8B ₫"
+                                    sub="+5.2% vs tháng trước"
+                                    icon="account_balance_wallet"
+                                    color="bg-primary"
+                                    trend={5.2}
+                                >
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={assetData}>
+                                            <defs>
+                                                <linearGradient id="colorAsset" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <Area
+                                                type="monotone"
+                                                dataKey="value"
+                                                stroke="#3b82f6"
+                                                strokeWidth={2}
+                                                fill="url(#colorAsset)"
+                                            />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </PremiumStatCard>
 
-                            {/* Card 2: Doanh thu tháng (Bar Chart) */}
-                            <PremiumStatCard
-                                title="Doanh thu tháng"
-                                value="12.5B ₫"
-                                sub="Mục tiêu: 15.0B ₫"
-                                icon="show_chart"
-                                color="bg-emerald"
-                                trend={12.4}
-                            >
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={revenueData}>
-                                        <Bar
-                                            dataKey="value"
-                                            fill="#10b981"
-                                            radius={[4, 4, 0, 0]}
-                                            barSize={6}
-                                        />
-                                        <Tooltip
-                                            cursor={{ fill: 'transparent' }}
-                                            content={({ active, payload }) => {
-                                                if (active && payload && payload.length) {
-                                                    return (
-                                                        <div className="bg-slate-800 text-white text-[10px] py-1 px-2 rounded shadow-lg">
-                                                            {payload[0].value}B
-                                                        </div>
-                                                    );
-                                                }
-                                                return null;
-                                            }}
-                                        />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </PremiumStatCard>
+                                {/* Card 2: Doanh thu tháng (Bar Chart) */}
+                                <PremiumStatCard
+                                    title="Doanh thu tháng"
+                                    value="12.5B ₫"
+                                    sub="Mục tiêu: 15.0B ₫"
+                                    icon="show_chart"
+                                    color="bg-emerald"
+                                    trend={12.4}
+                                >
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={revenueData}>
+                                            <Bar
+                                                dataKey="value"
+                                                fill="#10b981"
+                                                radius={[4, 4, 0, 0]}
+                                                barSize={6}
+                                            />
+                                            <Tooltip
+                                                cursor={{ fill: 'transparent' }}
+                                                content={({ active, payload }) => {
+                                                    if (active && payload && payload.length) {
+                                                        return (
+                                                            <div className="bg-slate-800 text-white text-[10px] py-1 px-2 rounded shadow-lg">
+                                                                {payload[0].value}B
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return null;
+                                                }}
+                                            />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </PremiumStatCard>
 
-                            {/* Card 3: Chi phí vận hành (Progress List) */}
-                            <PremiumStatCard
-                                title="Chi phí vận hành"
-                                value="9.8B ₫"
-                                sub="Nợ nhà thầu: 3.4B ₫"
-                                icon="output"
-                                color="bg-red-500"
-                                trend={-2.1}
-                            >
-                                <div className="flex flex-col justify-end h-full gap-2">
-                                    {expenseBreakdown.map((item, idx) => (
-                                        <div key={idx} className="flex items-center gap-2">
-                                            <div className="w-16 text-[10px] font-bold text-slate-500 truncate">{item.name}</div>
-                                            <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full rounded-full"
-                                                    style={{ width: `${(item.value / 9.8) * 100}%`, backgroundColor: item.color }}
-                                                ></div>
+                                {/* Card 3: Chi phí vận hành (Progress List) */}
+                                <PremiumStatCard
+                                    title="Chi phí vận hành"
+                                    value="9.8B ₫"
+                                    sub="Nợ nhà thầu: 3.4B ₫"
+                                    icon="output"
+                                    color="bg-red-500"
+                                    trend={-2.1}
+                                >
+                                    <div className="flex flex-col justify-end h-full gap-2">
+                                        {expenseBreakdown.map((item, idx) => (
+                                            <div key={idx} className="flex items-center gap-2">
+                                                <div className="w-16 text-[10px] font-bold text-slate-500 truncate">{item.name}</div>
+                                                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full rounded-full"
+                                                        style={{ width: `${(item.value / 9.8) * 100}%`, backgroundColor: item.color }}
+                                                    ></div>
+                                                </div>
+                                                <div className="text-[10px] font-bold text-slate-700">{item.value}B</div>
                                             </div>
-                                            <div className="text-[10px] font-bold text-slate-700">{item.value}B</div>
+                                        ))}
+                                    </div>
+                                </PremiumStatCard>
+                            </div>
+
+                            {/* Secondary Summary Grid (Now inside the col-span-3 to fill empty space) */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {summaryCardsData.map((card, idx) => (
+                                    <div key={idx} className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-3 hover:shadow-md transition-premium group">
+                                        <div className={`size-10 rounded-2xl flex items-center justify-center ${card.bgColor} ${card.color} group-hover:scale-110 transition-premium`}>
+                                            <span className="material-symbols-outlined text-[20px]">{card.icon}</span>
                                         </div>
-                                    ))}
-                                </div>
-                            </PremiumStatCard>
+                                        <div>
+                                            <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-0.5">{card.title}</p>
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-sm font-black text-slate-800 tracking-tight">{card.value}</span>
+                                                <span className={`text-[9px] font-bold ${card.change.startsWith('+') ? 'text-emerald-500' : 'text-red-500'}`}>{card.change}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                         <div className="lg:col-span-1">
                             <AIFinancialInsight />
                         </div>
-                    </div>
-
-                    {/* Secondary Summary Grid (Fixed the empty red box area) */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {summaryCardsData.map((card, idx) => (
-                            <div key={idx} className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4 hover:shadow-md transition-premium group">
-                                <div className={`size-12 rounded-2xl flex items-center justify-center ${card.bgColor} ${card.color} group-hover:scale-110 transition-premium`}>
-                                    <span className="material-symbols-outlined text-[24px]">{card.icon}</span>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-0.5">{card.title}</p>
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="text-lg font-black text-slate-800 tracking-tight">{card.value} ₫</span>
-                                        <span className={`text-[10px] font-bold ${card.change.startsWith('+') ? 'text-emerald-500' : 'text-red-500'}`}>{card.change}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
                     </div>
 
                     {/* Main Content Card */}
