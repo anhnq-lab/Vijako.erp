@@ -10,6 +10,7 @@ import { InvoiceScanModal } from '../components/InvoiceScanModal';
 import { AddPaymentModal } from '../components/AddPaymentModal';
 import { Badge } from '../src/components/ui/CommonComponents';
 import { Contract } from '../types';
+import { mockInvoices, mockPayments, mockCashFlow } from '../src/mock/financeData';
 
 // --- Dữ liệu mô phỏng cho Mini Charts ---
 const assetData = [
@@ -130,7 +131,6 @@ export default function Finance() {
     const [bankGuarantees, setBankGuarantees] = useState<any[]>([]);
 
 
-    import { mockInvoices, mockPayments, mockCashFlow } from '../src/mock/financeData';
 
     useEffect(() => {
         fetchData();
@@ -139,22 +139,22 @@ export default function Finance() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            // Fetch existing data (Projects, Contracts, PaymentRequests)
-            // For now we keep fetching these, but we override Invoices, Payments, CashFlow with mock data
-            const [prData, pData, contractData] = await Promise.all([
-                financeService.getAllPaymentRequests().catch(() => []),
-                projectService.getAllProjects().catch(() => []),
-                financeService.getAllContracts().catch(() => [])
+            const [prData, cfData, pData, invData, payData, contractData] = await Promise.all([
+                financeService.getAllPaymentRequests(),
+                financeService.getCashFlowData(),
+                projectService.getAllProjects(),
+                financeService.getAllInvoices(),
+                financeService.getAllPayments(),
+                financeService.getAllContracts()
             ]);
 
             setPaymentRequests(prData || []);
+            setInvoices(invData || []);
+            setPayments(payData || []);
+            setCashFlowRecords(cfData || []);
             setProjects(pData || []);
             setContracts(contractData || []);
 
-            // Use Mock Data for Finance Core
-            setInvoices(mockInvoices);
-            setPayments(mockPayments);
-            setCashFlowRecords(mockCashFlow);
 
             // setBankGuarantees([]); // If we had a service for it
         } catch (err) {
