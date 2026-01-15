@@ -271,19 +271,19 @@ export interface BiddingQuote {
 
 export interface BankGuarantee {
   id: string;
-  code: string;
-  type: string;
+  guarantee_code: string;
+  guarantee_type: string;
   project_id: string;
   project_name?: string;
   bank_name: string;
-  value: number;
+  guarantee_value: number;
   expiry_date: string;
   status: 'active' | 'warning' | 'expired' | 'released';
 }
 
 export interface PaymentRequest {
   id: string;
-  code: string;
+  request_code: string;
   contract_id: string;
   partner_name?: string;
   project_id: string;

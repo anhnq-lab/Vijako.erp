@@ -19,14 +19,16 @@ import { ExtractedInvoice } from '../src/services/invoiceService';
 import { Suspense } from 'react';
 
 // Mock Chart Data (Keep for visual until backend supports time-series)
+// Mock Chart Data - Progress Payment vs Plan
 const costData = [
-    { name: 'T1', budget: 4000, actual: 2400 },
-    { name: 'T2', budget: 3000, actual: 1398 },
-    { name: 'T3', budget: 2000, actual: 3800 },
-    { name: 'T4', budget: 2780, actual: 3908 },
-    { name: 'T5', budget: 1890, actual: 4800 },
-    { name: 'T6', budget: 2390, actual: 3800 },
-    { name: 'T7', budget: 3490, actual: 4300 },
+    { name: 'T1', planned: 3000, paid: 2800 },
+    { name: 'T2', planned: 5000, paid: 4500 },
+    { name: 'T3', planned: 8000, paid: 7200 },
+    { name: 'T4', planned: 12000, paid: 11500 },
+    { name: 'T5', planned: 15000, paid: 14800 },
+    { name: 'T6', planned: 18000, paid: 17500 },
+    { name: 'T7', planned: 22000, paid: 21000 },
+    { name: 'T8', planned: 25000, paid: 25000 },
 ];
 
 const WBSItemRow: React.FC<{ item: WBSItem }> = ({ item }) => {
@@ -694,22 +696,23 @@ export default function ProjectDetail() {
                                     </div>
                                 </div>
 
+
                                 {/* Financial Health Chart */}
                                 <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
 
                                     <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
                                         <span className="material-symbols-outlined text-primary">monitoring</span>
-                                        Biểu đồ Sức khỏe Tài chính (Cost Performance)
+                                        Biểu đồ Tiến độ Chi tiêu theo Hợp đồng
                                     </h3>
                                     <div className="h-80 w-full">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <AreaChart data={costData}>
                                                 <defs>
-                                                    <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.1} />
-                                                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                                                    <linearGradient id="colorPaid" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.1} />
+                                                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
                                                     </linearGradient>
-                                                    <linearGradient id="colorBudget" x1="0" y1="0" x2="0" y2="1">
+                                                    <linearGradient id="colorPlanned" x1="0" y1="0" x2="0" y2="1">
                                                         <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} />
                                                         <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                                                     </linearGradient>
@@ -717,27 +720,55 @@ export default function ProjectDetail() {
                                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8' }} />
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                                 <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                                                <Area type="monotone" dataKey="actual" stroke="#ef4444" strokeWidth={2} fillOpacity={1} fill="url(#colorActual)" name="Thực tế" />
-                                                <Area type="monotone" dataKey="budget" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorBudget)" name="Ngân sách" />
+                                                <Area type="monotone" dataKey="paid" stroke="#22c55e" strokeWidth={2} fillOpacity={1} fill="url(#colorPaid)" name="Đã thanh toán" />
+                                                <Area type="monotone" dataKey="planned" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorPlanned)" name="Kế hoạch" />
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>
                                 </div>
 
-                                {/* Recent Issues / Activities */}
-                                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
-                                    <h3 className="font-bold text-slate-900 mb-4">Hoạt động gần đây</h3>
-                                    <div className="flex-1 overflow-y-auto pr-2 space-y-4">
-                                        {issues.slice(0, 5).map((issue) => (
-                                            <div key={issue.id} className="flex gap-3 items-start p-3 bg-slate-50 rounded-lg border border-slate-100">
-                                                <div className={`mt-1 size-2 rounded-full flex-shrink-0 ${issue.priority === 'High' ? 'bg-red-500' : 'bg-blue-500'}`}></div>
-                                                <div>
-                                                    <p className="text-xs font-bold text-slate-900">{issue.title}</p>
-                                                    <p className="text-[10px] text-slate-500 mt-1">{issue.code} • {issue.pic}</p>
+                                {/* Right Column: Members & Activities */}
+                                <div className="flex flex-col gap-6">
+                                    {/* Team Members */}
+                                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                                        <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                            <span className="material-symbols-outlined text-primary">group</span>
+                                            Thành viên Dự án
+                                        </h3>
+                                        <div className="flex-1 overflow-y-auto pr-2 space-y-4">
+                                            {project.members && project.members.length > 0 ? (
+                                                project.members.map((member, index) => (
+                                                    <div key={index} className="flex gap-3 items-center p-3 hover:bg-slate-50 rounded-lg transition-colors border border-transparent hover:border-slate-100">
+                                                        <div className={`size-10 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-sm ${index === 0 ? 'bg-primary' : 'bg-slate-400'}`}>
+                                                            {member.split(' ').pop()?.substring(0, 2).toUpperCase()}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-bold text-slate-900">{member}</p>
+                                                            <p className="text-xs text-slate-500">{index === 0 ? 'Giám đốc dự án' : 'Thành viên'}</p>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-sm text-slate-400 italic">Chưa có thành viên nào.</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Recent Issues / Activities */}
+                                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                                        <h3 className="font-bold text-slate-900 mb-4">Hoạt động gần đây</h3>
+                                        <div className="flex-1 overflow-y-auto pr-2 space-y-4">
+                                            {issues.slice(0, 5).map((issue) => (
+                                                <div key={issue.id} className="flex gap-3 items-start p-3 bg-slate-50 rounded-lg border border-slate-100">
+                                                    <div className={`mt-1 size-2 rounded-full flex-shrink-0 ${issue.priority === 'High' ? 'bg-red-500' : 'bg-blue-500'}`}></div>
+                                                    <div>
+                                                        <p className="text-xs font-bold text-slate-900">{issue.title}</p>
+                                                        <p className="text-[10px] text-slate-500 mt-1">{issue.code} • {issue.pic}</p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
-                                        {issues.length === 0 && <p className="text-sm text-slate-400 italic">Không có hoạt động nào.</p>}
+                                            ))}
+                                            {issues.length === 0 && <p className="text-sm text-slate-400 italic">Không có hoạt động nào.</p>}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

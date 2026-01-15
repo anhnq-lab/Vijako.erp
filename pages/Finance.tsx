@@ -538,7 +538,7 @@ export default function Finance() {
                                                                 </div>
                                                                 <div>
                                                                     <p className="font-black text-slate-900">{req.partner_name}</p>
-                                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 italic">Hồ sơ: {req.code}</p>
+                                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 italic">Hồ sơ: {req.request_code}</p>
                                                                 </div>
                                                             </div>
                                                         </td>
