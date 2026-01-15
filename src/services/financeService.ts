@@ -96,7 +96,7 @@ export const financeService = {
     async getAllBankGuarantees(): Promise<BankGuarantee[]> {
         const { data, error } = await supabase
             .from('bank_guarantees')
-            .select('*, projects(name)')
+            .select('*, projects:project_id(name)')
             .order('expiry_date', { ascending: true });
 
         if (error) {
@@ -113,7 +113,7 @@ export const financeService = {
     async getAllPaymentRequests(): Promise<PaymentRequest[]> {
         const { data, error } = await supabase
             .from('payment_requests')
-            .select('*, contracts(partner_name), projects(name)')
+            .select('*, contracts:contract_id(partner_name), projects:project_id(name)')
             .order('submission_date', { ascending: false });
 
         if (error) {
@@ -157,7 +157,7 @@ export const financeService = {
     async getAllInvoices(): Promise<Invoice[]> {
         const { data, error } = await supabase
             .from('invoices')
-            .select('*, projects(name), contracts(contract_code)')
+            .select('*, projects:project_id(name), contracts:contract_id(contract_code)')
             .order('invoice_date', { ascending: false });
 
         if (error) {
@@ -183,7 +183,7 @@ export const financeService = {
     async getAllPayments(): Promise<PaymentRecord[]> {
         const { data, error } = await supabase
             .from('payments')
-            .select('*, projects(name), contracts(contract_code)')
+            .select('*, projects:project_id(name), contracts:contract_id(contract_code)')
             .order('payment_date', { ascending: false });
 
         if (error) {
@@ -223,7 +223,7 @@ export const financeService = {
     async getBankGuaranteeById(id: string): Promise<BankGuarantee | null> {
         const { data, error } = await supabase
             .from('bank_guarantees')
-            .select('*, projects(name)')
+            .select('*, projects:project_id(name)')
             .eq('id', id)
             .single();
 
@@ -284,7 +284,7 @@ export const financeService = {
     async getPaymentRequestById(id: string): Promise<PaymentRequest | null> {
         const { data, error } = await supabase
             .from('payment_requests')
-            .select('*, contracts(partner_name), projects(name)')
+            .select('*, contracts:contract_id(partner_name), projects:project_id(name)')
             .eq('id', id)
             .single();
 
@@ -356,7 +356,7 @@ export const financeService = {
     async getAllBiddingPackages(): Promise<any[]> {
         const { data, error } = await supabase
             .from('bidding_packages')
-            .select('*, projects(name)')
+            .select('*, projects:project_id(name)')
             .order('created_at', { ascending: false });
 
         if (error) {

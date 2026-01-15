@@ -131,12 +131,15 @@ export default function Finance() {
 
 
 
+    const [error, setError] = useState<string | null>(null);
+
     useEffect(() => {
         fetchData();
     }, []);
 
     const fetchData = async () => {
         setLoading(true);
+        setError(null);
         try {
             const [prData, cfData, pData, invData, payData, contractData] = await Promise.all([
                 financeService.getAllPaymentRequests(),
@@ -156,8 +159,9 @@ export default function Finance() {
 
 
             // setBankGuarantees([]); // If we had a service for it
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to fetch finance data', err);
+            setError(err.message || 'Có lỗi xảy ra khi tải dữ liệu');
         } finally {
             setLoading(false);
         }
@@ -202,6 +206,7 @@ export default function Finance() {
                     </h1>
                     <p className="text-sm text-slate-500 font-medium">Quản lý dòng tiền vận hành và hồ sơ quyết toán tự động</p>
                 </div>
+
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => setIsInvoiceScanModalOpen(true)}
@@ -220,6 +225,17 @@ export default function Finance() {
                     </button>
                 </div>
             </div>
+
+            {error && (
+                <div className="mx-8 mt-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                    <span className="material-symbols-outlined">error</span>
+                    <div>
+                        <p className="font-bold">Không tải được dữ liệu</p>
+                        <p className="text-sm">{error}</p>
+                        <p className="text-xs mt-1 text-red-500">Vui lòng kiểm tra kết nối mạng hoặc thử tải lại trang.</p>
+                    </div>
+                </div>
+            )}
 
             <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                 <div className="max-w-[1600px] mx-auto space-y-8">
