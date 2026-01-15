@@ -546,6 +546,15 @@ export interface InterimPaymentClaim {
   submitted_net_payment?: number; // Số tiền mình trình
   certified_net_payment?: number; // Số tiền khách duyệt
 
+  // Certified values for each component
+  certified_works_executed_amount?: number;
+  certified_variations_amount?: number;
+  certified_mos_amount?: number;
+  certified_retention_amount?: number;
+  certified_advance_repayment?: number;
+  certified_vat_amount?: number;
+  certified_total_with_vat?: number;
+
   created_by: string;
   created_at: string;
   updated_at: string;

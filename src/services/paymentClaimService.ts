@@ -574,12 +574,15 @@ export const calculateIPCFinancials = async (ipcId: string): Promise<IPCFinancia
             // Lấy giá trị đã hoàn trả ở các kỳ trước
             const { data: previousIPCs } = await supabase
                 .from('interim_payment_claims')
-                .select('advance_repayment')
+                .select('advance_repayment, certified_advance_repayment')
                 .eq('payment_contract_id', ipc.payment_contract_id)
                 .neq('id', ipcId)
                 .lt('created_at', ipc.created_at || new Date().toISOString());
 
-            const total_already_repaid = (previousIPCs || []).reduce((sum, item) => sum + Number(item.advance_repayment || 0), 0);
+            const total_already_repaid = (previousIPCs || []).reduce(
+                (sum, item) => sum + Number(item.certified_advance_repayment ?? item.advance_repayment ?? 0),
+                0
+            );
 
             advance_repayment = Math.max(0, cumulative_repayment - total_already_repaid);
             // Đảm bảo không hoàn trả quá tổng tiền tạm ứng
@@ -668,7 +671,7 @@ export const submitIPC = async (ipcId: string): Promise<InterimPaymentClaim | nu
  */
 export const certifyIPC = async (
     ipcId: string,
-    certifiedNetPayment: number,
+    certifiedDetails: Partial<IPCFinancialSummary>,
     approverName: string
 ): Promise<InterimPaymentClaim | null> => {
     const { data, error } = await supabase
@@ -676,7 +679,14 @@ export const certifyIPC = async (
         .update({
             status: 'certified' as IPCStatus,
             certified_date: new Date().toISOString().split('T')[0],
-            certified_net_payment: certifiedNetPayment
+            certified_net_payment: certifiedDetails.net_payment,
+            certified_works_executed_amount: certifiedDetails.works_executed_amount,
+            certified_variations_amount: certifiedDetails.variations_amount,
+            certified_mos_amount: certifiedDetails.mos_amount,
+            certified_retention_amount: certifiedDetails.retention_amount,
+            certified_advance_repayment: certifiedDetails.advance_repayment,
+            certified_vat_amount: certifiedDetails.vat_amount,
+            certified_total_with_vat: certifiedDetails.total_with_vat
         })
         .eq('id', ipcId)
         .select()
@@ -688,7 +698,7 @@ export const certifyIPC = async (
     }
 
     // Log workflow history
-    await logWorkflowHistory(ipcId, 'submitted', 'certified', null, approverName, `Đã duyệt: ${certifiedNetPayment.toLocaleString()} VND`);
+    await logWorkflowHistory(ipcId, 'submitted', 'certified', null, approverName, `Đã duyệt: ${(certifiedDetails.net_payment || 0).toLocaleString()} VND`);
 
     return data;
 };
