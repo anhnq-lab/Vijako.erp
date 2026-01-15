@@ -71,8 +71,8 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isOpen, on
                             <span className="material-symbols-outlined text-[24px]">apartment</span>
                         </div>
                         <div>
-                            <h1 className="text-xl font-black tracking-tighter text-slate-900 leading-none">
-                                VIJAKO
+                            <h1 className="text-xl font-black tracking-tighter leading-none">
+                                <span className="text-[#E60000]">VI</span><span className="text-[#0047AB]">JAKO</span>
                             </h1>
                             <p className="text-[10px] font-bold tracking-[0.2em] text-emerald uppercase mt-1">Hệ Thống Quản Trị</p>
                         </div>
