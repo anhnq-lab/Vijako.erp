@@ -156,9 +156,14 @@ EXECUTE FUNCTION public.fn_handle_step_approval();
 
 
 -- Seed initial Workflows
-INSERT INTO public.approval_workflows (name, description) VALUES
-('Quy trình tiêu chuẩn', 'Nhân viên -> Trưởng phòng -> Giám đốc'),
-('Quy trình rút gọn', 'Nhân viên -> Trưởng phòng');
+-- Seed initial Workflows (Idempotent)
+INSERT INTO public.approval_workflows (name, description)
+SELECT 'Quy trình tiêu chuẩn', 'Nhân viên -> Trưởng phòng -> Giám đốc'
+WHERE NOT EXISTS (SELECT 1 FROM public.approval_workflows WHERE name = 'Quy trình tiêu chuẩn');
+
+INSERT INTO public.approval_workflows (name, description)
+SELECT 'Quy trình rút gọn', 'Nhân viên -> Trưởng phòng'
+WHERE NOT EXISTS (SELECT 1 FROM public.approval_workflows WHERE name = 'Quy trình rút gọn');
 
 -- Seed Steps for 'Quy trình tiêu chuẩn'
 DO $$
@@ -173,10 +178,14 @@ BEGIN
     INSERT INTO public.approval_workflow_steps (workflow_id, step_order, name, approver_role) VALUES
     (v_wf_std_id, 1, 'Trưởng phòng duyệt', 'Manager'),
     (v_wf_std_id, 2, 'Kế toán trưởng kiểm soát', 'Chief Accountant'),
-    (v_wf_std_id, 3, 'Giám đốc phê duyệt', 'Director');
+    (v_wf_std_id, 3, 'Giám đốc phê duyệt', 'Director')
+    ON CONFLICT (workflow_id, step_order) 
+    DO UPDATE SET name = EXCLUDED.name, approver_role = EXCLUDED.approver_role;
 
     -- Steps for Short Flow
     INSERT INTO public.approval_workflow_steps (workflow_id, step_order, name, approver_role) VALUES
     (v_wf_short_id, 1, 'Trưởng bộ phận', 'Manager'),
-    (v_wf_short_id, 2, 'Ban Giám đốc', 'Director');
+    (v_wf_short_id, 2, 'Ban Giám đốc', 'Director')
+    ON CONFLICT (workflow_id, step_order) 
+    DO UPDATE SET name = EXCLUDED.name, approver_role = EXCLUDED.approver_role;
 END $$;

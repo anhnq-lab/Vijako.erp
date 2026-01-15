@@ -1,6 +1,7 @@
 import React from 'react';
-import { ApprovalRequest, ApprovalStatus } from '../types';
+import { ApprovalRequest, ApprovalStatus, User } from '../types';
 import { approvalService } from '../src/services/approvalService';
+import { authService } from '../src/services/authService';
 import { showToast } from '../src/components/ui/Toast';
 
 // --- Reusable Modal Component ---
@@ -57,25 +58,38 @@ interface ApprovalDetailModalProps {
 export const ApprovalDetailModal: React.FC<ApprovalDetailModalProps> = ({ isOpen, onClose, approval: initialApproval, onUpdate }) => {
     const [approval, setApproval] = React.useState<any | null>(null);
     const [loading, setLoading] = React.useState(false);
+    const [currentUser, setCurrentUser] = React.useState<User | null>(null);
+    const [comment, setComment] = React.useState('');
 
     React.useEffect(() => {
-        const fetchDetails = async () => {
-            if (initialApproval?.id && isOpen) {
-                setLoading(true);
+        const fetchData = async () => {
+            if (isOpen) {
+                // Fetch current user
                 try {
-                    const data = await approvalService.getApprovalRequestById(initialApproval.id);
-                    setApproval(data);
+                    const user = await authService.getCurrentUser();
+                    setCurrentUser(user);
                 } catch (error) {
-                    console.error('Failed to load approval details', error);
-                } finally {
-                    setLoading(false);
+                    console.error('Failed to fetch user', error);
+                }
+
+                if (initialApproval?.id) {
+                    setLoading(true);
+                    try {
+                        const data = await approvalService.getApprovalRequestById(initialApproval.id);
+                        setApproval(data);
+                    } catch (error) {
+                        console.error('Failed to load approval details', error);
+                    } finally {
+                        setLoading(false);
+                    }
                 }
             } else {
                 setApproval(null);
+                setComment('');
             }
         };
 
-        fetchDetails();
+        fetchData();
     }, [initialApproval, isOpen]);
 
     if (!isOpen || !initialApproval) return null;
@@ -83,10 +97,13 @@ export const ApprovalDetailModal: React.FC<ApprovalDetailModalProps> = ({ isOpen
     const handleStatusUpdate = async (status: ApprovalStatus, stepId?: string) => {
         try {
             if (stepId) {
-                // Determine specific approver for the step - ideally from current user context
-                // For demo, we just use a placeholder ID or the current user's ID if available
-                const currentUserId = '00000000-0000-0000-0000-000000000001'; // Mock ID
-                await approvalService.updateStepStatus(stepId, status, currentUserId);
+                if (!currentUser?.employee_id) {
+                    showToast.error('Bạn chưa được liên kết với hồ sơ nhân viên để thực hiện phê duyệt.');
+                    return;
+                }
+
+                // Use actual employee ID from current user
+                await approvalService.updateStepStatus(stepId, status, currentUser.employee_id, comment);
             } else {
                 // Legacy fallback
                 await approvalService.updateApprovalStatus(initialApproval.id, status);
@@ -96,6 +113,7 @@ export const ApprovalDetailModal: React.FC<ApprovalDetailModalProps> = ({ isOpen
             onUpdate();
             onClose();
         } catch (error) {
+            console.error(error);
             showToast.error('Có lỗi xảy ra khi cập nhật trạng thái');
         }
     };
@@ -191,13 +209,29 @@ export const ApprovalDetailModal: React.FC<ApprovalDetailModalProps> = ({ isOpen
                                                     <div>
                                                         <p className="text-sm font-bold text-slate-800">{step.step_name}</p>
                                                         <p className="text-xs text-slate-500">{step.approver_role}</p>
+
+                                                        {/* Show actual approver name if available */}
+                                                        {step.approver_name && (
+                                                            <div className="flex items-center gap-1 mt-1">
+                                                                <span className="material-symbols-outlined text-[14px] text-slate-400">person</span>
+                                                                <span className="text-xs font-semibold text-slate-700">{step.approver_name}</span>
+                                                            </div>
+                                                        )}
+
                                                         {step.approved_at && (
                                                             <p className="text-[10px] text-green-600 mt-1">
-                                                                Đã duyệt: {new Date(step.approved_at).toLocaleDateString('vi-VN')}
+                                                                {step.status === 'approved' ? 'Đã duyệt' : 'Đã xử lý'}: {new Date(step.approved_at).toLocaleDateString('vi-VN')} {new Date(step.approved_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                                                             </p>
                                                         )}
                                                         {step.status === 'rejected' && (
                                                             <p className="text-[10px] text-red-600 mt-1 font-bold">Đã từ chối</p>
+                                                        )}
+
+                                                        {/* Show comments */}
+                                                        {step.comments && (
+                                                            <div className="mt-1.5 p-2 bg-yellow-50 border border-yellow-100 rounded-lg text-xs text-slate-700 italic">
+                                                                "{step.comments}"
+                                                            </div>
                                                         )}
                                                     </div>
                                                     <div>
@@ -213,6 +247,20 @@ export const ApprovalDetailModal: React.FC<ApprovalDetailModalProps> = ({ isOpen
                                             </div>
                                         ))}
                                     </div>
+                                </div>
+                            )}
+
+                            {/* Comment Input Section */}
+                            {((isWorkflow && currentStep) || (!isWorkflow && approval?.status === 'pending')) && (
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ý kiến / Ghi chú</label>
+                                    <textarea
+                                        value={comment}
+                                        onChange={(e) => setComment(e.target.value)}
+                                        placeholder="Nhập ghi chú cho quyết định phê duyệt/từ chối..."
+                                        rows={2}
+                                        className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-slate-400 resize-none"
+                                    />
                                 </div>
                             )}
 
