@@ -3,31 +3,31 @@
 -- but the previous RLS policies restricted access to 'authenticated' users only.
 
 -- 1. Contracts
-DROP POLICY IF EXISTS "Allow read contracts" ON contracts;
+DROP POLICY IF EXISTS "Allow public read contracts" ON contracts;
 CREATE POLICY "Allow public read contracts" ON contracts FOR SELECT USING (true);
 
 -- 2. Invoices
-DROP POLICY IF EXISTS "Allow read invoices" ON invoices;
+DROP POLICY IF EXISTS "Allow public read invoices" ON invoices;
 CREATE POLICY "Allow public read invoices" ON invoices FOR SELECT USING (true);
 
 -- 3. Payments
-DROP POLICY IF EXISTS "Allow read payments" ON payments;
+DROP POLICY IF EXISTS "Allow public read payments" ON payments;
 CREATE POLICY "Allow public read payments" ON payments FOR SELECT USING (true);
 
 -- 4. Payment Requests
-DROP POLICY IF EXISTS "Allow read payment_requests" ON payment_requests;
+DROP POLICY IF EXISTS "Allow public read payment_requests" ON payment_requests;
 CREATE POLICY "Allow public read payment_requests" ON payment_requests FOR SELECT USING (true);
 
 -- 5. Cash Flow Records
-DROP POLICY IF EXISTS "Allow read cashflow" ON cash_flow_records;
+DROP POLICY IF EXISTS "Allow public read cashflow" ON cash_flow_records;
 CREATE POLICY "Allow public read cashflow" ON cash_flow_records FOR SELECT USING (true);
 
 -- 6. Bank Guarantees
-DROP POLICY IF EXISTS "Allow read guarantees" ON bank_guarantees;
+DROP POLICY IF EXISTS "Allow public read guarantees" ON bank_guarantees;
 CREATE POLICY "Allow public read guarantees" ON bank_guarantees FOR SELECT USING (true);
 
 -- 7. Bidding Packages
-DROP POLICY IF EXISTS "Allow read bidding" ON bidding_packages;
+DROP POLICY IF EXISTS "Allow public read bidding" ON bidding_packages;
 CREATE POLICY "Allow public read bidding" ON bidding_packages FOR SELECT USING (true);
 
 -- 8. Projects (Ensure projects are also readable)

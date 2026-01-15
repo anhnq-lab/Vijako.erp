@@ -22,14 +22,16 @@ ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name;
 INSERT INTO contracts (contract_code, partner_name, project_id, contract_value, paid_amount, retention_amount, status, contract_type)
 VALUES 
   ('HD-2024/SLT-01', 'Skyline Invest Group', (SELECT id FROM projects WHERE code = 'SLT-01'), 15000000000, 5800000000, 0, 'active', 'revenue'),
-  ('HD-2024/RSV-05', 'Riverside Development', (SELECT id FROM projects WHERE code = 'RSV-01'), 8000000000, 0, 0, 'active', 'revenue');
+  ('HD-2024/RSV-05', 'Riverside Development', (SELECT id FROM projects WHERE code = 'RSV-01'), 8000000000, 0, 0, 'active', 'revenue')
+ON CONFLICT (contract_code) DO NOTHING;
 
 -- Expense Contracts
 INSERT INTO contracts (contract_code, partner_name, project_id, contract_value, paid_amount, retention_amount, status, contract_type)
 VALUES 
   ('HD-TP/HP-01', 'Thép Hòa Phát', (SELECT id FROM projects WHERE code = 'SLT-01'), 2000000000, 850000000, 100000000, 'active', 'expense'),
   ('HD-XM/HT-02', 'Xi măng Hà Tiên', (SELECT id FROM projects WHERE code = 'RSV-01'), 1200000000, 200000000, 60000000, 'active', 'expense'),
-  ('HD-NC/VJK-01', 'Nhân công An Phát', (SELECT id FROM projects WHERE code = 'SLT-01'), 500000000, 0, 0, 'active', 'expense');
+  ('HD-NC/VJK-01', 'Nhân công An Phát', (SELECT id FROM projects WHERE code = 'SLT-01'), 500000000, 0, 0, 'active', 'expense')
+ON CONFLICT (contract_code) DO NOTHING;
 
 -- 3. Create Invoices
 INSERT INTO invoices (invoice_code, invoice_type, project_id, contract_id, vendor_name, invoice_date, due_date, amount, total_amount, paid_amount, outstanding_amount, status)
@@ -40,7 +42,8 @@ VALUES
   
   ('PUR-2024-105', 'purchase', (SELECT id FROM projects WHERE code = 'SLT-01'), (SELECT id FROM contracts WHERE contract_code = 'HD-TP/HP-01'), 'Thép Hòa Phát', '2024-10-10', '2024-11-10', 850000000, 850000000, 0, 850000000, 'pending'),
   ('PUR-2024-106', 'purchase', (SELECT id FROM projects WHERE code = 'RSV-01'), (SELECT id FROM contracts WHERE contract_code = 'HD-XM/HT-02'), 'Xi măng Hà Tiên', '2024-10-12', '2024-11-12', 420000000, 420000000, 200000000, 220000000, 'pending'),
-  ('PUR-2024-099', 'purchase', (SELECT id FROM projects WHERE code = 'SLT-01'), (SELECT id FROM contracts WHERE contract_code = 'HD-NC/VJK-01'), 'Nhân công An Phát', '2024-09-25', '2024-10-25', 150000000, 150000000, 0, 150000000, 'overdue');
+  ('PUR-2024-099', 'purchase', (SELECT id FROM projects WHERE code = 'SLT-01'), (SELECT id FROM contracts WHERE contract_code = 'HD-NC/VJK-01'), 'Nhân công An Phát', '2024-09-25', '2024-10-25', 150000000, 150000000, 0, 150000000, 'overdue')
+ON CONFLICT (invoice_code) DO NOTHING;
 
 -- 4. Create Payments
 INSERT INTO payments (payment_code, payment_type, project_id, contract_id, partner_name, payment_date, amount, payment_method, status, description)
@@ -49,4 +52,5 @@ VALUES
   ('PAY-IN-002', 'receipt', (SELECT id FROM projects WHERE code = 'SLT-01'), (SELECT id FROM contracts WHERE contract_code = 'HD-2024/SLT-01'), 'Skyline Invest Group', '2024-09-05', 3800000000, 'bank_transfer', 'completed', 'Tạm ứng hợp đồng'),
   
   ('PAY-OUT-001', 'disbursement', (SELECT id FROM projects WHERE code = 'RSV-01'), (SELECT id FROM contracts WHERE contract_code = 'HD-XM/HT-02'), 'Xi măng Hà Tiên', '2024-10-20', 200000000, 'bank_transfer', 'completed', 'Thanh toán tiền xi măng đợt 1'),
-  ('PAY-OUT-002', 'disbursement', (SELECT id FROM projects WHERE code = 'SLT-01'), (SELECT id FROM contracts WHERE contract_code = 'HD-TP/HP-01'), 'Thép Hòa Phát', '2024-10-22', 50000000, 'cash', 'pending', 'Thanh toán vật tư phụ');
+  ('PAY-OUT-002', 'disbursement', (SELECT id FROM projects WHERE code = 'SLT-01'), (SELECT id FROM contracts WHERE contract_code = 'HD-TP/HP-01'), 'Thép Hòa Phát', '2024-10-22', 50000000, 'cash', 'pending', 'Thanh toán vật tư phụ')
+ON CONFLICT (payment_code) DO NOTHING;
