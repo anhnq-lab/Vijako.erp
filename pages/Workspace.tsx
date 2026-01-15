@@ -8,7 +8,10 @@ import { projectService } from '../src/services/projectService';
 import { diaryService } from '../src/services/diaryService';
 import { supplyChainService } from '../src/services/supplyChainService';
 import { documentService } from '../src/services/documentService';
-import { Alert, Project, Vendor } from '../types';
+import { Alert, Project, Vendor, ApprovalRequest } from '../types';
+import { approvalService } from '../src/services/approvalService';
+import { ApprovalDetailModal } from '../components/ApprovalDetailModal';
+import { CreateApprovalModal } from '../components/CreateApprovalModal';
 import { showToast } from '../src/components/ui/Toast';
 
 // --- Types & Mock Data ---
@@ -357,8 +360,11 @@ const PerformanceView = () => (
 
 export default function Workspace() {
     // --- State Management ---
-    const [approvals, setApprovals] = useState<Approval[]>([]);
+    const [approvals, setApprovals] = useState<ApprovalRequest[]>([]);
     const [selectedApprovals, setSelectedApprovals] = useState<string[]>([]);
+    const [currentApproval, setCurrentApproval] = useState<ApprovalRequest | null>(null);
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [tasks, setTasks] = useState<UserTask[]>([]);
     const [activeTab, setActiveTab] = useState<'all' | 'site' | 'doc'>('all');
     const [activeView, setActiveView] = useState<'tasks' | 'performance'>('tasks');
@@ -394,24 +400,9 @@ export default function Workspace() {
             setProjects(projectList);
             setVendors(vendorList);
 
-            // Find current project (Vijako Tower)
-            const vijako = projectList.find(p => p.code === 'P-001');
-            if (vijako) setActiveProject(vijako);
-
-            // Map Alerts to Approvals if they are of type 'approval' or 'contract'
-            const mappedApprovals = (alerts || [])
-                .filter(a => a.type === 'approval' || a.type === 'contract')
-                .map(a => ({
-                    id: a.id,
-                    type: a.type === 'approval' ? 'Phê duyệt' : 'Hợp đồng',
-                    code: a.source_id?.substring(0, 8).toUpperCase() || '#ID',
-                    title: a.title,
-                    subtitle: a.description || '',
-                    isUrgent: a.severity === 'high' || a.severity === 'critical',
-                    amount: a.due_date ? `Hạn: ${new Date(a.due_date).toLocaleDateString('vi-VN')}` : undefined
-                }));
-
-            setApprovals(mappedApprovals);
+            // Fetch Real Approvals
+            const realApprovals = await approvalService.getApprovalRequests();
+            setApprovals(realApprovals);
 
             if (checkIn) {
                 setIsCheckedIn(true);
@@ -425,7 +416,7 @@ export default function Workspace() {
     }, []);
 
     // --- Derived State (AI Logic) ---
-    const urgentCount = approvals.filter(a => a.isUrgent).length;
+    const urgentCount = approvals.filter(a => (a.priority === 'urgent' || a.priority === 'high') && a.status === 'pending').length;
     const taskDoneCount = tasks.filter(t => t.status === 'done').length;
     const taskTotalCount = tasks.length;
 
@@ -450,8 +441,13 @@ export default function Workspace() {
     };
 
     const handleSingleApprove = async (id: string) => {
-        await alertService.dismissAlert(id);
-        setApprovals(prev => prev.filter(a => a.id !== id));
+        try {
+            await approvalService.updateApprovalStatus(id, 'approved');
+            showToast.success("Đã phê duyệt đề xuất");
+            setApprovals(prev => prev.map(a => a.id === id ? { ...a, status: 'approved' } : a));
+        } catch (error) {
+            showToast.error("Lỗi khi phê duyệt");
+        }
     };
 
     const handleTaskComplete = async (id: string) => {
@@ -635,9 +631,14 @@ export default function Workspace() {
                             <div className="flex items-center justify-between mt-2">
                                 <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                                     Cần phê duyệt
-                                    {approvals.length > 0 && <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm shadow-red-500/30">{approvals.length}</span>}
+                                    {approvals.length > 0 && <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm shadow-red-500/30">{approvals.filter(a => a.status === 'pending').length}</span>}
                                 </h3>
-                                <button className="text-xs text-primary font-bold hover:underline">Lịch sử</button>
+                                <button
+                                    onClick={() => setIsCreateOpen(true)}
+                                    className="text-xs text-primary font-bold hover:underline flex items-center gap-1"
+                                >
+                                    <span className="material-symbols-outlined text-[14px]">add</span> Tạo đề xuất
+                                </button>
                             </div>
 
                             {/* Batch Action Bar - Only shows if items selected */}
@@ -662,13 +663,29 @@ export default function Workspace() {
                                     </div>
                                 ) : (
                                     approvals.map(app => (
-                                        <ApprovalCard
+                                        <div
                                             key={app.id}
-                                            data={app}
-                                            selected={selectedApprovals.includes(app.id)}
-                                            onToggle={() => toggleApprovalSelect(app.id)}
-                                            onQuickApprove={() => handleSingleApprove(app.id)}
-                                        />
+                                            onClick={() => {
+                                                setCurrentApproval(app);
+                                                setIsDetailOpen(true);
+                                            }}
+                                            className="cursor-pointer"
+                                        >
+                                            <ApprovalCard
+                                                data={{
+                                                    id: app.id,
+                                                    title: app.title,
+                                                    subtitle: app.description || '',
+                                                    type: app.type,
+                                                    code: app.id.slice(0, 8).toUpperCase(),
+                                                    isUrgent: app.priority === 'urgent' || app.priority === 'high',
+                                                    amount: `Dự án: ${app.project_name || 'N/A'}`
+                                                }}
+                                                selected={selectedApprovals.includes(app.id)}
+                                                onToggle={() => toggleApprovalSelect(app.id)}
+                                                onQuickApprove={() => handleSingleApprove(app.id)}
+                                            />
+                                        </div>
                                     ))
                                 )}
                             </div>
@@ -984,6 +1001,27 @@ export default function Workspace() {
                     </section>
                 </div>
             </main>
+
+            {/* Modals */}
+            <ApprovalDetailModal
+                isOpen={isDetailOpen}
+                onClose={() => setIsDetailOpen(false)}
+                approval={currentApproval}
+                onUpdate={async () => {
+                    const data = await approvalService.getApprovalRequests();
+                    setApprovals(data);
+                }}
+            />
+
+            <CreateApprovalModal
+                isOpen={isCreateOpen}
+                onClose={() => setIsCreateOpen(false)}
+                onCreated={async () => {
+                    const data = await approvalService.getApprovalRequests();
+                    setApprovals(data);
+                }}
+                projects={projects}
+            />
         </div>
     );
 }

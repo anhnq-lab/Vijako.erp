@@ -25,10 +25,13 @@ export const tools: Record<string, Tool> = {
             required: ['project_code'],
         },
         execute: async ({ project_code }) => {
+            const projectId = await resolveProjectId(project_code);
+            if (!projectId) return { error: `Không tìm thấy dự án nào khớp với "${project_code}"` };
+
             const { data, error } = await supabase
                 .from('projects')
                 .select('*')
-                .or(`code.eq.${project_code},name.ilike.%${project_code}%`)
+                .eq('id', projectId)
                 .single();
 
             if (error) return { error: error.message };
@@ -619,12 +622,13 @@ async function resolveProjectId(identifier: string): Promise<string | null> {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (uuidRegex.test(identifier)) return identifier;
 
-    // Otherwise search by code or name
+    // Otherwise search by code or name (case-insensitive)
     const { data } = await supabase
         .from('projects')
         .select('id')
-        .or(`code.eq.${identifier},name.ilike.%${identifier}%`)
-        .single();
+        .or(`code.ilike.${identifier},name.ilike.%${identifier}%`)
+        .limit(1)
+        .maybeSingle();
 
     return data?.id || null;
 }
