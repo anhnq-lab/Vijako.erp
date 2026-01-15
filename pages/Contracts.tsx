@@ -51,21 +51,81 @@ export default function Contracts() {
         const loadData = async () => {
             try {
                 setLoading(true);
+                console.log("Starting to load contracts data...");
+
+                // Fetch data individually to identify hanging queries
+                const fetchContracts = async () => {
+                    try {
+                        const data = await financeService.getAllContracts();
+                        console.log("Contracts loaded:", data?.length || 0);
+                        return data;
+                    } catch (e) {
+                        console.error("Error loading contracts:", e);
+                        return [];
+                    }
+                };
+
+                const fetchPackages = async () => {
+                    try {
+                        const data = await financeService.getAllBiddingPackages();
+                        console.log("Packages loaded:", data?.length || 0);
+                        return data;
+                    } catch (e) {
+                        console.error("Error loading packages:", e);
+                        return [];
+                    }
+                };
+
+                const fetchGuarantees = async () => {
+                    try {
+                        const data = await financeService.getAllBankGuarantees();
+                        console.log("Guarantees loaded:", data?.length || 0);
+                        return data;
+                    } catch (e) {
+                        console.error("Error loading guarantees:", e);
+                        return [];
+                    }
+                };
+
+                const fetchProjects = async () => {
+                    try {
+                        const data = await projectService.getAllProjects();
+                        console.log("Projects loaded:", data?.length || 0);
+                        return data;
+                    } catch (e) {
+                        console.error("Error loading projects:", e);
+                        return [];
+                    }
+                };
+
                 const [cData, pData, gData, projectData] = await Promise.all([
-                    financeService.getAllContracts(),
-                    financeService.getAllBiddingPackages(),
-                    financeService.getAllBankGuarantees(),
-                    projectService.getAllProjects()
+                    fetchContracts(),
+                    fetchPackages(),
+                    fetchGuarantees(),
+                    fetchProjects()
                 ]);
 
-                // Map project_name for contracts
-                // We'll need project names for display
-                setContracts(cData);
-                setPackages(pData);
-                setGuarantees(gData);
-                setProjects(projectData);
+                // Map project names to contracts if needed
+                if (cData && projectData) {
+                    const mappedContracts = cData.map(contract => {
+                        const project = projectData.find(p => p.id === contract.project_id);
+                        return {
+                            ...contract,
+                            project_name: project?.name || 'Chưa phân bổ'
+                        };
+                    });
+                    setContracts(mappedContracts);
+                } else {
+                    setContracts(cData || []);
+                }
+
+                setPackages(pData || []);
+                setGuarantees(gData || []);
+                setProjects(projectData || []);
+
+                console.log("All data loading complete.");
             } catch (error) {
-                console.error("Failed to load contracts data:", error);
+                console.error("Critical error in loadData:", error);
             } finally {
                 setLoading(false);
             }

@@ -10,8 +10,13 @@ import {
     IPCFinancialSummary,
     IPCStatus,
     VariationStatus,
-    VariationType
+    VariationType,
+    Contract
 } from '../../types';
+
+export interface ContractWithPaymentStatus extends Contract {
+    payment_contract?: PaymentContract;
+}
 
 export type {
     PaymentContract,
@@ -124,6 +129,41 @@ export const getAllPaymentContracts = async (): Promise<PaymentContract[]> => {
             contract_name: contracts?.name,
             partner_name: contracts?.partner_name,
             project_name: projects?.name
+        };
+    });
+};
+
+/**
+ * Lấy tất cả hợp đồng kèm theo trạng thái cấu hình thanh toán (payment_contracts)
+ */
+export const getContractsWithPaymentStatus = async (): Promise<ContractWithPaymentStatus[]> => {
+    // 1. Lấy tất cả hợp đồng gốc
+    const { data: contracts, error: contractError } = await supabase
+        .from('contracts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (contractError) {
+        console.error('Error fetching baseline contracts:', contractError);
+        throw contractError;
+    }
+
+    // 2. Lấy tất cả cấu hình thanh toán
+    const { data: paymentConfigs, error: configError } = await supabase
+        .from('payment_contracts')
+        .select('*');
+
+    if (configError) {
+        console.error('Error fetching payment configs:', configError);
+        throw configError;
+    }
+
+    // 3. Map chúng lại với nhau
+    return (contracts || []).map(contract => {
+        const config = (paymentConfigs || []).find(pc => pc.contract_id === contract.id);
+        return {
+            ...contract,
+            payment_contract: config
         };
     });
 };

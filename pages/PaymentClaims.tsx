@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line } from 'recharts';
-import { paymentClaimService, PaymentContract, InterimPaymentClaim, Variation } from '../src/services/paymentClaimService';
-import { financeService } from '../src/services/financeService';
+import { paymentClaimService, PaymentContract, InterimPaymentClaim, Variation, ContractWithPaymentStatus } from '../src/services/paymentClaimService';
+import { financeService, Contract } from '../src/services/financeService';
 import { Badge } from '../src/components/ui/CommonComponents';
 import { IPCFormModal } from '../src/components/IPCFormModal';
 import { ImportBOQModal } from '../src/components/ImportBOQModal';
 import { VariationModal } from '../src/components/VariationModal';
 import { IPCApprovalModal } from '../src/components/IPCApprovalModal';
+import { PaymentContractModal } from '../src/components/PaymentContractModal';
 import { showToast as toast } from '../src/components/ui/Toast';
 
 // Status badge helper
@@ -35,7 +36,7 @@ const getVariationStatusBadge = (status: string) => {
 
 export default function PaymentClaims() {
     const [activeTab, setActiveTab] = useState<'dashboard' | 'contracts' | 'ipcs' | 'variations'>('dashboard');
-    const [paymentContracts, setPaymentContracts] = useState<PaymentContract[]>([]);
+    const [paymentContracts, setPaymentContracts] = useState<ContractWithPaymentStatus[]>([]);
     const [ipcs, setIpcs] = useState<InterimPaymentClaim[]>([]);
     const [variations, setVariations] = useState<Variation[]>([]);
     const [loading, setLoading] = useState(true);
@@ -46,11 +47,13 @@ export default function PaymentClaims() {
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [isVariationModalOpen, setIsVariationModalOpen] = useState(false);
     const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
+    const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
 
     // Selection states
-    const [selectedContract, setSelectedContract] = useState<PaymentContract | null>(null);
+    const [selectedContract, setSelectedContract] = useState<ContractWithPaymentStatus | null>(null);
     const [selectedIPC, setSelectedIPC] = useState<InterimPaymentClaim | null>(null);
     const [selectedVariation, setSelectedVariation] = useState<Variation | null>(null);
+    const [baselineContract, setBaselineContract] = useState<Contract | null>(null);
 
     useEffect(() => {
         fetchData();
@@ -60,19 +63,21 @@ export default function PaymentClaims() {
         setLoading(true);
         setError(null);
         try {
-            const contractsData = await paymentClaimService.getAllPaymentContracts();
+            const contractsData = await paymentClaimService.getContractsWithPaymentStatus();
             setPaymentContracts(contractsData || []);
 
             const allIpcs: InterimPaymentClaim[] = [];
-            for (const contract of contractsData || []) {
-                const contractIpcs = await paymentClaimService.getIPCsByContract(contract.id);
+            const initializedContracts = (contractsData || []).filter(c => c.payment_contract);
+
+            for (const contract of initializedContracts) {
+                const contractIpcs = await paymentClaimService.getIPCsByContract(contract.payment_contract!.id);
                 allIpcs.push(...contractIpcs);
             }
             setIpcs(allIpcs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
 
             const allVariations: Variation[] = [];
-            for (const contract of contractsData || []) {
-                const contractVariations = await paymentClaimService.getVariationsByContract(contract.id);
+            for (const contract of initializedContracts) {
+                const contractVariations = await paymentClaimService.getVariationsByContract(contract.payment_contract!.id);
                 allVariations.push(...contractVariations);
             }
             setVariations(allVariations.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
@@ -87,22 +92,29 @@ export default function PaymentClaims() {
 
     // Handlers
     const handleCreateIPC = () => {
-        if (paymentContracts.length === 0) {
-            toast.error('Vui lòng tạo điều khoản thanh toán cho hợp đồng trước');
+        const initializedContracts = paymentContracts.filter(c => c.payment_contract);
+        if (initializedContracts.length === 0) {
+            toast.error('Vui lòng thiết lập điều khoản thanh toán cho ít nhất một hợp đồng trước');
+            setActiveTab('contracts');
             return;
         }
-        setSelectedContract(paymentContracts[0]); // Tạm thời lấy cái đầu tiên, thực tế chọn từ list
+        setSelectedContract(initializedContracts[0]);
         setSelectedIPC(null);
         setIsIPCModalOpen(true);
     };
 
-    const handleImportBOQ = (contract: PaymentContract) => {
+    const handleImportBOQ = (contract: ContractWithPaymentStatus) => {
+        if (!contract.payment_contract) {
+            setBaselineContract(contract);
+            setIsConfigModalOpen(true);
+            return;
+        }
         setSelectedContract(contract);
         setIsImportModalOpen(true);
     };
 
     const handleOpenIPC = (ipc: InterimPaymentClaim) => {
-        const contract = paymentContracts.find(pc => pc.id === ipc.payment_contract_id);
+        const contract = paymentContracts.find(pc => pc.payment_contract?.id === ipc.payment_contract_id);
         if (contract) {
             setSelectedContract(contract);
             setSelectedIPC(ipc);
@@ -116,10 +128,16 @@ export default function PaymentClaims() {
     };
 
     const handleCreateVariation = () => {
-        if (paymentContracts.length === 0) return;
-        setSelectedContract(paymentContracts[0]);
+        const initializedContracts = paymentContracts.filter(c => c.payment_contract);
+        if (initializedContracts.length === 0) return;
+        setSelectedContract(initializedContracts[0]);
         setSelectedVariation(null);
         setIsVariationModalOpen(true);
+    };
+
+    const handleConfigureContract = (contract: Contract) => {
+        setBaselineContract(contract);
+        setIsConfigModalOpen(true);
     };
 
     const handleExportIPC = async (e: React.MouseEvent, ipcId: string) => {
@@ -409,24 +427,55 @@ export default function PaymentClaims() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-50">
-                                        {paymentContracts.map((pc) => {
-                                            const contractIpcs = ipcs.filter(ipc => ipc.payment_contract_id === pc.id);
+                                        {paymentContracts.map((c) => {
+                                            const pc = c.payment_contract;
+                                            const contractIpcs = pc ? ipcs.filter(ipc => ipc.payment_contract_id === pc.id) : [];
+
                                             return (
                                                 <tr
-                                                    key={pc.id}
-                                                    onClick={() => handleImportBOQ(pc)}
-                                                    className="hover:bg-slate-50/80 transition-premium cursor-pointer"
+                                                    key={c.id}
+                                                    onClick={() => handleImportBOQ(c)}
+                                                    className="hover:bg-slate-50/80 transition-premium cursor-pointer group"
                                                 >
-                                                    <td className="px-6 py-5 font-black text-slate-900">{pc.contract_code}</td>
-                                                    <td className="px-6 py-5 font-bold text-slate-600">{pc.partner_name}</td>
-                                                    <td className="px-6 py-5 text-right font-bold text-amber-600">{pc.retention_percent}%</td>
-                                                    <td className="px-6 py-5 text-right font-black text-slate-900">{pc.advance_payment_amount.toLocaleString()}</td>
+                                                    <td className="px-6 py-5 font-black text-slate-900">{c.contract_code}</td>
+                                                    <td className="px-6 py-5 font-bold text-slate-600">{c.partner_name}</td>
+                                                    <td className="px-6 py-5 text-right">
+                                                        {pc ? (
+                                                            <span className="font-bold text-amber-600">{pc.retention_percent}%</span>
+                                                        ) : (
+                                                            <span className="text-slate-300 italic text-[10px]">Chưa thiết lập</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-5 text-right font-black text-slate-900">
+                                                        {pc ? pc.advance_payment_amount.toLocaleString() : '-'}
+                                                    </td>
                                                     <td className="px-6 py-5 text-center">
-                                                        <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold">{contractIpcs.length} đợt</span>
+                                                        {pc ? (
+                                                            <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold">{contractIpcs.length} đợt</span>
+                                                        ) : (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleConfigureContract(c);
+                                                                }}
+                                                                className="px-4 py-2 bg-primary-accent/10 text-primary-accent rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-accent hover:text-white transition-premium"
+                                                            >
+                                                                Thiết lập ngay
+                                                            </button>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             );
                                         })}
+                                        {paymentContracts.length === 0 && (
+                                            <tr>
+                                                <td colSpan={5} className="py-20 text-center">
+                                                    <span className="material-symbols-outlined text-slate-200 text-[64px] mb-4">contract</span>
+                                                    <p className="text-slate-400 font-bold">Không tìm thấy hợp đồng nào trong hệ thống</p>
+                                                    <p className="text-sm text-slate-400">Vui lòng tạo hợp đồng tại module Quản lý Hợp đồng trước</p>
+                                                </td>
+                                            </tr>
+                                        )}
                                     </tbody>
                                 </table>
                             </div>
@@ -599,11 +648,20 @@ export default function PaymentClaims() {
                     <VariationModal
                         isOpen={isVariationModalOpen}
                         onClose={() => setIsVariationModalOpen(false)}
-                        paymentContract={selectedContract}
+                        paymentContract={selectedContract.payment_contract!}
                         variation={selectedVariation || undefined}
                         onSuccess={fetchData}
                     />
                 </>
+            )}
+
+            {baselineContract && (
+                <PaymentContractModal
+                    isOpen={isConfigModalOpen}
+                    onClose={() => setIsConfigModalOpen(false)}
+                    contract={baselineContract}
+                    onSuccess={fetchData}
+                />
             )}
 
             {selectedIPC && (
