@@ -604,14 +604,14 @@ export const calculateIPCFinancials = async (ipcId: string): Promise<IPCFinancia
     // = Net Payment lũy kế - Net Payment kỳ trước
     const { data: lastIPC } = await supabase
         .from('interim_payment_claims')
-        .select('net_payment')
+        .select('net_payment, certified_net_payment')
         .eq('payment_contract_id', ipc.payment_contract_id)
         .neq('id', ipcId)
         .lt('created_at', ipc.created_at || new Date().toISOString())
         .order('created_at', { ascending: false })
         .limit(1);
 
-    const cumulative_net_payment_prev = lastIPC?.[0]?.net_payment || 0;
+    const cumulative_net_payment_prev = lastIPC?.[0]?.certified_net_payment ?? lastIPC?.[0]?.net_payment ?? 0;
     const current_period_net_payment = net_payment - cumulative_net_payment_prev;
 
     const summary: IPCFinancialSummary = {

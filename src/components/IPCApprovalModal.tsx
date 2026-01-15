@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, CheckCircle, XCircle, MessageSquare, ShieldCheck, History } from 'lucide-react';
-import { paymentClaimService, InterimPaymentClaim, IPCWorkflowHistory, IPCStatus } from '../services/paymentClaimService';
+import { paymentClaimService, InterimPaymentClaim, IPCWorkflowHistory, IPCStatus, IPCFinancialSummary } from '../services/paymentClaimService';
 import { showToast as toast } from './ui/Toast';
 
 interface IPCApprovalModalProps {
@@ -17,7 +17,17 @@ export const IPCApprovalModal: React.FC<IPCApprovalModalProps> = ({
     onSuccess
 }) => {
     const [comment, setComment] = useState('');
-    const [certifiedAmount, setCertifiedAmount] = useState(ipc.net_payment);
+    const [certifiedDetails, setCertifiedDetails] = useState<Partial<IPCFinancialSummary>>({
+        works_executed_amount: ipc.works_executed_amount || 0,
+        variations_amount: ipc.variations_amount || 0,
+        mos_amount: ipc.mos_amount || 0,
+        gross_total: ipc.gross_total || 0,
+        retention_amount: ipc.retention_amount || 0,
+        advance_repayment: ipc.advance_repayment || 0,
+        net_payment: ipc.net_payment || 0,
+        vat_amount: ipc.vat_amount || 0,
+        total_with_vat: ipc.total_with_vat || 0
+    });
     const [history, setHistory] = useState<IPCWorkflowHistory[]>([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -40,13 +50,32 @@ export const IPCApprovalModal: React.FC<IPCApprovalModalProps> = ({
         }
     };
 
+    const updateCertifiedSummary = (updates: Partial<IPCFinancialSummary>) => {
+        setCertifiedDetails(prev => {
+            const next = { ...prev, ...updates };
+            // Recalculate totals
+            const gross = (next.works_executed_amount || 0) + (next.variations_amount || 0) + (next.mos_amount || 0);
+            const net = gross - (next.retention_amount || 0) - (next.advance_repayment || 0);
+            const vat = net * 0.1; // Standard 10%
+            const total = net + vat;
+
+            return {
+                ...next,
+                gross_total: gross,
+                net_payment: net,
+                vat_amount: vat,
+                total_with_vat: total
+            };
+        });
+    };
+
     const handleAction = async (action: 'approve' | 'reject') => {
         setSubmitting(true);
         try {
             toast.loading(action === 'approve' ? 'Đang phê duyệt...' : 'Đang từ chối...');
 
             if (action === 'approve') {
-                await paymentClaimService.certifyIPC(ipc.id, certifiedAmount, 'Ban Giám đốc');
+                await paymentClaimService.certifyIPC(ipc.id, certifiedDetails, 'Ban Giám đốc');
                 toast.dismiss();
                 toast.success('Đã phê duyệt hồ sơ thanh toán');
             } else {
