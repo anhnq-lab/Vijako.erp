@@ -3,17 +3,21 @@ import { TaskBoard } from '../src/components/TaskBoard';
 import { TaskTable } from '../src/components/TaskTable';
 import { WBSTable } from '../src/components/WBSTable';
 import { TaskDetailModal } from '../src/components/TaskDetailModal';
+import { CreateTaskModal } from '../src/components/CreateTaskModal';
 import { projectService } from '../src/services/projectService';
-import { UserTask, Project, WBSItem } from '../types';
+import { hrmService } from '../src/services/hrmService';
+import { UserTask, Project, WBSItem, Employee } from '../types';
 import { showToast } from '../src/components/ui/Toast';
 
 const TaskManagement = () => {
     const [tasks, setTasks] = useState<UserTask[]>([]);
     const [loading, setLoading] = useState(true);
+    const [employees, setEmployees] = useState<Employee[]>([]);
     const [activeTab, setActiveTab] = useState<'my_tasks' | 'project_tasks'>('my_tasks');
     const [viewMode, setViewMode] = useState<'board' | 'list'>('board');
     const [selectedTask, setSelectedTask] = useState<UserTask | null>(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     // Project WBS States
     const [projects, setProjects] = useState<Project[]>([]);
@@ -35,6 +39,10 @@ const TaskManagement = () => {
             // Also fetch projects list
             const projectList = await projectService.getAllProjects();
             setProjects(projectList);
+
+            // Fetch employees for assignee display
+            const employeeList = await hrmService.getAllEmployees();
+            setEmployees(employeeList);
         } catch (error) {
             console.error(error);
             showToast.error('Không thể tải danh sách công việc');
@@ -84,23 +92,8 @@ const TaskManagement = () => {
         setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
     };
 
-    const handleQuickCreate = async () => {
-        // Demo quick create
-        try {
-            const newTask = await projectService.createUserTask({
-                title: 'Công việc mới (Demo)',
-                description: 'Được tạo nhanh từ dashboard',
-                status: 'todo',
-                priority: 'normal',
-                due_date: new Date().toISOString()
-            });
-            if (newTask) {
-                setTasks(prev => [...prev, newTask]);
-                showToast.success('Đã tạo công việc mới');
-            }
-        } catch (error) {
-            showToast.error('Lỗi khi tạo công việc');
-        }
+    const handleCreateSuccess = (newTask: UserTask) => {
+        setTasks(prev => [newTask, ...prev]);
     };
 
     const handleGenerateSampleData = async () => {
@@ -170,7 +163,7 @@ const TaskManagement = () => {
                         </button>
                     </div>
                     <button
-                        onClick={handleQuickCreate}
+                        onClick={() => setIsCreateModalOpen(true)}
                         className="bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-primary-light shadow-premium transition-premium flex items-center gap-2"
                     >
                         <span className="material-symbols-outlined text-[20px]">add</span>
@@ -193,7 +186,7 @@ const TaskManagement = () => {
                         <p className="mb-6 max-w-sm text-center">Bạn chưa có công việc nào trong danh sách. Hãy tạo mới hoặc tạo dữ liệu mẫu để thử nghiệm.</p>
                         <div className="flex gap-3">
                             <button
-                                onClick={handleQuickCreate}
+                                onClick={() => setIsCreateModalOpen(true)}
                                 className="px-4 py-2 rounded-xl border border-slate-300 font-bold text-slate-600 hover:bg-slate-50 transition-premium"
                             >
                                 Tạo một việc
@@ -211,12 +204,14 @@ const TaskManagement = () => {
                         viewMode === 'board' ? (
                             <TaskBoard
                                 tasks={tasks}
+                                employees={employees}
                                 onStatusChange={handleStatusChange}
                                 onTaskClick={handleTaskClick}
                             />
                         ) : (
                             <TaskTable
                                 tasks={tasks}
+                                employees={employees}
                                 onStatusChange={handleStatusChange}
                                 onTaskClick={handleTaskClick}
                             />
@@ -267,6 +262,12 @@ const TaskManagement = () => {
                 isOpen={isDetailModalOpen}
                 onClose={() => setIsDetailModalOpen(false)}
                 onUpdate={handleTaskUpdate}
+            />
+
+            <CreateTaskModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSuccess={handleCreateSuccess}
             />
         </div>
     );

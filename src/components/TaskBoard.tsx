@@ -1,8 +1,9 @@
 import React from 'react';
-import { UserTask } from '../../types';
+import { UserTask, Employee } from '../../types';
 
 interface TaskBoardProps {
     tasks: UserTask[];
+    employees?: Employee[];
     onStatusChange: (taskId: string, newStatus: UserTask['status']) => void;
     onTaskClick: (task: UserTask) => void;
 }
@@ -14,7 +15,7 @@ const COLUMNS: { id: UserTask['status']; title: string; color: string }[] = [
     { id: 'done', title: 'Hoàn thành', color: 'bg-green-50 border-green-200' },
 ];
 
-export const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, onStatusChange, onTaskClick }) => {
+export const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, employees = [], onStatusChange, onTaskClick }) => {
     const handleDragStart = (e: React.DragEvent, taskId: string) => {
         e.dataTransfer.setData('taskId', taskId);
     };
@@ -80,8 +81,27 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, onStatusChange, onT
                                     )}
                                     <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-50">
                                         <div className="flex items-center -space-x-1.5">
-                                            {/* Avatar placeholder - ideal would be task.assigness */}
-                                            <div className="size-5 rounded-full bg-indigo-100 border border-white flex items-center justify-center text-[10px] text-indigo-700 font-bold">QA</div>
+                                            {task.assignee_ids && task.assignee_ids.length > 0 ? (
+                                                task.assignee_ids.map((id) => {
+                                                    const emp = employees.find(e => e.user_id === id || e.id === id);
+                                                    if (!emp) return null;
+                                                    return (
+                                                        <div key={id} className="size-6 rounded-full bg-white border-2 border-white flex items-center justify-center overflow-hidden shadow-sm" title={emp.full_name}>
+                                                            {emp.avatar_url ? (
+                                                                <img src={emp.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <div className="w-full h-full bg-indigo-100 flex items-center justify-center text-[10px] text-indigo-700 font-bold">
+                                                                    {emp.full_name.charAt(0)}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })
+                                            ) : (
+                                                <div className="size-6 rounded-full bg-slate-50 border-2 border-white flex items-center justify-center text-[10px] text-slate-400">
+                                                    <span className="material-symbols-outlined text-[14px]">person</span>
+                                                </div>
+                                            )}
                                         </div>
                                         <span className="material-symbols-outlined text-[16px] text-slate-300 group-hover:text-primary transition-colors">edit</span>
                                     </div>

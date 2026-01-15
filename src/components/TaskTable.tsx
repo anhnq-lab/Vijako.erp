@@ -1,19 +1,21 @@
 import React from 'react';
-import { UserTask } from '../../types';
+import { UserTask, Employee } from '../../types';
 
 interface TaskTableProps {
     tasks: UserTask[];
+    employees?: Employee[];
     onStatusChange: (taskId: string, newStatus: UserTask['status']) => void;
     onTaskClick: (task: UserTask) => void;
 }
 
-export const TaskTable: React.FC<TaskTableProps> = ({ tasks, onStatusChange, onTaskClick }) => {
+export const TaskTable: React.FC<TaskTableProps> = ({ tasks, employees = [], onStatusChange, onTaskClick }) => {
     return (
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <table className="w-full text-left border-collapse">
                 <thead>
                     <tr className="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider font-bold">
                         <th className="p-4 w-[40%]">Công việc</th>
+                        <th className="p-4">Người thực hiện</th>
                         <th className="p-4">Trạng thái</th>
                         <th className="p-4">Ưu tiên</th>
                         <th className="p-4">Hạn chót</th>
@@ -34,14 +36,37 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, onStatusChange, onT
                                 )}
                             </td>
                             <td className="p-4">
+                                <div className="flex items-center -space-x-1.5">
+                                    {task.assignee_ids && task.assignee_ids.length > 0 ? (
+                                        task.assignee_ids.map((id) => {
+                                            const emp = employees.find(e => e.user_id === id || e.id === id);
+                                            if (!emp) return null;
+                                            return (
+                                                <div key={id} className="size-8 rounded-full bg-white border-2 border-white flex items-center justify-center overflow-hidden shadow-sm" title={emp.full_name}>
+                                                    {emp.avatar_url ? (
+                                                        <img src={emp.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-indigo-100 flex items-center justify-center text-xs text-indigo-700 font-bold">
+                                                            {emp.full_name.charAt(0)}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })
+                                    ) : (
+                                        <span className="text-slate-400 text-xs italic">--</span>
+                                    )}
+                                </div>
+                            </td>
+                            <td className="p-4">
                                 <select
                                     value={task.status}
                                     onClick={(e) => e.stopPropagation()}
                                     onChange={(e) => onStatusChange(task.id, e.target.value as UserTask['status'])}
                                     className={`px-2 py-1 rounded-md text-xs font-bold border-0 cursor-pointer outline-none focus:ring-2 focus:ring-primary/20 transition-all ${task.status === 'done' ? 'bg-green-100 text-green-700' :
-                                            task.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
-                                                task.status === 'blocked' ? 'bg-red-100 text-red-700' :
-                                                    'bg-slate-100 text-slate-700'
+                                        task.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
+                                            task.status === 'blocked' ? 'bg-red-100 text-red-700' :
+                                                'bg-slate-100 text-slate-700'
                                         }`}
                                 >
                                     <option value="todo">Cần làm</option>
@@ -52,12 +77,12 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, onStatusChange, onT
                             </td>
                             <td className="p-4">
                                 <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-bold ${task.priority === 'high' ? 'bg-red-50 text-red-600' :
-                                        task.priority === 'low' ? 'bg-slate-50 text-slate-500' :
-                                            'bg-indigo-50 text-indigo-600'
+                                    task.priority === 'low' ? 'bg-slate-50 text-slate-500' :
+                                        'bg-indigo-50 text-indigo-600'
                                     }`}>
                                     <div className={`size-1.5 rounded-full ${task.priority === 'high' ? 'bg-red-500' :
-                                            task.priority === 'low' ? 'bg-slate-400' :
-                                                'bg-indigo-500'
+                                        task.priority === 'low' ? 'bg-slate-400' :
+                                            'bg-indigo-500'
                                         }`} />
                                     {task.priority === 'high' ? 'Cao' : task.priority === 'low' ? 'Thấp' : 'Trung bình'}
                                 </span>
@@ -65,8 +90,8 @@ export const TaskTable: React.FC<TaskTableProps> = ({ tasks, onStatusChange, onT
                             <td className="p-4">
                                 {task.due_date ? (
                                     <span className={`text-sm flex items-center gap-1.5 ${new Date(task.due_date) < new Date() && task.status !== 'done'
-                                            ? 'text-red-600 font-bold'
-                                            : 'text-slate-600'
+                                        ? 'text-red-600 font-bold'
+                                        : 'text-slate-600'
                                         }`}>
                                         <span className="material-symbols-outlined text-[16px]">calendar_today</span>
                                         {new Date(task.due_date).toLocaleDateString('vi-VN')}

@@ -451,6 +451,7 @@ export interface UserTask {
   status: 'todo' | 'in_progress' | 'done' | 'blocked';
   priority: 'high' | 'normal' | 'low';
   due_date?: string;
+  assignee_ids?: string[]; // List of user IDs assigned to this task
   created_at: string;
 }
 
