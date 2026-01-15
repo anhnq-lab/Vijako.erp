@@ -27,7 +27,7 @@ CREATE POLICY "Public access" ON public.projects FOR ALL USING (true);
 -- Insert mock data seed
 INSERT INTO public.projects (code, name, location, manager, progress, plan_progress, status)
 VALUES 
-('P-001', 'Vijako Tower - Giai đoạn 2', 'KĐT Tây Hồ Tây, Hà Nội', 'Nguyễn Văn An', 45, 48, 'active'),
+('P-001', 'Vijako Tower - Giai đoạn 2', 'KĐT Tây Hồ Tây, Hà Nội', 'Nguyễn Quốc Anh', 45, 48, 'active'),
 ('P-002', 'Khu Công nghiệp Trấn Yên', 'Trấn Yên, Yên Bái', 'Trần Văn Bình', 80, 75, 'active'),
 ('P-003', 'The Nine Tower', 'Cầu Giấy, Hà Nội', 'Lê Văn Cường', 100, 100, 'completed'),
 ('P-004', 'Aeon Mall Huế', 'TP. Huế', 'Phạm Văn Dũng', 10, 15, 'pending')
@@ -94,7 +94,7 @@ CREATE POLICY "Public access" ON public.contracts FOR ALL USING (true);
 -- Seed Employees
 INSERT INTO public.employees (employee_code, full_name, role, department, site, status)
 VALUES 
-('VJ-0056', 'Nguyễn Văn An', 'Chỉ huy trưởng', 'Ban QLDA', 'Vijako Tower', 'active'),
+('VJ-0056', 'Nguyễn Quốc Anh', 'Giám đốc dự án', 'Ban QLDA', 'Vijako Tower', 'active'),
 ('VJ-0112', 'Trần Thị Bình', 'Kế toán công trường', 'Phòng Kế toán', 'Vijako Tower', 'active'),
 ('VJ-0089', 'Lê Hoàng Cường', 'Giám sát MEP', 'Kỹ thuật', 'The Nine', 'leave')
 ON CONFLICT (employee_code) DO NOTHING;

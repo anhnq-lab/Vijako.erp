@@ -119,7 +119,7 @@ export default function Documents() {
 
     const handleApprove = async (id: string) => {
         try {
-            await documentService.approveDocument(id, 'Nguyễn Văn An');
+            await documentService.approveDocument(id, 'Nguyễn Quốc Anh');
             loadData(); // Refresh list and activity log
         } catch (error) {
             console.error('Error approving document:', error);

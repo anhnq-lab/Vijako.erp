@@ -185,8 +185,8 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isOpen, on
                             <div className="absolute -bottom-1 -right-1 size-4 bg-emerald border-2 border-white rounded-full"></div>
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-slate-900 truncate">Nguyễn Văn An</p>
-                            <p className="text-[10px] font-bold text-slate-500 truncate uppercase tracking-wider">Ban Giám Đốc</p>
+                            <p className="text-sm font-bold text-slate-900 truncate">Nguyễn Quốc Anh</p>
+                            <p className="text-[10px] font-bold text-slate-500 truncate uppercase tracking-wider">Giám đốc dự án</p>
                         </div>
                         <span className="material-symbols-outlined text-slate-400 text-[20px] group-hover:text-primary transition-premium">logout</span>
                     </div>

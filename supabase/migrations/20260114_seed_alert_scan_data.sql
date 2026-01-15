@@ -20,7 +20,7 @@ BEGIN
 
     -- 3. Stale WIP Document (> 7 days: before 2026-01-07)
     INSERT INTO public.project_documents (name, type, size, url, uploaded_by, project_id, status, created_at)
-    VALUES ('BVE_KienTruc_Tang1_Fix.dwg', 'dwg', 15600000, 'https://supabase.com/storage/v1/object/public/documents/test.dwg', 'Nguyễn Văn An', v_project_sunurban, 'WIP', '2025-12-25 10:00:00+07');
+    VALUES ('BVE_KienTruc_Tang1_Fix.dwg', 'dwg', 15600000, 'https://supabase.com/storage/v1/object/public/documents/test.dwg', 'Nguyễn Quốc Anh', v_project_sunurban, 'WIP', '2025-12-25 10:00:00+07');
 
     -- 4. Expiring Contract (< 30 days: before 2026-02-13)
     INSERT INTO public.contracts (contract_code, partner_name, project_id, value, paid_amount, status, end_date, name)

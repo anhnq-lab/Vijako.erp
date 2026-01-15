@@ -38,7 +38,7 @@ const ProjectModal = ({ isOpen, onClose, onSave, project }: { isOpen: boolean, o
         if (project) {
             setFormData({ ...project, members: project.members || [] });
         } else {
-            setFormData({ name: '', code: '', location: '', manager: 'Nguyễn Văn An', type: CONSTRUCTION_TYPES[0], status: 'active', members: [] });
+            setFormData({ name: '', code: '', location: '', manager: 'Nguyễn Quốc Anh', type: CONSTRUCTION_TYPES[0], status: 'active', members: [] });
         }
     }, [project, isOpen]);
 
@@ -273,7 +273,7 @@ export default function ProjectList() {
             const mockProjects: Project[] = [
                 {
                     id: '1', code: 'PRJ-S1', name: 'Trường Tiểu học Tiên Sơn', location: 'Sóc Sơn, Hà Nội',
-                    manager: 'Nguyễn Văn An', progress: 65, plan_progress: 75, status: 'active', type: 'Công trình thấp tầng',
+                    manager: 'Nguyễn Quốc Anh', progress: 65, plan_progress: 75, status: 'active', type: 'Công trình thấp tầng',
                     avatar: 'https://images.unsplash.com/photo-1541829070764-84a7d30dee3f?q=80&w=800',
                     members: ['Trần Anh', 'Lê Bình']
                 },

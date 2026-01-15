@@ -3,8 +3,8 @@ ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS members TEXT[] DEFAULT '{}'
 
 -- Update Managers and Members for projects
 UPDATE public.projects SET 
-    manager = 'Nguyễn Văn An (BCH Vijako)',
-    members = ARRAY['Nguyễn Văn An', 'Trần Thị Bình', 'Lê Hoàng Cường', 'Vũ Minh Tuấn']
+    manager = 'Nguyễn Quốc Anh (BCH Vijako)',
+    members = ARRAY['Nguyễn Quốc Anh', 'Trần Thị Bình', 'Lê Hoàng Cường', 'Vũ Minh Tuấn']
 WHERE code = 'P-GREENSHADE';
 
 UPDATE public.projects SET 
@@ -29,7 +29,7 @@ WHERE code = 'P-GAMUDA-ZEN';
 
 UPDATE public.projects SET 
     manager = 'Ban chỉ huy Vijako',
-    members = ARRAY['Nguyễn Văn An', 'Trần Phú', 'Hồ Tùng Mậu']
+    members = ARRAY['Nguyễn Quốc Anh', 'Trần Phú', 'Hồ Tùng Mậu']
 WHERE code = 'P-005';
 
 -- Seed Contracts

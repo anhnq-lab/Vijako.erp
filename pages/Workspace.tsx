@@ -511,7 +511,7 @@ export default function Workspace() {
                 priority: issueForm.priority,
                 status: 'Open',
                 due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                pic: 'Nguyễn Văn An'
+                pic: 'Nguyễn Quốc Anh'
             });
             showToast.success("Đã báo cáo sự cố thành công");
             setActiveQuickAction(null);
@@ -554,7 +554,7 @@ export default function Workspace() {
                 activeProject.id,
                 uploadFile,
                 { status: 'WIP', category: 'General' },
-                'Nguyễn Văn An'
+                'Nguyễn Quốc Anh'
             );
             showToast.success("Đã tải tài liệu lên CDE");
             setActiveQuickAction(null);
@@ -578,7 +578,7 @@ export default function Workspace() {
                 <div>
                     <h2 className="text-lg font-bold text-slate-800">Không gian làm việc</h2>
                     <p className="text-xs text-slate-500 capitalize">
-                        {currentTime.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' })} • {greeting}, An!
+                        {currentTime.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' })} • {greeting}, Anh!
                     </p>
                 </div>
                 <div className="flex items-center gap-6">
@@ -598,8 +598,8 @@ export default function Workspace() {
 
                     <div className="flex items-center gap-3">
                         <div className="text-right hidden sm:block">
-                            <p className="text-sm font-bold text-slate-900">Nguyễn Văn An</p>
-                            <p className="text-xs text-slate-500">Chỉ huy trưởng • Vijako Tower</p>
+                            <p className="text-sm font-bold text-slate-900">Nguyễn Quốc Anh</p>
+                            <p className="text-xs text-slate-500">Giám đốc dự án • Vijako Tower</p>
                         </div>
                         <div className="size-9 rounded-full bg-slate-200 overflow-hidden border-2 border-white shadow-sm cursor-pointer hover:ring-2 hover:ring-primary hover:ring-offset-1 transition-all">
                             <img src="https://picsum.photos/100/100" alt="avatar" />

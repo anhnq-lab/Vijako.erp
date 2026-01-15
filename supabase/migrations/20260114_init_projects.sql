@@ -22,7 +22,7 @@ CREATE POLICY "Public access" ON projects FOR ALL USING (true);
 -- Insert mock data seed
 INSERT INTO projects (code, name, location, manager, progress, plan_progress, status)
 VALUES 
-('P-001', 'Vijako Tower - Giai đoạn 2', 'KĐT Tây Hồ Tây, Hà Nội', 'Nguyễn Văn An', 45, 48, 'active'),
+('P-001', 'Vijako Tower - Giai đoạn 2', 'KĐT Tây Hồ Tây, Hà Nội', 'Nguyễn Quốc Anh', 45, 48, 'active'),
 ('P-002', 'Khu Công nghiệp Trấn Yên', 'Trấn Yên, Yên Bái', 'Trần Văn Bình', 80, 75, 'active'),
 ('P-003', 'The Nine Tower', 'Cầu Giấy, Hà Nội', 'Lê Văn Cường', 100, 100, 'completed'),
 ('P-004', 'Aeon Mall Huế', 'TP. Huế', 'Phạm Văn Dũng', 10, 15, 'pending');

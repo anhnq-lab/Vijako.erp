@@ -48,7 +48,7 @@ VALUES
 ('VJ-7002', 'Vũ Văn Khải', 'Cán bộ An toàn', 'Ban An toàn', 'Vijako Tower', 'active'),
 
 -- Các Ban chỉ huy công trường & Tổ đội (Seed more to reach 125 total)
-('VJ-8001', 'Nguyễn Văn An', 'Chỉ huy trưởng', 'Ban QLDA', 'Vijako Tower', 'active'),
+('VJ-8001', 'Nguyễn Quốc Anh', 'Giám đốc dự án', 'Ban QLDA', 'Vijako Tower', 'active'),
 ('VJ-8002', 'Trần Văn Long', 'Chỉ huy phó', 'Ban QLDA', 'Vijako Tower', 'active'),
 ('VJ-8003', 'Lê Thị Hoa', 'Kế toán công trường', 'Ban QLDA', 'The Nine', 'active'),
 ('VJ-8004', 'Phạm Văn Hậu', 'Kỹ sư trắc đạc', 'Ban QLDA', 'Vijako Tower', 'active');

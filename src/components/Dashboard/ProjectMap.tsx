@@ -13,12 +13,12 @@ interface ProjectPoint {
 
 const mockProjects: ProjectPoint[] = [
     { id: '1', code: 'P-ZEN', name: 'The Zen - Gamuda Garden', schedule_performance: 'completed', lat: 20.9735, lng: 105.8642, location: 'Hoàng Mai, Hà Nội', manager: 'Phạm Tuấn' },
-    { id: '2', code: 'P-GREENSHADE', name: 'Nhà máy rèm Greenshade', schedule_performance: 'on_track', lat: 20.5833, lng: 105.9167, location: 'KCN Đồng Văn, Hà Nam', manager: 'Nguyễn Văn An' },
-    { id: '3', code: 'P-PHUCDIEN', name: 'KCN Phúc Điền', schedule_performance: 'on_track', lat: 20.9333, lng: 106.3167, location: 'Hải Dương', manager: 'Đỗ Văn Toàn' },
-    { id: '4', code: 'P-64NLB', name: '64 Nguyễn Lương Bằng', schedule_performance: 'on_track', lat: 21.0125, lng: 105.8285, location: 'Đống Đa, Hà Nội', manager: 'Hồ Xuân Hương' },
-    { id: '5', code: 'P-SUNURBAN', name: 'Sun Urban City Hà Nam', schedule_performance: 'on_track', lat: 20.5422, lng: 105.9128, location: 'Phủ Lý, Hà Nam', manager: 'Nguyễn Văn An' },
-    { id: '6', code: 'P-IA20', name: 'Công trình nhà ở IA20', schedule_performance: 'completed', lat: 21.0827, lng: 105.7925, location: 'Tây Hồ, Hà Nội', manager: 'Lâm Hoàng Anh' },
-    { id: '7', code: 'P-001', name: 'Vijako Tower', schedule_performance: 'delayed', lat: 21.0667, lng: 105.7917, location: 'Tây Hồ Tây, Hà Nội', manager: 'Nguyễn Văn An' },
+    { id: '2', code: 'P-GREENSHADE', name: 'Nhà máy rèm Greenshade', schedule_performance: 'on_track', lat: 20.5833, lng: 105.9167, location: 'KCN Đồng Văn, Hà Nam', manager: 'Nguyễn Quốc Anh' },
+    { id: '3', code: 'P-SKYLIGHT', name: 'Skylight City', schedule_performance: 'ahead', lat: 21.0285, lng: 105.8542, location: 'Hà Nội', manager: 'Trần Thị Bình' },
+    { id: '4', code: 'P-CENTRAL', name: 'Central Park Residence', schedule_performance: 'delayed', lat: 10.7626, lng: 106.6602, location: 'TP. HCM', manager: 'Lê Hoàng Cường' },
+    { id: '5', code: 'P-SUNURBAN', name: 'Sun Urban City Hà Nam', schedule_performance: 'on_track', lat: 20.5422, lng: 105.9128, location: 'Phủ Lý, Hà Nam', manager: 'Nguyễn Quốc Anh' },
+    { id: '6', code: 'P-002', name: 'Nhà máy sản xuất linh kiện', schedule_performance: 'on_track', lat: 21.000, lng: 106.000, location: 'Bắc Ninh', manager: 'Vũ Minh Tuấn' },
+    { id: '7', code: 'P-001', name: 'Vijako Tower', schedule_performance: 'delayed', lat: 21.0667, lng: 105.7917, location: 'Tây Hồ Tây, Hà Nội', manager: 'Nguyễn Quốc Anh' },
     { id: '8', code: 'P-002', name: 'KCN Trấn Yên', schedule_performance: 'on_track', lat: 21.7333, lng: 104.9167, location: 'Trấn Yên, Yên Bái', manager: 'Trần Văn Bình' },
     { id: '9', code: 'P-005', name: 'Trường Tiểu học Tiên Sơn', schedule_performance: 'completed', lat: 21.1856, lng: 106.1234, location: 'Việt Yên, Bắc Giang', manager: 'Ban chỉ huy Vijako' },
 ];

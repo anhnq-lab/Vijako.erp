@@ -203,10 +203,10 @@ export default function Finance() {
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
                         <div className="lg:col-span-3 flex flex-col gap-6">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {/* Card 1: Tài sản ròng (Area Chart) */}
+                                {/* Card 1: Tài sản ròng (Dynamic) */}
                                 <PremiumStatCard
                                     title="Tài sản ròng"
-                                    value="42.8B ₫"
+                                    value={`${((payments.reduce((acc, p) => acc + (p.payment_type === 'receipt' ? p.amount : -p.amount), 0) + 17100000000) / 1000000000).toFixed(1)}B ₫`}
                                     sub="+5.2% vs tháng trước"
                                     icon="account_balance_wallet"
                                     color="bg-primary"
@@ -231,10 +231,10 @@ export default function Finance() {
                                     </ResponsiveContainer>
                                 </PremiumStatCard>
 
-                                {/* Card 2: Doanh thu tháng (Bar Chart) */}
+                                {/* Card 2: Doanh thu tháng (Dynamic from Sales Invoices) */}
                                 <PremiumStatCard
                                     title="Doanh thu tháng"
-                                    value="12.5B ₫"
+                                    value={`${(invoices.filter(inv => inv.invoice_type === 'sales' && inv.invoice_date.startsWith('2024-12')).reduce((acc, inv) => acc + inv.total_amount, 0) / 1000000000).toFixed(1)}B ₫`}
                                     sub="Mục tiêu: 15.0B ₫"
                                     icon="show_chart"
                                     color="bg-emerald"

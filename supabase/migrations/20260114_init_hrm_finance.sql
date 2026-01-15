@@ -50,6 +50,6 @@ CREATE POLICY "Public access" ON contracts FOR ALL USING (true);
 -- Seed Employees
 INSERT INTO employees (employee_code, full_name, role, department, site, status)
 VALUES 
-('VJ-0056', 'Nguyễn Văn An', 'Chỉ huy trưởng', 'Ban QLDA', 'Vijako Tower', 'active'),
+('VJ-0056', 'Nguyễn Quốc Anh', 'Giám đốc dự án', 'Ban QLDA', 'Vijako Tower', 'active'),
 ('VJ-0112', 'Trần Thị Bình', 'Kế toán công trường', 'Phòng Kế toán', 'Vijako Tower', 'active'),
 ('VJ-0089', 'Lê Hoàng Cường', 'Giám sát MEP', 'Kỹ thuật', 'The Nine', 'leave');

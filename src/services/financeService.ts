@@ -121,11 +121,17 @@ export const financeService = {
             throw error;
         }
 
-        return (data || []).map(pr => ({
-            ...pr,
-            partner_name: (pr.contracts as any)?.partner_name,
-            project_name: (pr.projects as any)?.name
-        }));
+        return (data || []).map(pr => {
+            const project = Array.isArray(pr.projects) ? pr.projects[0] : pr.projects;
+            const contract = Array.isArray(pr.contracts) ? pr.contracts[0] : pr.contracts;
+
+            return {
+                ...pr,
+                amount: Number(pr.amount || 0),
+                partner_name: contract?.partner_name || pr.partner_name,
+                project_name: project?.name
+            };
+        });
     },
 
     async getCashFlowData(): Promise<CashFlowData[]> {
@@ -159,10 +165,18 @@ export const financeService = {
             throw error;
         }
 
-        return (data || []).map(inv => ({
-            ...inv,
-            project_name: (inv.projects as any)?.name
-        }));
+        return (data || []).map(inv => {
+            // Handle join which can be an object or an array of 1
+            const project = Array.isArray(inv.projects) ? inv.projects[0] : inv.projects;
+
+            return {
+                ...inv,
+                total_amount: Number(inv.total_amount || 0),
+                paid_amount: Number(inv.paid_amount || 0),
+                outstanding_amount: Number(inv.outstanding_amount || 0),
+                project_name: project?.name
+            };
+        });
     },
 
     async getAllPayments(): Promise<PaymentRecord[]> {
@@ -176,10 +190,15 @@ export const financeService = {
             throw error;
         }
 
-        return (data || []).map(pay => ({
-            ...pay,
-            project_name: (pay.projects as any)?.name
-        }));
+        return (data || []).map(pay => {
+            const project = Array.isArray(pay.projects) ? pay.projects[0] : pay.projects;
+
+            return {
+                ...pay,
+                amount: Number(pay.amount || 0),
+                project_name: project?.name
+            };
+        });
     },
 
     // === Bank Guarantees CRUD ===
