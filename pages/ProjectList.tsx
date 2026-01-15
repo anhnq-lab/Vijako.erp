@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { projectService } from '../src/services/projectService';
-import { Project } from '../types';
+import { hrmService } from '../src/services/hrmService';
+import { Project, Employee } from '../types';
 
 // Các lĩnh vực thi công theo yêu cầu
 const CONSTRUCTION_TYPES = [
@@ -33,14 +34,36 @@ const ProjectModal = ({ isOpen, onClose, onSave, project }: { isOpen: boolean, o
         name: '', code: '', location: '', manager: '', type: CONSTRUCTION_TYPES[0], status: 'active', members: []
     });
     const [newMember, setNewMember] = useState('');
+    const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
+    const [isPersonnelListOpen, setIsPersonnelListOpen] = useState(false);
+    const [personnelSearch, setPersonnelSearch] = useState('');
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [avatarPreview, setAvatarPreview] = useState<string>('');
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
     useEffect(() => {
         if (project) {
             setFormData({ ...project, members: project.members || [] });
+            setAvatarPreview(project.avatar || '');
         } else {
             setFormData({ name: '', code: '', location: '', manager: 'Nguyễn Quốc Anh', type: CONSTRUCTION_TYPES[0], status: 'active', members: [] });
+            setAvatarPreview('');
         }
     }, [project, isOpen]);
+
+    useEffect(() => {
+        const fetchEmployees = async () => {
+            try {
+                const employees = await hrmService.getAllEmployees();
+                setAllEmployees(employees);
+            } catch (error) {
+                console.error('Error fetching employees:', error);
+            }
+        };
+        if (isOpen) {
+            fetchEmployees();
+        }
+    }, [isOpen]);
 
     const addMember = () => {
         if (newMember.trim() && !formData.members?.includes(newMember.trim())) {
@@ -49,9 +72,55 @@ const ProjectModal = ({ isOpen, onClose, onSave, project }: { isOpen: boolean, o
         }
     };
 
+    const addMemberFromList = (employeeName: string) => {
+        if (!formData.members?.includes(employeeName)) {
+            setFormData({ ...formData, members: [...(formData.members || []), employeeName] });
+            setIsPersonnelListOpen(false);
+            setPersonnelSearch('');
+        }
+    };
+
     const removeMember = (m: string) => {
         setFormData({ ...formData, members: formData.members?.filter(item => item !== m) });
     };
+
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setAvatarFile(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAvatarPreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleSave = async () => {
+        let finalFormData = { ...formData };
+
+        // Upload avatar if changed
+        if (avatarFile && formData.id) {
+            setIsUploadingAvatar(true);
+            try {
+                const avatarUrl = await projectService.uploadProjectAvatar(formData.id, avatarFile);
+                if (avatarUrl) {
+                    finalFormData.avatar = avatarUrl;
+                }
+            } catch (error) {
+                console.error('Error uploading avatar:', error);
+            } finally {
+                setIsUploadingAvatar(false);
+            }
+        }
+
+        onSave(finalFormData);
+    };
+
+    const filteredEmployees = allEmployees.filter(emp =>
+        emp.full_name.toLowerCase().includes(personnelSearch.toLowerCase()) ||
+        emp.role.toLowerCase().includes(personnelSearch.toLowerCase())
+    );
 
     if (!isOpen) return null;
 
@@ -116,22 +185,89 @@ const ProjectModal = ({ isOpen, onClose, onSave, project }: { isOpen: boolean, o
                         />
                     </div>
 
+                    <div className="col-span-2 space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ảnh đại diện dự án</label>
+                        <div className="flex items-center gap-4">
+                            <div className="size-24 rounded-2xl overflow-hidden border-2 border-slate-200 bg-slate-100">
+                                {avatarPreview ? (
+                                    <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                        <span className="material-symbols-outlined text-slate-400 text-[32px]">image</span>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex-1">
+                                <input
+                                    type="file"
+                                    id="avatar-upload"
+                                    accept="image/*"
+                                    onChange={handleAvatarChange}
+                                    className="hidden"
+                                />
+                                <label
+                                    htmlFor="avatar-upload"
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 hover:bg-slate-100 cursor-pointer transition-premium"
+                                >
+                                    <span className="material-symbols-outlined text-[20px]">upload</span>
+                                    <span>Thay đổi ảnh</span>
+                                </label>
+                                <p className="text-xs text-slate-500 mt-2">Định dạng: JPG, PNG. Tối đa 5MB.</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="col-span-2 mt-4 space-y-4">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nhân sự tham gia dự án</label>
-                        <div className="flex gap-2">
-                            <input
-                                className="flex-1 px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
-                                placeholder="Nhập tên nhân sự..."
-                                value={newMember}
-                                onChange={e => setNewMember(e.target.value)}
-                                onKeyPress={e => e.key === 'Enter' && addMember()}
-                            />
-                            <button
-                                onClick={addMember}
-                                className="size-12 rounded-2xl bg-primary text-white flex items-center justify-center hover:opacity-90 transition-premium"
-                            >
-                                <span className="material-symbols-outlined">add</span>
-                            </button>
+                        <div className="relative">
+                            <div className="flex gap-2">
+                                <div className="flex-1 relative">
+                                    <input
+                                        className="w-full px-6 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-premium"
+                                        placeholder="Tìm kiếm nhân viên..."
+                                        value={personnelSearch}
+                                        onChange={e => setPersonnelSearch(e.target.value)}
+                                        onFocus={() => setIsPersonnelListOpen(true)}
+                                    />
+                                    <button
+                                        onClick={() => setIsPersonnelListOpen(!isPersonnelListOpen)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-premium"
+                                    >
+                                        <span className="material-symbols-outlined">search</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Dropdown danh sách nhân viên */}
+                            {isPersonnelListOpen && (
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-premium max-h-64 overflow-y-auto z-50">
+                                    {filteredEmployees.length > 0 ? (
+                                        filteredEmployees.map(emp => (
+                                            <button
+                                                key={emp.id}
+                                                onClick={() => addMemberFromList(emp.full_name)}
+                                                className="w-full px-6 py-3 flex items-center gap-3 hover:bg-slate-50 transition-premium text-left border-b border-slate-100 last:border-0"
+                                            >
+                                                <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                                    <span className="material-symbols-outlined text-primary text-[20px]">person</span>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-sm font-bold text-slate-900">{emp.full_name}</p>
+                                                    <p className="text-xs text-slate-500">{emp.role} - {emp.department}</p>
+                                                </div>
+                                                {formData.members?.includes(emp.full_name) && (
+                                                    <span className="material-symbols-outlined text-emerald text-[20px]">check_circle</span>
+                                                )}
+                                            </button>
+                                        ))
+                                    ) : (
+                                        <div className="px-6 py-8 text-center">
+                                            <span className="material-symbols-outlined text-slate-300 text-[48px]">person_search</span>
+                                            <p className="text-sm text-slate-500 mt-2">Không tìm thấy nhân viên</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {formData.members?.map((m, idx) => (
@@ -156,7 +292,16 @@ const ProjectModal = ({ isOpen, onClose, onSave, project }: { isOpen: boolean, o
                 </div>
                 <div className="px-10 py-8 bg-slate-50 border-t border-slate-100 flex justify-end gap-4">
                     <button onClick={onClose} className="px-8 py-3 rounded-2xl text-xs font-black uppercase text-slate-500 hover:bg-slate-200 transition-premium">Đóng</button>
-                    <button onClick={() => onSave(formData)} className="px-8 py-3 mesh-gradient text-white rounded-2xl text-xs font-black uppercase shadow-premium hover:opacity-90 transition-premium">Lưu dự án</button>
+                    <button
+                        onClick={handleSave}
+                        disabled={isUploadingAvatar}
+                        className="px-8 py-3 mesh-gradient text-white rounded-2xl text-xs font-black uppercase shadow-premium hover:opacity-90 transition-premium disabled:opacity-50 flex items-center gap-2"
+                    >
+                        {isUploadingAvatar && (
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                        )}
+                        <span>{isUploadingAvatar ? 'Đang tải ảnh...' : 'Lưu dự án'}</span>
+                    </button>
                 </div>
             </div>
         </div>

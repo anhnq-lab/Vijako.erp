@@ -28,23 +28,25 @@ BEGIN
     
     -- 2. CREATE REVENUE CONTRACTS
     INSERT INTO public.contracts (contract_code, contract_type, partner_name, project_id, contract_value, paid_amount, status)
-    VALUES 
-    ('CONT-REV-GS-01', 'revenue', 'Bất động sản LuxHome', gs_id, 45000000000, 15000000000, 'active'),
-    ('CONT-REV-TS-01', 'revenue', 'UBND Tỉnh Bắc Ninh', ts_id, 120000000000, 30000000000, 'active')
-    ON CONFLICT (contract_code) DO UPDATE SET id = contracts.id 
-    RETURNING id INTO rev_cont_1; -- This might not work with ON CONFLICT DO NOTHING, so DO UPDATE SET id = id
+    VALUES ('CONT-REV-GS-01', 'revenue', 'Bất động sản LuxHome', gs_id, 45000000000, 15000000000, 'active')
+    ON CONFLICT (contract_code) DO UPDATE SET contract_value = EXCLUDED.contract_value
+    RETURNING id INTO rev_cont_1;
 
-    SELECT id INTO rev_cont_2 FROM public.contracts WHERE contract_code = 'CONT-REV-TS-01';
+    INSERT INTO public.contracts (contract_code, contract_type, partner_name, project_id, contract_value, paid_amount, status)
+    VALUES ('CONT-REV-TS-01', 'revenue', 'UBND Tỉnh Bắc Ninh', ts_id, 120000000000, 30000000000, 'active')
+    ON CONFLICT (contract_code) DO UPDATE SET contract_value = EXCLUDED.contract_value
+    RETURNING id INTO rev_cont_2;
 
     -- 3. CREATE EXPENSE CONTRACTS
     INSERT INTO public.contracts (contract_code, contract_type, partner_name, project_id, contract_value, paid_amount, status)
-    VALUES 
-    ('CONT-EXP-GS-01', 'expense', 'Thép Hòa Phát Miền Bắc', gs_id, 12000000000, 5000000000, 'active'),
-    ('CONT-EXP-BR-01', 'expense', 'Bê tông An Việt', br_id, 8000000000, 2000000000, 'active')
-    ON CONFLICT (contract_code) DO UPDATE SET id = contracts.id;
+    VALUES ('CONT-EXP-GS-01', 'expense', 'Thép Hòa Phát Miền Bắc', gs_id, 12000000000, 5000000000, 'active')
+    ON CONFLICT (contract_code) DO UPDATE SET contract_value = EXCLUDED.contract_value
+    RETURNING id INTO exp_cont_1;
 
-    SELECT id INTO exp_cont_1 FROM public.contracts WHERE contract_code = 'CONT-EXP-GS-01';
-    SELECT id INTO exp_cont_2 FROM public.contracts WHERE contract_code = 'CONT-EXP-BR-01';
+    INSERT INTO public.contracts (contract_code, contract_type, partner_name, project_id, contract_value, paid_amount, status)
+    VALUES ('CONT-EXP-BR-01', 'expense', 'Bê tông An Việt', br_id, 8000000000, 2000000000, 'active')
+    ON CONFLICT (contract_code) DO UPDATE SET contract_value = EXCLUDED.contract_value
+    RETURNING id INTO exp_cont_2;
 
     -- 4. CREATE SALES INVOICES (Linked to Revenue Contracts)
     INSERT INTO invoices (invoice_code, invoice_type, project_id, contract_id, vendor_name, invoice_date, due_date, amount, total_amount, paid_amount, outstanding_amount, status)

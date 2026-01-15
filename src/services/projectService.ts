@@ -359,6 +359,37 @@ export const projectService = {
         }
     },
 
+    async uploadProjectAvatar(projectId: string, file: File): Promise<string | null> {
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${projectId}/avatar_${Date.now()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('project-files')
+                .upload(filePath, file);
+
+            if (uploadError) {
+                console.error('Error uploading avatar:', uploadError);
+                throw uploadError;
+            }
+
+            const { data } = supabase.storage
+                .from('project-files')
+                .getPublicUrl(filePath);
+
+            const publicUrl = data.publicUrl;
+
+            // Update project with avatar URL
+            await this.updateProject(projectId, { avatar: publicUrl });
+
+            return publicUrl;
+        } catch (error) {
+            console.error('Error in uploadProjectAvatar:', error);
+            throw error;
+        }
+    },
+
     // --- Issues Management ---
 
     async createProjectIssue(issue: Omit<ProjectIssue, 'id' | 'created_at'>): Promise<ProjectIssue | null> {
