@@ -292,7 +292,7 @@ export default function ProjectDetail() {
 
     const openEditContractModal = (contract: Contract) => {
         setEditingContract(contract);
-        setContractModalType(contract.type === 'revenue' ? 'revenue' : 'expense');
+        setContractModalType(contract.contract_type === 'revenue' ? 'revenue' : 'expense');
         setIsContractModalOpen(true);
     };
 
@@ -368,7 +368,7 @@ export default function ProjectDetail() {
                 paid_amount: data.amount,
                 retention_amount: 0,
                 status: 'completed',
-                type: data.type,
+                contract_type: data.type,
                 budget_category: data.suggested_budget_category
             });
 
@@ -919,8 +919,8 @@ export default function ProjectDetail() {
 
                         {activeTab === 'budget' && (() => {
                             // Calculate Financial KPIs
-                            const revenueContracts = contracts.filter(c => c.type === 'revenue' || c.contract_code.includes('TS-001'));
-                            const expenseContracts = contracts.filter(c => c.type === 'expense' || (c.type !== 'revenue' && !c.contract_code.includes('TS-001')));
+                            const revenueContracts = contracts.filter(c => c.contract_type === 'revenue' || c.contract_code.includes('TS-001'));
+                            const expenseContracts = contracts.filter(c => c.contract_type === 'expense' || (c.contract_type !== 'revenue' && !c.contract_code.includes('TS-001')));
 
                             const totalRevenue = revenueContracts.reduce((sum, c) => sum + (c.value || 0), 0);
                             const totalRevenuePaid = revenueContracts.reduce((sum, c) => sum + (c.paid_amount || 0), 0);
@@ -1038,8 +1038,8 @@ export default function ProjectDetail() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {contracts.filter(c => c.type === 'revenue' || c.contract_code.includes('TS-001')).length > 0 ?
-                                                    contracts.filter(c => c.type === 'revenue' || c.contract_code.includes('TS-001')).map(contract => (
+                                                {contracts.filter(c => c.contract_type === 'revenue' || c.contract_code.includes('TS-001')).length > 0 ?
+                                                    contracts.filter(c => c.contract_type === 'revenue' || c.contract_code.includes('TS-001')).map(contract => (
                                                         <ContractRow
                                                             key={contract.id}
                                                             contract={contract}
@@ -1047,7 +1047,7 @@ export default function ProjectDetail() {
                                                             onDelete={handleDeleteContract}
                                                         />
                                                     )) : (
-                                                        contracts.some(c => !c.type && c.contract_code.includes('TS-001')) ?
+                                                        contracts.some(c => !c.contract_type && c.contract_code.includes('TS-001')) ?
                                                             contracts.filter(c => c.contract_code.includes('TS-001')).map(contract => (
                                                                 <ContractRow
                                                                     key={contract.id}
@@ -1089,8 +1089,8 @@ export default function ProjectDetail() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {contracts.filter(c => c.type === 'expense' || (c.type !== 'revenue' && !c.contract_code.includes('TS-001'))).length > 0 ?
-                                                    contracts.filter(c => c.type === 'expense' || (c.type !== 'revenue' && !c.contract_code.includes('TS-001'))).map(contract => (
+                                                {contracts.filter(c => c.contract_type === 'expense' || (c.contract_type !== 'revenue' && !c.contract_code.includes('TS-001'))).length > 0 ?
+                                                    contracts.filter(c => c.contract_type === 'expense' || (c.contract_type !== 'revenue' && !c.contract_code.includes('TS-001'))).map(contract => (
                                                         <ContractRow
                                                             key={contract.id}
                                                             contract={contract}
