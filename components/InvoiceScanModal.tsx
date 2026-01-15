@@ -221,6 +221,7 @@ export const InvoiceScanModal: React.FC<InvoiceScanModalProps> = ({ isOpen, onCl
                                         </div>
                                         <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
                                             <p className="text-[10px] text-slate-400 font-black uppercase mb-1">Dự án áp dụng</p>
+
                                             <select
                                                 className={`w-full bg-transparent font-bold text-slate-900 border-none p-0 focus:ring-0 ${defaultProjectId ? 'opacity-60 cursor-not-allowed' : ''}`}
                                                 value={selectedProjectId}
@@ -228,7 +229,11 @@ export const InvoiceScanModal: React.FC<InvoiceScanModalProps> = ({ isOpen, onCl
                                                 disabled={!!defaultProjectId}
                                             >
                                                 <option value="">-- Chọn dự án --</option>
-                                                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                                {projects.length > 0 ? (
+                                                    projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
+                                                ) : (
+                                                    <option value="" disabled>Không tìm thấy dự án nào</option>
+                                                )}
                                             </select>
                                         </div>
                                     </div>

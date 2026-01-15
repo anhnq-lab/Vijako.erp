@@ -3,8 +3,13 @@
 ALTER TABLE public.contracts ADD COLUMN IF NOT EXISTS name TEXT;
 ALTER TABLE public.contracts ADD COLUMN IF NOT EXISTS start_date DATE;
 ALTER TABLE public.contracts ADD COLUMN IF NOT EXISTS end_date DATE;
+ALTER TABLE public.contracts ADD COLUMN IF NOT EXISTS value NUMERIC(20, 2) DEFAULT 0;
+ALTER TABLE public.contracts ADD COLUMN IF NOT EXISTS paid_amount NUMERIC(20, 2) DEFAULT 0;
+ALTER TABLE public.contracts ADD COLUMN IF NOT EXISTS retention_amount NUMERIC(20, 2) DEFAULT 0;
+ALTER TABLE public.contracts ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'expense';
 
 ALTER TABLE public.project_documents ADD COLUMN IF NOT EXISTS category TEXT;
+
 ALTER TABLE public.project_documents ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'PUBLISHED';
 
 -- 2. Seed Data

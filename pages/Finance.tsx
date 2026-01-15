@@ -3,7 +3,7 @@ import {
     ComposedChart, Line, Bar, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
     AreaChart, Area
 } from 'recharts';
-import { financeService, PaymentRequest, CashFlowData, Invoice, PaymentRecord, Contract, BankGuarantee } from '../src/services/financeService';
+import { financeService, PaymentRequest, CashFlowData, Invoice, PaymentRecord } from '../src/services/financeService';
 import { projectService } from '../src/services/projectService';
 import { Project } from '../types';
 import { InvoiceScanModal } from '../components/InvoiceScanModal';
@@ -112,14 +112,12 @@ const AIFinancialInsight = () => (
 );
 
 export default function Finance() {
-    const [activeTab, setActiveTab] = useState<'cashflow' | 'payments' | 'contracts'>('cashflow');
+    const [activeTab, setActiveTab] = useState<'cashflow' | 'payments'>('cashflow');
     const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [payments, setPayments] = useState<PaymentRecord[]>([]);
     const [cashFlowRecords, setCashFlowRecords] = useState<CashFlowData[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
-    const [contracts, setContracts] = useState<Contract[]>([]);
-    const [bankGuarantees, setBankGuarantees] = useState<BankGuarantee[]>([]);
     const [loading, setLoading] = useState(true);
     const [isInvoiceScanModalOpen, setIsInvoiceScanModalOpen] = useState(false);
 
@@ -130,14 +128,12 @@ export default function Finance() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [prData, cfData, pData, invData, payData, contractData, bgData] = await Promise.all([
+            const [prData, cfData, pData, invData, payData] = await Promise.all([
                 financeService.getAllPaymentRequests(),
                 financeService.getCashFlowData(),
                 projectService.getAllProjects(),
                 financeService.getAllInvoices(),
-                financeService.getAllPayments(),
-                financeService.getAllContracts(),
-                financeService.getAllBankGuarantees()
+                financeService.getAllPayments()
             ]);
 
             setPaymentRequests(prData || []);
@@ -145,8 +141,6 @@ export default function Finance() {
             setPayments(payData || []);
             setCashFlowRecords(cfData || []);
             setProjects(pData || []);
-            setContracts(contractData || []);
-            setBankGuarantees(bgData || []);
         } catch (err) {
             console.error('Failed to fetch finance data', err);
         } finally {
@@ -351,9 +345,7 @@ export default function Finance() {
                         <div className="flex border-b border-slate-100 p-2 bg-slate-50/50">
                             {[
                                 { id: 'cashflow', label: 'Dòng tiền & Ngân sách', icon: 'query_stats' },
-                                { id: 'cashflow', label: 'Dòng tiền & Ngân sách', icon: 'query_stats' },
                                 { id: 'payments', label: 'Giao dịch & Công nợ', icon: 'history' },
-                                { id: 'contracts', label: 'Hợp đồng & Bảo lãnh', icon: 'assignment' },
                             ].map((tab) => (
                                 <button
                                     key={tab.id}

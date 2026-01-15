@@ -234,7 +234,11 @@ export const ContractScanModal: React.FC<ContractScanModalProps> = ({ isOpen, on
                                             onChange={(e) => setSelectedProjectId(e.target.value)}
                                         >
                                             <option value="">-- Chọn dự án --</option>
-                                            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                            {projects.length > 0 ? (
+                                                projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
+                                            ) : (
+                                                <option value="" disabled>Không tìm thấy dự án nào</option>
+                                            )}
                                         </select>
                                     </div>
 

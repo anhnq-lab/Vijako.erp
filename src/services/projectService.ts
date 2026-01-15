@@ -10,7 +10,7 @@ export const projectService = {
 
         if (error) {
             console.error('Error fetching projects:', error);
-            throw error;
+            return [];
         }
 
         return data || [];
