@@ -73,8 +73,115 @@ const PremiumStatCard = ({ title, value, sub, icon, color, trend, children }: an
     </div>
 );
 
-// ... (AIFinancialInsight remains unchanged) ...
-// ... (Finance component logic remains unchanged) ...
+const AIFinancialInsight = () => (
+    <div className="mesh-gradient rounded-[32px] p-8 text-white relative overflow-hidden h-full flex flex-col justify-between shadow-premium border border-white/10 group">
+        <div className="absolute -right-10 -top-10 size-64 bg-emerald/20 blur-[80px] rounded-full group-hover:bg-emerald/30 transition-premium"></div>
+        <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-6">
+                <div className="size-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
+                    <span className="material-symbols-outlined text-[20px] text-yellow-300 animate-pulse">auto_awesome</span>
+                </div>
+                <div>
+                    <h3 className="font-black text-lg tracking-tight">AI CFO Intelligence</h3>
+                    <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Phân tích bởi Trí tuệ nhân tạo</p>
+                </div>
+            </div>
+            <div className="space-y-4">
+                <div className="bg-white/10 border border-white/10 rounded-2xl p-4 backdrop-blur-md hover:bg-white/20 transition-premium cursor-pointer">
+                    <p className="text-[10px] text-emerald-300 font-black uppercase tracking-widest mb-1 leading-none">Dự báo Dòng tiền</p>
+                    <p className="text-sm font-medium leading-relaxed">Dự kiến thu <span className="text-emerald-400 font-bold">12.5 Tỷ</span> trong 30 ngày tới. Khả năng thanh khoản đạt <span className="text-emerald-400 font-bold">98%</span>.</p>
+                </div>
+                <div className="bg-white/10 border border-white/10 rounded-2xl p-4 backdrop-blur-md hover:bg-white/20 transition-premium cursor-pointer">
+                    <p className="text-[10px] text-yellow-300 font-black uppercase tracking-widest mb-1 leading-none">Cảnh báo Rủi ro</p>
+                    <p className="text-sm font-medium leading-relaxed">Cần lưu ý 2 khoản thanh toán NCC quá hạn vào cuối tuần này.</p>
+                </div>
+            </div>
+        </div>
+        <div className="relative z-10 mt-6 flex justify-between items-center">
+            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest italic">Cập nhật 2 phút trước</span>
+            <button className="px-5 py-2 bg-white text-primary text-[10px] font-black rounded-xl hover:scale-105 transition-premium shadow-lg shadow-white/10 uppercase tracking-widest">Phân tích chuyên sâu</button>
+        </div>
+    </div>
+);
+
+export default function Finance() {
+    const [activeTab, setActiveTab] = useState<'cashflow' | 'payments'>('cashflow');
+    const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
+    const [cashFlowRecords, setCashFlowRecords] = useState<CashFlowData[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [isInvoiceScanModalOpen, setIsInvoiceScanModalOpen] = useState(false);
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const [prData, cfData, pData] = await Promise.all([
+                financeService.getAllPaymentRequests(),
+                financeService.getCashFlowData(),
+                projectService.getAllProjects()
+            ]);
+
+            // Mock data fallback if DB returns empty for demonstration
+            const mockPRs: PaymentRequest[] = [
+                { id: '1', partner_name: 'Công ty CP Hòa Phát', amount: 450000000, status: 'paid', submission_date: '2024-05-10', project_id: 'p1' },
+                { id: '2', partner_name: 'Công ty TNHH Thiết bị Delta', amount: 125000000, status: 'pending', submission_date: '2024-05-12', project_id: 'p2' },
+                { id: '3', partner_name: 'Tổng công ty Sông Đà', amount: 2800000000, status: 'paid', submission_date: '2024-05-01', project_id: 'p1' },
+                { id: '4', partner_name: 'Bê tông An Việt', amount: 89000000, status: 'pending', submission_date: '2024-05-14', project_id: 'p3' },
+                { id: '5', partner_name: 'Điện lực Hà Nội', amount: 45000000, status: 'paid', submission_date: '2024-04-28', project_id: 'p1' },
+                { id: '6', partner_name: 'Công ty CP Đá ốp lát', amount: 210000000, status: 'pending', submission_date: '2024-05-15', project_id: 'p4' },
+                { id: '7', partner_name: 'Nhà thầu xây dựng 105', amount: 1560000000, status: 'paid', submission_date: '2024-04-20', project_id: 'p2' },
+                { id: '8', partner_name: 'Cung ứng vật tư Thái Bình', amount: 340000000, status: 'pending', submission_date: '2024-05-13', project_id: 'p3' },
+            ] as any;
+
+            if (prData && prData.length > 0) {
+                setPaymentRequests(prData);
+            } else {
+                setPaymentRequests(mockPRs);
+            }
+
+            if (cfData && cfData.length > 0) {
+                setCashFlowRecords(cfData);
+            }
+            if (pData) setProjects(pData);
+        } catch (err) {
+            console.error('Failed to fetch finance data', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="flex flex-col h-full bg-slate-50/50">
+            {/* Page Header */}
+            <div className="px-8 py-6 bg-white border-b border-slate-200/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-black text-primary-accent uppercase tracking-[0.3em]">Kho bạc & Thanh toán</span>
+                    </div>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                        Tài chính & Thanh toán
+                        <span className="size-2 rounded-full bg-primary-accent animate-pulse"></span>
+                    </h1>
+                    <p className="text-sm text-slate-500 font-medium">Quản lý dòng tiền vận hành và hồ sơ quyết toán tự động</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setIsInvoiceScanModalOpen(true)}
+                        className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-black hover:bg-slate-50 transition-premium shadow-sm hover:shadow-md"
+                    >
+                        <span className="material-symbols-outlined text-[20px] text-primary-accent">document_scanner</span>
+                        <span>Quét Hóa đơn AI</span>
+                    </button>
+                    <button className="flex items-center gap-2 px-6 py-3 mesh-gradient text-white rounded-2xl text-sm font-black hover:opacity-90 shadow-premium transition-premium group">
+                        <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-premium">add</span>
+                        <span>Thanh toán mới</span>
+                    </button>
+                </div>
+            </div>
 
             <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                 <div className="max-w-[1600px] mx-auto space-y-8">
@@ -98,12 +205,12 @@ const PremiumStatCard = ({ title, value, sub, icon, color, trend, children }: an
                                                 <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                                             </linearGradient>
                                         </defs>
-                                        <Area 
-                                            type="monotone" 
-                                            dataKey="value" 
-                                            stroke="#3b82f6" 
-                                            strokeWidth={2} 
-                                            fill="url(#colorAsset)" 
+                                        <Area
+                                            type="monotone"
+                                            dataKey="value"
+                                            stroke="#3b82f6"
+                                            strokeWidth={2}
+                                            fill="url(#colorAsset)"
                                         />
                                     </AreaChart>
                                 </ResponsiveContainer>
@@ -120,14 +227,14 @@ const PremiumStatCard = ({ title, value, sub, icon, color, trend, children }: an
                             >
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={revenueData}>
-                                        <Bar 
-                                            dataKey="value" 
-                                            fill="#10b981" 
-                                            radius={[4, 4, 0, 0]} 
+                                        <Bar
+                                            dataKey="value"
+                                            fill="#10b981"
+                                            radius={[4, 4, 0, 0]}
                                             barSize={6}
                                         />
-                                        <Tooltip 
-                                            cursor={{fill: 'transparent'}}
+                                        <Tooltip
+                                            cursor={{ fill: 'transparent' }}
                                             content={({ active, payload }) => {
                                                 if (active && payload && payload.length) {
                                                     return (
@@ -157,8 +264,8 @@ const PremiumStatCard = ({ title, value, sub, icon, color, trend, children }: an
                                         <div key={idx} className="flex items-center gap-2">
                                             <div className="w-16 text-[10px] font-bold text-slate-500 truncate">{item.name}</div>
                                             <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                                <div 
-                                                    className="h-full rounded-full" 
+                                                <div
+                                                    className="h-full rounded-full"
                                                     style={{ width: `${(item.value / 9.8) * 100}%`, backgroundColor: item.color }}
                                                 ></div>
                                             </div>
