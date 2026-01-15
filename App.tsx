@@ -23,6 +23,7 @@ const Documents = lazy(() => import('./pages/Documents'));
 const Alerts = lazy(() => import('./pages/Alerts'));
 const Recruitment = lazy(() => import('./pages/Recruitment'));
 const TaskManagement = lazy(() => import('./pages/TaskManagement'));
+const PaymentClaims = lazy(() => import('./pages/PaymentClaims'));
 
 // Create QueryClient with optimized defaults
 const queryClient = new QueryClient({
@@ -66,6 +67,7 @@ export default function App() {
                       <Route path="/hrm" element={<HRM />} />
                       <Route path="/recruitment" element={<Recruitment />} />
                       <Route path="/documents" element={<Documents />} />
+                      <Route path="/payment-claims" element={<PaymentClaims />} />
                       <Route path="/alerts" element={<Alerts />} />
                       {/* Placeholders for other routes */}
                       <Route path="*" element={<div className="p-10 text-center text-slate-500">Đang phát triển...</div>} />

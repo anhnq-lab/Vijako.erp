@@ -139,6 +139,13 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isOpen, on
                         onClick={onClose}
                     />
                     <SidebarItem
+                        to="/payment-claims"
+                        icon="receipt_long"
+                        label="Thanh toán khối lượng"
+                        active={path === '/payment-claims'}
+                        onClick={onClose}
+                    />
+                    <SidebarItem
                         to="/supply"
                         icon="conveyor_belt"
                         label="Chuỗi Cung ứng"

@@ -9,7 +9,8 @@ import {
     IPCWorkflowHistory,
     IPCFinancialSummary,
     IPCStatus,
-    VariationStatus
+    VariationStatus,
+    VariationType
 } from '../../types';
 
 export type {
@@ -20,7 +21,10 @@ export type {
     Variation,
     IPCDocument,
     IPCWorkflowHistory,
-    IPCFinancialSummary
+    IPCFinancialSummary,
+    IPCStatus,
+    VariationStatus,
+    VariationType
 };
 
 // ==========================================
@@ -204,17 +208,101 @@ export const updateBOQItem = async (
     return data;
 };
 
+import * as XLSX from 'xlsx';
+
 /**
- * Import BOQ từ Excel (placeholder - sẽ implement sau)
+ * Import BOQ từ Excel (Định dạng BM-01)
  */
 export const importBOQFromExcel = async (
     file: File,
     paymentContractId: string
 ): Promise<BOQItem[]> => {
-    // TODO: Implement Excel parsing với thư viện xlsx
-    // Sẽ parse file Excel BM-01 format
-    console.warn('importBOQFromExcel: Not implemented yet');
-    throw new Error('Not implemented');
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const data = new Uint8Array(e.target?.result as ArrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+
+                // Chuyển sang JSON nhưng giữ header gốc để map
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+
+                // Tìm dòng tiêu đề (chứa các từ khóa)
+                let headerRowIdx = -1;
+                for (let i = 0; i < Math.min(jsonData.length, 20); i++) {
+                    const row = jsonData[i];
+                    if (row.some(cell => typeof cell === 'string' && (cell.includes('Mô tả') || cell.includes('Description') || cell.includes('hạng mục')))) {
+                        headerRowIdx = i;
+                        break;
+                    }
+                }
+
+                if (headerRowIdx === -1) {
+                    throw new Error('Không tìm thấy dòng tiêu đề trong file Excel. Vui lòng kiểm tra định dạng BM-01.');
+                }
+
+                const headers = jsonData[headerRowIdx].map(h => String(h || '').trim());
+                const colMap = {
+                    item_code: headers.findIndex(h => h.includes('Mã hiệu') || h.toLowerCase() === 'code' || h.includes('STT')),
+                    description: headers.findIndex(h => h.includes('Mô tả') || h.includes('Description')),
+                    unit: headers.findIndex(h => h.includes('Đơn vị') || h.toLowerCase() === 'unit'),
+                    qty: headers.findIndex(h => h.includes('Khối lượng') || h.includes('Qty') || h.includes('Số lượng')),
+                    rate: headers.findIndex(h => h.includes('Đơn giá') || h.toLowerCase() === 'rate')
+                };
+
+                const boqData = jsonData.slice(headerRowIdx + 1);
+                const itemsToInsert: any[] = [];
+                let currentParentId: string | undefined = undefined;
+                let lastParentByLevel: Record<number, string> = {};
+
+                for (const row of boqData) {
+                    const description = row[colMap.description];
+                    if (!description || String(description).trim() === '') continue;
+
+                    const item_code = String(row[colMap.item_code] || '').trim();
+                    const unit = String(row[colMap.unit] || '').trim();
+                    const contract_qty = parseFloat(row[colMap.qty]) || 0;
+                    const unit_rate = parseFloat(row[colMap.rate]) || 0;
+
+                    // Xác định level dựa trên dấu chấm trong mã hiệu hoặc format gạch chân (giả lập đơn giản)
+                    const dots = (item_code.match(/\./g) || []).length;
+                    const level = dots;
+
+                    const newItem = {
+                        payment_contract_id: paymentContractId,
+                        item_code,
+                        description: String(description).trim(),
+                        unit: unit || null,
+                        unit_rate,
+                        contract_qty,
+                        contract_amount: unit_rate * contract_qty,
+                        parent_id: level > 0 ? lastParentByLevel[level - 1] : null
+                    };
+
+                    // Insert từng cái để lấy ID cho quan hệ cha con (trong thực tế nên dùng batch nhưng Supabase .select() giúp lấy ID)
+                    const { data: inserted, error } = await supabase
+                        .from('boq_items')
+                        .insert(newItem)
+                        .select()
+                        .single();
+
+                    if (error) throw error;
+
+                    lastParentByLevel[level] = inserted.id;
+                    itemsToInsert.push(inserted);
+                }
+
+                resolve(itemsToInsert);
+            } catch (err) {
+                console.error('Error parsing BOQ Excel:', err);
+                reject(err);
+            }
+        };
+        reader.onerror = (err) => reject(err);
+        reader.readAsArrayBuffer(file);
+    });
 };
 
 // ==========================================
@@ -222,10 +310,31 @@ export const importBOQFromExcel = async (
 // ==========================================
 
 /**
+ * Log workflow history
+ */
+const logWorkflowHistory = async (
+    ipcId: string,
+    fromStatus: IPCStatus,
+    toStatus: IPCStatus,
+    approverId: string | null,
+    approverName: string,
+    comments?: string
+): Promise<void> => {
+    await supabase.from('ipc_workflow_history').insert({
+        ipc_id: ipcId,
+        from_status: fromStatus,
+        to_status: toStatus,
+        approver_id: approverId,
+        approver_name: approverName,
+        comments: comments
+    });
+};
+
+/**
  * Tạo IPC mới
  */
 export const createIPC = async (
-    data: Omit<InterimPaymentClaim, 'id' | 'created_at' | 'updated_at' | 'works_executed_amount' | 'variations_amount' | 'mos_amount' | 'gross_total' | 'retention_amount' | 'advance_repayment' | 'net_payment' | 'vat_amount' | 'total_with_vat'>
+    data: Omit<InterimPaymentClaim, 'id' | 'created_at' | 'updated_at' | 'works_executed_amount' | 'variations_amount' | 'gross_total' | 'retention_amount' | 'advance_repayment' | 'net_payment' | 'vat_amount' | 'total_with_vat'>
 ): Promise<InterimPaymentClaim | null> => {
     const { data: result, error } = await supabase
         .from('interim_payment_claims')
@@ -233,7 +342,6 @@ export const createIPC = async (
             ...data,
             works_executed_amount: 0,
             variations_amount: 0,
-            mos_amount: 0,
             gross_total: 0,
             retention_amount: 0,
             advance_repayment: 0,
@@ -444,19 +552,64 @@ export const calculateIPCFinancials = async (ipcId: string): Promise<IPCFinancia
     const calculated_retention = gross_total * retention_percent;
     const retention_amount = Math.min(calculated_retention, retention_limit);
 
-    // 7. Advance Repayment (placeholder - cần implement rule engine)
-    // TODO: Parse advance_repayment_rule và tính toán
-    const advance_repayment = 0;
+    // 7. Advance Repayment
+    // Quy tắc thông thường: Hoàn trả theo tỷ lệ % khối lượng hoàn thành 
+    // Hoặc hoàn trả khi đạt ngưỡng % nhất định (VD: từ 20% đến 80% giá trị HĐ)
+    let advance_repayment = 0;
+    const contract_value = Number(pc.contract_value || 0);
+    const advance_total = Number(pc.advance_amount || 0);
+
+    if (contract_value > 0 && advance_total > 0) {
+        const progress_percent = (gross_total / contract_value) * 100;
+
+        // Giả định quy tắc mặc định: Hoàn trả từ 20% đến 80% tiến độ
+        const start_percent = 20;
+        const end_percent = 80;
+
+        if (progress_percent > start_percent) {
+            const repayment_progress = Math.min(progress_percent, end_percent) - start_percent;
+            const total_repayment_range = end_percent - start_percent;
+            const cumulative_repayment = (repayment_progress / total_repayment_range) * advance_total;
+
+            // Lấy giá trị đã hoàn trả ở các kỳ trước
+            const { data: previousIPCs } = await supabase
+                .from('interim_payment_claims')
+                .select('advance_repayment')
+                .eq('payment_contract_id', ipc.payment_contract_id)
+                .neq('id', ipcId)
+                .lt('created_at', ipc.created_at || new Date().toISOString());
+
+            const total_already_repaid = (previousIPCs || []).reduce((sum, item) => sum + Number(item.advance_repayment || 0), 0);
+
+            advance_repayment = Math.max(0, cumulative_repayment - total_already_repaid);
+            // Đảm bảo không hoàn trả quá tổng tiền tạm ứng
+            advance_repayment = Math.min(advance_repayment, advance_total - total_already_repaid);
+        }
+    }
 
     // 8. Net Payment = Gross - Retention - Advance Repayment
     const net_payment = gross_total - retention_amount - advance_repayment;
 
     // 9. VAT
-    const vat_percent = Number(pc.vat_percent) / 100;
+    const vat_percent = Number(pc.vat_percent || 10) / 100;
     const vat_amount = net_payment * vat_percent;
 
     // 10. Total with VAT
     const total_with_vat = net_payment + vat_amount;
+
+    // 11. Thanh toán thực tế kỳ này (Net Payment Current Period)
+    // = Net Payment lũy kế - Net Payment kỳ trước
+    const { data: lastIPC } = await supabase
+        .from('interim_payment_claims')
+        .select('net_payment')
+        .eq('payment_contract_id', ipc.payment_contract_id)
+        .neq('id', ipcId)
+        .lt('created_at', ipc.created_at || new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+    const cumulative_net_payment_prev = lastIPC?.[0]?.net_payment || 0;
+    const current_period_net_payment = net_payment - cumulative_net_payment_prev;
 
     const summary: IPCFinancialSummary = {
         works_executed_amount,
@@ -473,7 +626,10 @@ export const calculateIPCFinancials = async (ipcId: string): Promise<IPCFinancia
     // Update IPC với các giá trị đã tính
     await supabase
         .from('interim_payment_claims')
-        .update(summary)
+        .update({
+            ...summary,
+            // Thêm trường bổ sung nếu có trong schema, nếu không summary đã đủ
+        })
         .eq('id', ipcId);
 
     return summary;
@@ -537,6 +693,63 @@ export const certifyIPC = async (
     return data;
 };
 
+/**
+ * Review IPC nội bộ (QS -> Chỉ huy trưởng)
+ */
+export const reviewIPC = async (ipcId: string, reviewerName: string, comments?: string): Promise<InterimPaymentClaim | null> => {
+    const { data, error } = await supabase
+        .from('interim_payment_claims')
+        .update({
+            status: 'internal_review' as IPCStatus
+        })
+        .eq('id', ipcId)
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    await logWorkflowHistory(ipcId, 'draft', 'internal_review', null, reviewerName, comments || 'Đang duyệt nội bộ');
+    return data;
+};
+
+/**
+ * Từ chối IPC
+ */
+export const rejectIPC = async (ipcId: string, fromStatus: IPCStatus, rejecterName: string, reason: string): Promise<InterimPaymentClaim | null> => {
+    const { data, error } = await supabase
+        .from('interim_payment_claims')
+        .update({
+            status: 'rejected' as IPCStatus
+        })
+        .eq('id', ipcId)
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    await logWorkflowHistory(ipcId, fromStatus, 'rejected', null, rejecterName, reason);
+    return data;
+};
+
+/**
+ * Xuất hóa đơn cho IPC (certified -> invoiced)
+ */
+export const invoiceIPC = async (ipcId: string, invoiceNumber: string, actionBy: string): Promise<InterimPaymentClaim | null> => {
+    const { data, error } = await supabase
+        .from('interim_payment_claims')
+        .update({
+            status: 'invoiced' as IPCStatus
+        })
+        .eq('id', ipcId)
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    await logWorkflowHistory(ipcId, 'certified', 'invoiced', null, actionBy, `Đã xuất hóa đơn: ${invoiceNumber}`);
+    return data;
+};
+
 // ==========================================
 // VARIATION MANAGEMENT
 // ==========================================
@@ -571,12 +784,85 @@ export const getVariationsByContract = async (paymentContractId: string): Promis
         .eq('payment_contract_id', paymentContractId)
         .order('created_at', { ascending: false });
 
-    if (error) {
-        console.error('Error fetching variations:', error);
-        throw error;
-    }
-
     return data || [];
+};
+
+/**
+ * Export IPC ra Excel (Định dạng BM-01 & PL-01)
+ */
+export const exportIPCToExcel = async (ipcId: string): Promise<void> => {
+    // 1. Lấy dữ liệu IPC, Contract, Work Details
+    const ipc = await getIPCById(ipcId);
+    if (!ipc) throw new Error('IPC not found');
+
+    const workDetails = await getIPCWorkDetails(ipcId);
+    if (!workDetails.length) throw new Error('No work details found for this IPC');
+
+    // 2. Tạo Workbook
+    const wb = XLSX.utils.book_new();
+
+    // --- SHEET 1: BÌA (BI-01) ---
+    const coverData = [
+        ['CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM'],
+        ['Độc lập - Tự do - Hạnh phúc'],
+        [''],
+        ['HỒ SƠ THANH TOÁN KHỐI LƯỢNG (IPC)'],
+        [`Đợt thanh toán: ${ipc.ipc_number}`],
+        [''],
+        ['DỰ ÁN:', ipc.project_name],
+        ['HỢP ĐỒNG:', ipc.contract_code],
+        ['NHÀ THẦU:', 'CÔNG TY CỔ PHẦN VIJAKO'],
+        [''],
+        ['Giai đoạn thanh toán:'],
+        [`Từ ngày: ${ipc.period_start}`],
+        [`Đến ngày: ${ipc.period_end}`],
+        [''],
+        ['Ngày lập:', new Date().toLocaleDateString('vi-VN')]
+    ];
+    const wsCover = XLSX.utils.aoa_to_sheet(coverData);
+    XLSX.utils.book_append_sheet(wb, wsCover, 'Bìa');
+
+    // --- SHEET 2: BẢNG KHỐI LƯỢNG (BM-01) ---
+    const bmHeaders = [
+        ['STT', 'Mã hiệu', 'Nội dung công việc', 'Đơn vị', 'Đơn giá', 'Khối lượng HĐ', 'KL Thực hiện kỳ trước', 'KL Thực hiện kỳ này', 'KL Lũy kế', 'Thành tiền']
+    ];
+    const bmRows = workDetails.map((wd, idx) => [
+        idx + 1,
+        wd.item_code,
+        wd.description,
+        wd.unit,
+        wd.unit_rate,
+        wd.contract_qty,
+        (wd.cumulative_qty || 0) - (wd.current_qty || 0),
+        wd.current_qty,
+        wd.cumulative_qty,
+        wd.current_amount
+    ]);
+    const wsBM = XLSX.utils.aoa_to_sheet([...bmHeaders, ...bmRows]);
+    XLSX.utils.book_append_sheet(wb, wsBM, 'BM-01 (Khối lượng)');
+
+    // --- SHEET 3: TỔNG HỢP TÀI CHÍNH (PL-01) ---
+    const plData = [
+        ['BẢNG TỔNG HỢP GIÁ TRỊ THANH TOÁN (PL-01)'],
+        [''],
+        ['1. Giá trị công việc hoàn thành theo BOQ:', ipc.works_executed_amount],
+        ['2. Giá trị phát sinh đã được duyệt:', ipc.variations_amount],
+        ['3. Giá trị vật tư tại hiện trường (MOS):', ipc.mos_amount],
+        ['4. TỔNG GIÁ TRỊ GỘP (1+2+3):', ipc.gross_total],
+        [''],
+        ['5. Khấu trừ giữ lại bảo hành:', ipc.retention_amount],
+        ['6. Hoàn trả tạm ứng:', ipc.advance_repayment],
+        [''],
+        ['7. GIÁ TRỊ THANH TOÁN RÒNG (4-5-6):', ipc.net_payment],
+        ['8. Thuế GTGT (VAT):', ipc.vat_amount],
+        ['9. TỔNG CỘNG THANH TOÁN (7+8):', ipc.total_with_vat]
+    ];
+    const wsPL = XLSX.utils.aoa_to_sheet(plData);
+    XLSX.utils.book_append_sheet(wb, wsPL, 'PL-01 (Tài chính)');
+
+    // 3. Xuất file
+    const fileName = `IPC_${ipc.ipc_number}_${ipc.contract_code}.xlsx`;
+    XLSX.writeFile(wb, fileName);
 };
 
 /**
@@ -632,26 +918,6 @@ export const rejectVariation = async (id: string, reason?: string): Promise<Vari
 // HELPER FUNCTIONS
 // ==========================================
 
-/**
- * Log workflow history
- */
-const logWorkflowHistory = async (
-    ipcId: string,
-    fromStatus: IPCStatus,
-    toStatus: IPCStatus,
-    approverId: string | null,
-    approverName: string,
-    comments?: string
-): Promise<void> => {
-    await supabase.from('ipc_workflow_history').insert({
-        ipc_id: ipcId,
-        from_status: fromStatus,
-        to_status: toStatus,
-        approver_id: approverId,
-        approver_name: approverName,
-        comments: comments
-    });
-};
 
 /**
  * Get workflow history cho IPC
@@ -691,6 +957,10 @@ export const paymentClaimService = {
     calculateIPCFinancials,
     submitIPC,
     certifyIPC,
+    reviewIPC,
+    rejectIPC,
+    invoiceIPC,
+    exportIPCToExcel,
 
     // Variations
     createVariation,
