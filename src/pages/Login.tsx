@@ -157,17 +157,44 @@ const LoginPage: React.FC = () => {
                             </button>
                         </div>
 
-                        {/* Auto Fill Button for Demo/Dev */}
-                        <div>
+
+
+                        <div className="grid grid-cols-2 gap-3 mt-3">
                             <button
                                 type="button"
                                 onClick={() => {
                                     setEmail('admin@vijako.com.vn');
                                     setPassword('123456');
                                 }}
-                                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all mt-3"
+                                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
                             >
-                                Tự động điền (Admin)
+                                Auto Fill (Admin)
+                            </button>
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    if (!email || !password) {
+                                        setError('Vui lòng nhập Email và Mật khẩu để đăng ký');
+                                        return;
+                                    }
+                                    try {
+                                        setIsLoading(true);
+                                        await authService.signUp(email, password);
+                                        // Auto login after signup in some cases, or just notify
+                                        // For simplicity, try to login immediately or say "Success"
+                                        setError('Đăng ký thành công! Đang đăng nhập...');
+                                        await authService.signIn(email, password);
+                                        await refreshUser();
+                                        navigate(from, { replace: true });
+                                    } catch (err: any) {
+                                        setError('Đăng ký thất bại: ' + (err.message || 'Lỗi không xác định'));
+                                    } finally {
+                                        setIsLoading(false);
+                                    }
+                                }}
+                                className="w-full flex justify-center py-2 px-4 border border-blue-300 rounded-lg shadow-sm text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
+                            >
+                                Đăng ký mới
                             </button>
                         </div>
                     </form>
@@ -185,8 +212,8 @@ const LoginPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

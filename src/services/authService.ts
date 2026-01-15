@@ -12,6 +12,16 @@ export const authService = {
         return data;
     },
 
+    // Sign up new user
+    async signUp(email: string, pass: string) {
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password: pass,
+        });
+        if (error) throw error;
+        return data;
+    },
+
     // Sign out
     async signOut() {
         const { error } = await supabase.auth.signOut();

@@ -65,6 +65,33 @@ const TaskManagement = () => {
         }
     };
 
+    const handleGenerateSampleData = async () => {
+        setLoading(true);
+        try {
+            const sampleTasks: Omit<UserTask, 'id' | 'created_at' | 'user_id'>[] = [
+                { title: 'Họp giao ban tuần', description: 'Chuẩn bị tài liệu báo cáo tiến độ tuần 42', status: 'todo', priority: 'high', due_date: new Date(Date.now() + 86400000).toISOString() },
+                { title: 'Kiểm tra hiện trường dự án A', description: 'Nghiệm thu công tác cốt thép sàn tầng 5', status: 'in_progress', priority: 'high', due_date: new Date().toISOString() },
+                { title: 'Phê duyệt đề xuất vật tư', description: 'Xem xét và phê duyệt đề xuất mua sắm vật tư điện nước', status: 'todo', priority: 'normal', due_date: new Date(Date.now() + 172800000).toISOString() },
+                { title: 'Làm báo cáo tháng', description: 'Tổng hợp số liệu tài chính và nhân sự tháng 1', status: 'blocked', priority: 'normal', due_date: new Date(Date.now() - 86400000).toISOString() },
+                { title: 'Gặp gỡ chủ đầu tư', description: 'Thảo luận về phương án thay đổi thiết kế mặt tiền', status: 'done', priority: 'high', due_date: new Date(Date.now() - 259200000).toISOString() }
+            ];
+
+            const createdTasks = [];
+            for (const task of sampleTasks) {
+                const newTask = await projectService.createUserTask(task);
+                if (newTask) createdTasks.push(newTask);
+            }
+
+            setTasks(prev => [...prev, ...createdTasks]);
+            showToast.success(`Đã tạo ${createdTasks.length} công việc mẫu`);
+        } catch (error) {
+            console.error(error);
+            showToast.error('Lỗi khi tạo dữ liệu mẫu');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="h-full flex flex-col bg-[#f8fafc]">
             {/* Header */}
@@ -102,6 +129,26 @@ const TaskManagement = () => {
                     <div className="flex items-center justify-center h-full text-slate-400 gap-2">
                         <span className="material-symbols-outlined animate-spin">progress_activity</span>
                         Đang tải dữ liệu...
+                    </div>
+                ) : (tasks.length === 0 && activeTab === 'my_tasks') ? (
+                    <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                        <span className="material-symbols-outlined text-[64px] mb-4 text-slate-300">task</span>
+                        <h3 className="text-lg font-bold text-slate-600 mb-2">Chưa có công việc nào</h3>
+                        <p className="mb-6 max-w-sm text-center">Bạn chưa có công việc nào trong danh sách. Hãy tạo mới hoặc tạo dữ liệu mẫu để thử nghiệm.</p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleQuickCreate}
+                                className="px-4 py-2 rounded-xl border border-slate-300 font-bold text-slate-600 hover:bg-slate-50 transition-premium"
+                            >
+                                Tạo một việc
+                            </button>
+                            <button
+                                onClick={handleGenerateSampleData}
+                                className="px-4 py-2 rounded-xl bg-primary text-white font-bold shadow-premium hover:shadow-lg hover:-translate-y-0.5 transition-premium"
+                            >
+                                Tạo dữ liệu mẫu
+                            </button>
+                        </div>
                     </div>
                 ) : (
                     activeTab === 'my_tasks' ? (
