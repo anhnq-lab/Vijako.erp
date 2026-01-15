@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   AreaChart, Area, XAxis, Tooltip, ResponsiveContainer, Line, ComposedChart,
-  ReferenceLine, Legend, Bar, ScatterChart, Scatter, YAxis, CartesianGrid, ZAxis, Cell
+  Legend, Bar, YAxis, CartesianGrid
 } from 'recharts';
 import ProjectMap from '../src/components/Dashboard/ProjectMap';
-import ErrorBoundary from '../components/ErrorBoundary';
 import { projectService } from '../src/services/projectService';
-import { riskService } from '../src/services/riskService';
-import { Project, RiskMatrixData } from '../types';
+import { Project } from '../types';
 
 // Dữ liệu Tài chính & EVM
 const financeData = [
@@ -25,13 +23,7 @@ const financeData = [
   { name: 'T12', plan: 210, cost: 155, ev: 190 },
 ];
 
-const fallbackRiskData: RiskMatrixData[] = [
-  { x: 20, y: 20, z: 40, name: 'The Nine', status: 'Low', color: '#10b981' },
-  { x: 60, y: 60, z: 360, name: 'Foxconn BG', status: 'Medium', color: '#f59e0b' },
-  { x: 100, y: 100, z: 1000, name: 'Sun Urban', status: 'Critical', color: '#ef4444' },
-  { x: 80, y: 60, z: 480, name: 'Aeon Mall', status: 'High', color: '#f97316' },
-  { x: 40, y: 80, z: 320, name: 'Mỹ Thuận 2', status: 'Medium', color: '#3b82f6' },
-];
+
 
 const PremiumStatCard = ({ title, value, unit, change, type, icon, subValue, note }: any) => {
   const gradients: any = {
@@ -115,22 +107,17 @@ const AICommandHeader = () => (
 export default function Dashboard() {
   const [activeChart, setActiveChart] = useState<'finance' | 'manpower'>('finance');
   const [projects, setProjects] = useState<Project[]>([]);
-  const [riskData, setRiskData] = useState<RiskMatrixData[]>(fallbackRiskData);
 
   useEffect(() => {
-    const fetchAllData = async () => {
+    const fetchProjects = async () => {
       try {
-        const [proj, risks] = await Promise.all([
-          projectService.getAllProjects(),
-          riskService.getRiskMatrix()
-        ]);
+        const proj = await projectService.getAllProjects();
         setProjects(proj);
-        if (risks && risks.length) setRiskData(risks);
       } catch (err) {
         console.error(err);
       }
     };
-    fetchAllData();
+    fetchProjects();
   }, []);
 
   return (
@@ -238,30 +225,56 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="xl:col-span-4 bg-white rounded-[40px] border border-slate-200 shadow-glass overflow-hidden h-[550px] flex flex-col relative">
-              <div className="p-8">
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">Ma trận Rủi ro</h3>
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Ảnh hưởng vs Xác suất</p>
+            <div className="xl:col-span-4 bg-white rounded-[40px] border border-slate-200 shadow-glass overflow-hidden h-[550px] flex flex-col">
+              <div className="p-8 pb-4">
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">Top 5 Dự Án Sản Lượng</h3>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Hiệu suất cao nhất trong tháng</p>
               </div>
-              <div className="flex-1 p-4 relative">
-                <div className="absolute inset-8 border-l border-b border-slate-100/50"></div>
-                <ResponsiveContainer width="100%" height="100%">
-                  <ScatterChart margin={{ top: 20, right: 30, bottom: 20, left: 10 }}>
-                    <XAxis type="number" dataKey="x" name="Xác suất" domain={[0, 100]} hide />
-                    <YAxis type="number" dataKey="y" name="Ảnh hưởng" domain={[0, 100]} hide />
-                    <ZAxis type="number" dataKey="z" range={[400, 2000]} />
-                    <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                    <Scatter name="Dự án" data={riskData}>
-                      {riskData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} fillOpacity={0.8} />
-                      ))}
-                    </Scatter>
-                  </ScatterChart>
-                </ResponsiveContainer>
+              <div className="flex-1 overflow-auto px-8 pb-8">
+                <div className="space-y-4">
+                  {projects
+                    .sort((a, b) => (b.progress || 0) - (a.progress || 0))
+                    .slice(0, 5)
+                    .map((project, index) => {
+                      const progressColor = (project.progress || 0) >= 80 ? 'bg-emerald-500' : (project.progress || 0) >= 50 ? 'bg-amber-500' : 'bg-red-500';
+                      const rankColors = ['bg-gradient-to-r from-yellow-400 to-amber-500', 'bg-gradient-to-r from-slate-300 to-slate-400', 'bg-gradient-to-r from-amber-600 to-amber-700', 'bg-slate-200', 'bg-slate-200'];
+                      return (
+                        <div key={project.id} className="group p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl transition-premium border border-slate-100 hover:border-slate-200">
+                          <div className="flex items-start gap-4">
+                            <div className={`size-10 ${rankColors[index]} rounded-xl flex items-center justify-center text-white font-black text-lg shadow-sm`}>
+                              {index + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold text-slate-900 truncate group-hover:text-primary transition-colors">{project.name}</h4>
+                              <p className="text-xs text-slate-500 mt-0.5">{project.code || 'N/A'}</p>
+                              <div className="mt-3">
+                                <div className="flex justify-between items-center mb-1.5">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tiến độ</span>
+                                  <span className="text-sm font-black text-slate-900">{project.progress || 0}%</span>
+                                </div>
+                                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                                  <div className={`h-full rounded-full ${progressColor} transition-all duration-500`} style={{ width: `${project.progress || 0}%` }}></div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  {projects.length === 0 && (
+                    <div className="flex flex-col items-center justify-center h-full text-slate-400 py-12">
+                      <span className="material-symbols-outlined text-5xl mb-3">analytics</span>
+                      <p className="text-sm font-medium">Đang tải dữ liệu...</p>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="p-8 flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-100">
-                <span>Rủi ro thấp</span>
-                <span>Vùng nguy hiểm</span>
+              <div className="p-6 flex justify-between items-center text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-100">
+                <span>Cập nhật: {new Date().toLocaleDateString('vi-VN')}</span>
+                <span className="flex items-center gap-1">
+                  <span className="size-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                  Thời gian thực
+                </span>
               </div>
             </div>
           </div>
