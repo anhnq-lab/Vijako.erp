@@ -65,8 +65,8 @@ export default function Contracts() {
     }, []);
 
     // Calculate stats
-    const revenueContracts = contracts.filter(c => c.contract_type === 'revenue' || c.type === 'revenue');
-    const expenseContracts = contracts.filter(c => c.contract_type === 'expense' || c.type === 'expense');
+    const revenueContracts = contracts.filter(c => c.contract_type === 'revenue' || c.contract_type === 'revenue');
+    const expenseContracts = contracts.filter(c => c.contract_type === 'expense' || c.contract_type === 'expense');
 
     const stats = {
         totalRevenue: revenueContracts.reduce((sum, c) => sum + Number(c.contract_value || c.value || 0), 0),
@@ -109,20 +109,17 @@ export default function Contracts() {
                         title="Xuất báo cáo"
                         variant="secondary"
                     />
+                    <button
+                        onClick={() => setIsScanModalOpen(true)}
+                        className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-black hover:bg-slate-50 transition-premium shadow-sm hover:shadow-md"
+                    >
+                        <span className="material-symbols-outlined text-[20px] text-purple-600">document_scanner</span>
+                        <span>Quét Hợp đồng AI</span>
+                    </button>
                     <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl text-sm font-black hover:bg-primary-light shadow-premium transition-premium group">
                         <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-premium">add</span>
                         <span>Hợp đồng mới</span>
-                        <button
-                            onClick={() => setIsScanModalOpen(true)}
-                            className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-black hover:bg-slate-50 transition-premium shadow-sm hover:shadow-md"
-                        >
-                            <span className="material-symbols-outlined text-[20px] text-purple-600">document_scanner</span>
-                            <span>Quét Hợp đồng AI</span>
-                        </button>
-                        <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl text-sm font-black hover:bg-primary-light shadow-premium transition-premium group">
-                            <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-premium">add</span>
-                            <span>Hợp đồng mới</span>
-                        </button>
+                    </button>
                 </div>
             </div>
 
@@ -304,7 +301,7 @@ export default function Contracts() {
                             signing_date: data.signing_date,
                             contract_value: data.contract_value,
                             currency: data.currency, // Ensure your DB supports this or convert
-                            type: data.contract_type, // 'revenue' | 'expense' maps to DB type
+                            contract_type: data.contract_type, // 'revenue' | 'expense' maps to DB type
                             status: 'active', // Default status
                             project_id: data.project_id,
                             description: data.summary,
