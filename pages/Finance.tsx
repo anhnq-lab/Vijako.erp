@@ -3,7 +3,7 @@ import {
     ComposedChart, Line, Bar, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
     AreaChart, Area
 } from 'recharts';
-import { financeService, PaymentRequest, CashFlowData } from '../src/services/financeService';
+import { financeService, PaymentRequest, CashFlowData, Invoice, PaymentRecord } from '../src/services/financeService';
 import { projectService } from '../src/services/projectService';
 import { Project } from '../types';
 import { InvoiceScanModal } from '../components/InvoiceScanModal';
@@ -114,6 +114,8 @@ const AIFinancialInsight = () => (
 export default function Finance() {
     const [activeTab, setActiveTab] = useState<'cashflow' | 'payments'>('cashflow');
     const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
+    const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [payments, setPayments] = useState<PaymentRecord[]>([]);
     const [cashFlowRecords, setCashFlowRecords] = useState<CashFlowData[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
@@ -126,10 +128,12 @@ export default function Finance() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [prData, cfData, pData] = await Promise.all([
+            const [prData, cfData, pData, invData, payData] = await Promise.all([
                 financeService.getAllPaymentRequests(),
                 financeService.getCashFlowData(),
-                projectService.getAllProjects()
+                projectService.getAllProjects(),
+                financeService.getAllInvoices(),
+                financeService.getAllPayments()
             ]);
 
             // Mock data fallback if DB returns empty for demonstration
@@ -149,6 +153,9 @@ export default function Finance() {
             } else {
                 setPaymentRequests(mockPRs);
             }
+
+            if (invData) setInvoices(invData);
+            if (payData) setPayments(payData);
 
             if (cfData && cfData.length > 0) {
                 setCashFlowRecords(cfData);
@@ -284,9 +291,30 @@ export default function Finance() {
                                 </PremiumStatCard>
                             </div>
 
-                            {/* Secondary Summary Grid (Now inside the col-span-3 to fill empty space) */}
+                            {/* Secondary Summary Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                {summaryCardsData.map((card, idx) => (
+                                {[
+                                    {
+                                        title: 'Tiền mặt tại quỹ',
+                                        value: (payments.filter(p => p.payment_method === 'cash').reduce((acc, p) => acc + (p.payment_type === 'receipt' ? p.amount : -p.amount), 1240000000)).toLocaleString(),
+                                        change: '+12%', icon: 'payments', color: 'text-emerald-500', bgColor: 'bg-emerald-50'
+                                    },
+                                    {
+                                        title: 'Tiền gửi ngân hàng',
+                                        value: (payments.filter(p => p.payment_method === 'bank_transfer').reduce((acc, p) => acc + (p.payment_type === 'receipt' ? p.amount : -p.amount), 15860000000)).toLocaleString(),
+                                        change: '+5%', icon: 'account_balance', color: 'text-blue-500', bgColor: 'bg-blue-50'
+                                    },
+                                    {
+                                        title: 'Công nợ phải thu',
+                                        value: invoices.filter(inv => inv.invoice_type === 'sales').reduce((acc, inv) => acc + inv.outstanding_amount, 0).toLocaleString() || '25,400,000,000',
+                                        change: '-2%', icon: 'call_received', color: 'text-amber-500', bgColor: 'bg-amber-50'
+                                    },
+                                    {
+                                        title: 'Công nợ phải trả',
+                                        value: invoices.filter(inv => inv.invoice_type === 'purchase').reduce((acc, inv) => acc + inv.outstanding_amount, 0).toLocaleString() || '18,920,000,000',
+                                        change: '+8%', icon: 'call_made', color: 'text-red-500', bgColor: 'bg-red-50'
+                                    },
+                                ].map((card, idx) => (
                                     <div key={idx} className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-3 hover:shadow-md transition-premium group">
                                         <div className={`size-10 rounded-2xl flex items-center justify-center ${card.bgColor} ${card.color} group-hover:scale-110 transition-premium`}>
                                             <span className="material-symbols-outlined text-[20px]">{card.icon}</span>
@@ -404,16 +432,97 @@ export default function Finance() {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-50">
-                                                {paymentRequests.length > 0 ? paymentRequests.map((req) => (
+                                                {/* Invoices */}
+                                                {invoices.map((inv) => (
+                                                    <tr key={inv.id} className="hover:bg-slate-50/80 transition-premium group">
+                                                        <td className="px-6 py-5">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`size-8 rounded-lg flex items-center justify-center ${inv.invoice_type === 'sales' ? 'bg-emerald/10 text-emerald' : 'bg-red-50 text-red-600'}`}>
+                                                                    <span className="material-symbols-outlined text-[18px]">{inv.invoice_type === 'sales' ? 'file_download' : 'file_upload'}</span>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-black text-slate-900">{inv.vendor_name}</p>
+                                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 italic">Hóa đơn: {inv.invoice_code}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-5">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="size-2 rounded-full bg-blue-400"></div>
+                                                                <span className="text-sm font-bold text-slate-600">{inv.project_name || 'N/A'}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-5 text-right font-black text-slate-900 tracking-tight">
+                                                            {inv.total_amount.toLocaleString()}
+                                                        </td>
+                                                        <td className="px-6 py-5">
+                                                            <div className="flex justify-center">
+                                                                <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${inv.status === 'paid'
+                                                                    ? 'bg-emerald/10 text-emerald border border-emerald/20'
+                                                                    : inv.status === 'overdue' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-amber-50 text-amber-600 border border-amber-100'
+                                                                    }`}>
+                                                                    {inv.status === 'paid' ? 'Đã thu/trả' : inv.status === 'overdue' ? 'Quá hạn' : 'Chưa thanh toán'}
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-5 text-right">
+                                                            <Badge label="CÔNG NỢ" variant="default" size="sm" />
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                                {/* Payments */}
+                                                {payments.map((pay) => (
+                                                    <tr key={pay.id} className="hover:bg-slate-50/80 transition-premium group">
+                                                        <td className="px-6 py-5">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`size-8 rounded-lg flex items-center justify-center ${pay.payment_type === 'receipt' ? 'bg-emerald/10 text-emerald' : 'bg-red-50 text-red-600'}`}>
+                                                                    <span className="material-symbols-outlined text-[18px]">payments</span>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-black text-slate-900">{pay.partner_name}</p>
+                                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 italic">Giao dịch: {pay.payment_code}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-5">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="size-2 rounded-full bg-emerald-400"></div>
+                                                                <span className="text-sm font-bold text-slate-600">{pay.project_name || 'N/A'}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-5 text-right font-black text-slate-900 tracking-tight text-emerald-600">
+                                                            {pay.payment_type === 'receipt' ? '+' : '-'}{pay.amount.toLocaleString()}
+                                                        </td>
+                                                        <td className="px-6 py-5">
+                                                            <div className="flex justify-center">
+                                                                <span className="px-4 py-1.5 bg-emerald/10 text-emerald border border-emerald/20 rounded-xl text-[10px] font-black uppercase tracking-wider">
+                                                                    THÀNH CÔNG
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-5 text-right">
+                                                            <Badge label="GIAO DỊCH" variant="success" size="sm" />
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                                {/* Payment Requests */}
+                                                {(paymentRequests.length > 0) && paymentRequests.map((req) => (
                                                     <tr key={req.id} className="hover:bg-slate-50/80 transition-premium group">
                                                         <td className="px-6 py-5">
-                                                            <p className="font-black text-slate-900">{req.partner_name}</p>
-                                                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 italic">Mã: PAY_{req.id.slice(0, 8)}</p>
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="size-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                                                                    <span className="material-symbols-outlined text-[18px]">receipt_long</span>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="font-black text-slate-900">{req.partner_name}</p>
+                                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 italic">Hồ sơ: {req.code}</p>
+                                                                </div>
+                                                            </div>
                                                         </td>
                                                         <td className="px-6 py-5">
                                                             <div className="flex items-center gap-2">
                                                                 <div className="size-2 rounded-full bg-primary-accent"></div>
-                                                                <span className="text-sm font-bold text-slate-600">Dự án trọng điểm</span>
+                                                                <span className="text-sm font-bold text-slate-600">{req.project_name || 'Dự án'}</span>
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-5 text-right font-black text-slate-900 tracking-tight">
@@ -423,17 +532,19 @@ export default function Finance() {
                                                             <div className="flex justify-center">
                                                                 <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${req.status === 'paid'
                                                                     ? 'bg-emerald/10 text-emerald border border-emerald/20'
-                                                                    : 'bg-blue-50 text-blue-600 border border-blue-100'
+                                                                    : req.status === 'rejected' ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-blue-50 text-blue-600 border border-blue-100'
                                                                     }`}>
-                                                                    {req.status === 'paid' ? 'Đã thanh toán' : 'Đang xử lý'}
+                                                                    {req.status === 'paid' ? 'Đã thanh toán' : req.status === 'rejected' ? 'Từ chối' : 'Đang xử lý'}
                                                                 </span>
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-5 text-right">
-                                                            <button className="px-4 py-2 bg-white text-[10px] font-black text-primary border border-slate-200 rounded-xl hover:bg-primary hover:text-white hover:border-primary transition-premium shadow-sm">XEM</button>
+                                                            <Badge label="YÊU CẦU" variant="info" size="sm" />
                                                         </td>
                                                     </tr>
-                                                )) : (
+                                                ))}
+
+                                                {invoices.length === 0 && payments.length === 0 && paymentRequests.length === 0 && (
                                                     <tr>
                                                         <td colSpan={5} className="py-20 text-center">
                                                             <div className="inline-flex flex-col items-center">

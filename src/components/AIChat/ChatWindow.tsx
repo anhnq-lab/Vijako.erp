@@ -19,7 +19,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onClose }) => {
         {
             id: '1',
             role: 'assistant',
-            content: 'Chào anh! Em là trợ lý ảo AI. Em có thể giúp gì cho anh về dữ liệu dự án hôm nay?',
+            content: 'Chào anh! Tôi là Vajiko - Siêu trí tuệ điều hành của Vijako. Tôi đã sẵn sàng phân tích dữ liệu dự án cho anh. Anh muốn bắt đầu từ đâu?',
             timestamp: new Date()
         }
     ]);
@@ -87,7 +87,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onClose }) => {
             <div className="bg-blue-600 p-4 flex justify-between items-center text-white shrink-0">
                 <div className="flex items-center gap-2">
                     <Bot size={24} />
-                    <h3 className="font-semibold">Trợ lý AI</h3>
+                    <h3 className="font-semibold text-lg tracking-wide">Vajiko AI</h3>
                 </div>
                 <button onClick={onClose} className="hover:bg-blue-700 p-1 rounded">
                     <span className="text-xl">&times;</span>
@@ -103,8 +103,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ onClose }) => {
                     >
                         <div
                             className={`max-w-[80%] rounded-lg p-3 ${msg.role === 'user'
-                                    ? 'bg-blue-600 text-white rounded-br-none'
-                                    : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none shadow-sm'
+                                ? 'bg-blue-600 text-white rounded-br-none'
+                                : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none shadow-sm'
                                 }`}
                         >
                             <p className="whitespace-pre-wrap text-sm">{msg.content}</p>

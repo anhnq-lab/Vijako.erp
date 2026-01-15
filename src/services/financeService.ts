@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase';
-import { Contract, BankGuarantee, PaymentRequest, CashFlowData } from '../../types';
+import { Contract, BankGuarantee, PaymentRequest, CashFlowData, Invoice, PaymentRecord } from '../../types';
 
-export type { Contract, BankGuarantee, PaymentRequest, CashFlowData };
+export type { Contract, BankGuarantee, PaymentRequest, CashFlowData, Invoice, PaymentRecord };
 
 export const financeService = {
     async getAllContracts(): Promise<Contract[]> {
@@ -145,6 +145,40 @@ export const financeService = {
             thu: Number(cf.inflow),
             chi: Number(cf.outflow),
             net: Number(cf.net_flow)
+        }));
+    },
+
+    async getAllInvoices(): Promise<Invoice[]> {
+        const { data, error } = await supabase
+            .from('invoices')
+            .select('*, projects(name)')
+            .order('invoice_date', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching invoices:', error);
+            throw error;
+        }
+
+        return (data || []).map(inv => ({
+            ...inv,
+            project_name: (inv.projects as any)?.name
+        }));
+    },
+
+    async getAllPayments(): Promise<PaymentRecord[]> {
+        const { data, error } = await supabase
+            .from('payments')
+            .select('*, projects(name)')
+            .order('payment_date', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching payments:', error);
+            throw error;
+        }
+
+        return (data || []).map(pay => ({
+            ...pay,
+            project_name: (pay.projects as any)?.name
         }));
     },
 

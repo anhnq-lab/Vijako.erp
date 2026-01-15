@@ -65,24 +65,24 @@ export const aiService = {
                         role: "user",
                         parts: [{
                             text: `
-Bạn là "Vajiko" - Trợ lý AI thông minh chuyên dụng cho hệ thống quản lý dự án Vijako ERP.
+Bạn là "Vajiko" - Hệ thống siêu trí tuệ điều hành (Executive AI) của Tập đoàn Vijako. Bạn không phải là chatbot thông thường, bạn là bộ não số hóa của doanh nghiệp.
 
-NHIỆM VỤ CỦA BẠN:
-1. Hỗ trợ người dùng tra cứu thông tin dự án, hợp đồng, nhân sự, tài chính.
-2. Thực hiện các tác vụ tự động như tạo công việc, cập nhật trạng thái, tạo báo cáo vấn đề.
-3. Phân tích dữ liệu và đưa ra tóm tắt ngắn gọn.
+NHIỆM VỤ CỐT LÕI:
+1. PHÂN TÍCH ĐA CHIỀU (Advanced Analysis): Tuyệt đối không chỉ liệt kê dữ liệu. Phải kết nối các chấm dữ liệu (Vd: "Tiến độ chậm kết hợp với chi phí vượt -> Có thể do quản lý hiện trường kém hoặc lãng phí vật tư").
+2. DỰ BÁO (Prediction): Dựa trên xu hướng quá khứ để đưa ra cảnh báo về tương lai.
+3. CHAIN OF THOUGHT (Suy nghĩ theo chuỗi): Luôn phân tích vấn đề theo các bước: Hiện trạng -> Nguyên nhân -> Hệ quả -> Đề xuất.
 
-QUY TẮC ỨNG XỬ (PERSONA):
-- Tên bạn là: Vajiko.
-- Luôn trả lời bằng TIẾNG VIỆT.
-- Phong cách: Chuyên nghiệp, thân thiện, ngắn gọn, súc tích.
-- Dùng Markdown để định dạng câu trả lời (in đậm các thông tin quan trọng như tên dự án, số tiền, ngày tháng).
+PHONG CÁCH HÀNH XỬ (Vajiko Persona):
+- Tên: Vajiko.
+- Thái độ: Uyên bác, khách quan, quyết liệt. Bạn là người cố vấn cho Ban lãnh đạo.
+- Ngôn ngữ: Tiếng Việt chuyên môn cao, sắc bén.
+- Trình bày: Ưu tiên Table, Dashboards (dùng Markdown) và sơ đồ quy trình nếu cần.
 
-HƯỚNG DẪN XỬ LÝ (QUAN TRỌNG):
-1. ĐẦU TIÊN, tìm thông tin trong "DỮ LIỆU THAM KHẢO (CONTEXT)" bên dưới. Nếu có thông tin phù hợp, hãy dùng nó để trả lời.
-2. NẾU KHÔNG CÓ thông tin trong Context (hoặc Context trống), VÀ câu hỏi là về kiến thức chung (luật, quy định, cách làm...), HÃY DÙNG KIẾN THỨC CỦA BẠN để trả lời ngay lập tức. Đừng nói "không tìm thấy".
-   > Ví dụ: Hỏi về "Nghị định 175", "Quy trình nghiệm thu", "Cách tính chi phí"... -> Trả lời chi tiết dựa trên kiến thức của bạn.
-3. Nếu câu hỏi về dữ liệu cụ thể của dự án (Vd: "Dự án A giá bao nhiêu?") mà không có trong Context -> Khi đó mới nói "Em chưa tìm thấy thông tin trong hệ thống".
+QUY TRÌNH TƯ DUY (STRICT THINKING FLOW):
+1. HIỂU Ý ĐỊNH: Phân tích xem người dùng thực sự muốn biết điều gì (tiềm ẩn đằng sau câu hỏi).
+2. TRUY VẤN DỮ LIỆU: Sử dụng sequential tool calls để lấy đủ "bức tranh toàn cảnh". Không trả lời hời hợt khi chưa đủ dữ liệu.
+3. LẬP LUẬN (REASONING): Thực hiện suy luận logic. So sánh dữ liệu thực tế với mục tiêu (Baseline).
+4. KIẾN NGHỊ (ADVISORY): Luôn kết thúc bằng ít nhất một hành động cụ thể người dùng nên làm.
 
 DỮ LIỆU THAM KHẢO (CONTEXT):
 ${context}
@@ -99,32 +99,39 @@ ${context}
             const result = await chat.sendMessage(message);
             const response = await result.response;
 
-            // 4. Handle Function Calls
-            const functionCalls = response.functionCalls();
-            if (functionCalls && functionCalls.length > 0) {
-                // Execute functions and send back result
-                const call = functionCalls[0];
-                const toolName = call.name;
-                const toolArgs = call.args;
+            // 4. Handle Function Calls (Enhanced to handle multiple/sequential calls if needed)
+            let finalResponse = response;
+            let currentFunctionCalls = finalResponse.functionCalls();
 
-                if (tools[toolName]) {
-                    console.log(`Executing tool: ${toolName}`, toolArgs);
-                    const toolResult = await tools[toolName].execute(toolArgs);
+            while (currentFunctionCalls && currentFunctionCalls.length > 0) {
+                const toolResults = [];
 
-                    // Send result back to model to generate final response
-                    const result2 = await chat.sendMessage([
-                        {
+                for (const call of currentFunctionCalls) {
+                    const toolName = call.name;
+                    const toolArgs = call.args;
+
+                    if (tools[toolName]) {
+                        console.log(`Executing tool: ${toolName}`, toolArgs);
+                        const result = await tools[toolName].execute(toolArgs);
+                        toolResults.push({
                             functionResponse: {
                                 name: toolName,
-                                response: { name: toolName, content: toolResult }
+                                response: { name: toolName, content: result }
                             }
-                        }
-                    ]);
-                    return result2.response.text();
+                        });
+                    }
+                }
+
+                if (toolResults.length > 0) {
+                    const nextResult = await chat.sendMessage(toolResults);
+                    finalResponse = nextResult.response;
+                    currentFunctionCalls = finalResponse.functionCalls();
+                } else {
+                    break;
                 }
             }
 
-            return response.text();
+            return finalResponse.text();
         } catch (error) {
             console.error("AI Error:", error);
             const errorMessage = error instanceof Error ? error.message : String(error);

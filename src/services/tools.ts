@@ -337,6 +337,279 @@ export const tools: Record<string, Tool> = {
                 message: `Tổng ${data?.length || 0} rủi ro: ${bySeverity.Critical} Critical, ${bySeverity.High} High, ${bySeverity.Medium} Medium, ${bySeverity.Low} Low`
             };
         }
+    },
+
+    analyze_project_performance: {
+        name: 'analyze_project_performance',
+        description: 'Phân tích tổng quát sức khỏe dự án: kết hợp tiến độ, ngân sách, rủi ro và vấn đề tồn đọng.',
+        parameters: {
+            type: 'object',
+            properties: {
+                project_identifier: { type: 'string', description: 'Mã dự án hoặc tên dự án' },
+            },
+            required: ['project_identifier'],
+        },
+        execute: async ({ project_identifier }) => {
+            const projectId = await resolveProjectId(project_identifier);
+            if (!projectId) return { error: `Không tìm thấy dự án nào khớp với "${project_identifier}"` };
+
+            // Fetch data from multiple tables
+            const [project, wbs, budget, risks, issues] = await Promise.all([
+                supabase.from('projects').select('*').eq('id', projectId).single(),
+                supabase.from('project_wbs').select('*').eq('project_id', projectId),
+                supabase.from('project_budget').select('*').eq('project_id', projectId),
+                supabase.from('project_risks').select('*').eq('project_id', projectId),
+                supabase.from('project_issues').select('*').eq('project_id', projectId)
+            ]);
+
+            const tasks = wbs.data || [];
+            const budgetItems = budget.data || [];
+            const riskItems = risks.data || [];
+            const issueItems = issues.data || [];
+
+            const totalBudget = budgetItems.reduce((sum, i) => sum + (i.budget_amount || 0), 0);
+            const actualSpent = budgetItems.reduce((sum, i) => sum + (i.actual_amount || 0), 0);
+            const budgetUsage = totalBudget > 0 ? (actualSpent / totalBudget) * 100 : 0;
+
+            const delayedTasks = tasks.filter(t => t.status === 'delayed').length;
+            const openIssues = issueItems.filter(i => i.status !== 'Closed').length;
+            const highRisks = riskItems.filter(r => r.risk_score >= 10).length;
+
+            return {
+                project_name: project.data?.name,
+                overall_status: project.data?.status,
+                progress: {
+                    actual: project.data?.progress || 0,
+                    planned: project.data?.plan_progress || 0,
+                    variance: (project.data?.progress || 0) - (project.data?.plan_progress || 0)
+                },
+                financials: {
+                    total_budget: totalBudget,
+                    actual_spent: actualSpent,
+                    usage_percent: budgetUsage.toFixed(1) + "%",
+                    status: actualSpent > totalBudget ? "Vượt ngân sách" : "Trong tầm kiểm soát"
+                },
+                alerts: {
+                    delayed_tasks: delayedTasks,
+                    open_issues: openIssues,
+                    high_risks: highRisks
+                },
+                summary: `Dự án ${project.data?.name} đang ở trạng thái ${project.data?.status}. ` +
+                    `Tiến độ đạt ${project.data?.progress}%, so với kế hoạch ${project.data?.plan_progress}%. ` +
+                    `Đã chi tiêu ${budgetUsage.toFixed(1)}% ngân sách. ` +
+                    `Cần lưu ý: ${delayedTasks} việc chậm, ${openIssues} vấn đề mở và ${highRisks} rủi ro cao.`
+            };
+        }
+    },
+
+    get_vendor_insights: {
+        name: 'get_vendor_insights',
+        description: 'Phân tích và đánh giá nhà cung cấp dựa trên dữ liệu lịch sử (PO, chất lượng, tiến độ).',
+        parameters: {
+            type: 'object',
+            properties: {
+                vendor_query: { type: 'string', description: 'Tên hoặc từ khóa nhà cung cấp' },
+            },
+            required: ['vendor_query'],
+        },
+        execute: async ({ vendor_query }) => {
+            const { data: vendors } = await supabase
+                .from('vendors')
+                .select('*')
+                .ilike('name', `%${vendor_query}%`);
+
+            if (!vendors || vendors.length === 0) return { error: "Không tìm thấy nhà cung cấp" };
+
+            const vendor = vendors[0];
+            const { data: pos } = await supabase.from('purchase_orders').select('*').eq('vendor_id', vendor.id);
+
+            const totalVolume = pos?.reduce((sum, p) => sum + (p.total_amount || 0), 0) || 0;
+            const averagePO = pos?.length ? totalVolume / pos.length : 0;
+            const statusCount = {
+                'Completed': pos?.filter(p => p.status === 'Completed').length || 0,
+                'Pending': pos?.filter(p => p.status === 'Pending').length || 0,
+                'Cancelled': pos?.filter(p => p.status === 'Cancelled').length || 0,
+            };
+
+            return {
+                vendor_name: vendor.name,
+                rating: vendor.rating,
+                total_projects: vendor.total_projects,
+                financial_stats: {
+                    total_volume: totalVolume,
+                    average_order: averagePO,
+                    po_count: pos?.length || 0
+                },
+                delivery_performance: statusCount,
+                recommendation: vendor.rating >= 4 ? "Ưu tiên lựa chọn" : vendor.rating >= 3 ? "Cân nhắc kỹ" : "Hạn chế sử dụng"
+            };
+        }
+    },
+
+    get_enterprise_highlights: {
+        name: 'get_enterprise_highlights',
+        description: 'Lấy tóm tắt các sự kiện nổi bật trên toàn hệ thống (Dành cho cấp quản lý).',
+        parameters: {
+            type: 'object',
+            properties: {},
+            required: [],
+        },
+        execute: async () => {
+            const [projects, alerts, budget] = await Promise.all([
+                supabase.from('projects').select('name, status, progress'),
+                supabase.from('alerts').select('*').eq('is_read', false).eq('severity', 'high'),
+                supabase.from('project_budget').select('budget_amount, actual_amount')
+            ]);
+
+            const activeProjects = projects.data?.length || 0;
+            const highAlerts = alerts.data?.length || 0;
+
+            const totalBudget = budget.data?.reduce((sum, b) => sum + (b.budget_amount || 0), 0) || 0;
+            const totalActual = budget.data?.reduce((sum, b) => sum + (b.actual_amount || 0), 0) || 0;
+
+            return {
+                summary_stats: {
+                    active_projects: activeProjects,
+                    high_priority_alerts: highAlerts,
+                    total_budget_usage: totalBudget > 0 ? ((totalActual / totalBudget) * 100).toFixed(1) + "%" : "0%"
+                },
+                top_alerts: alerts.data?.slice(0, 3).map(a => a.title),
+                message: `Chào anh, hệ thống hiện có ${activeProjects} dự án đang chạy. Có ${highAlerts} cảnh báo quan trọng cần xử lý ngay. Tổng chi tiêu ngân sách toàn công ty hiện ở mức ${totalBudget > 0 ? ((totalActual / totalBudget) * 100).toFixed(1) : 0}%.`
+            };
+        }
+    },
+
+    predict_project_completion: {
+        name: 'predict_project_completion',
+        description: 'Dự báo ngày hoàn thành và xu hướng tiến độ dự án dựa trên dữ liệu thực tế.',
+        parameters: {
+            type: 'object',
+            properties: {
+                project_identifier: { type: 'string', description: 'Mã dự án hoặc tên dự án' },
+            },
+            required: ['project_identifier'],
+        },
+        execute: async ({ project_identifier }) => {
+            const projectId = await resolveProjectId(project_identifier);
+            if (!projectId) return { error: `Không tìm thấy dự án` };
+
+            const { data: project } = await supabase.from('projects').select('*').eq('id', projectId).single();
+            if (!project) return { error: "Không tìm thấy dữ liệu" };
+
+            // Heuristic calculation: 
+            // If project is 6 months in and at 30%, it gains 5% per month. 
+            // Remaining 70% will take 14 months.
+            const startDate = new Date(project.start_date || Date.now());
+            const now = new Date();
+            const elapsedMonths = Math.max(1, (now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30));
+            const progress = project.progress || 0;
+            const velocity = progress / elapsedMonths; // % per month
+
+            const remainingProgress = 100 - progress;
+            const predictedMonthsRemaining = velocity > 0 ? remainingProgress / velocity : Infinity;
+            const originalDuration = (new Date(project.end_date || '').getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30);
+
+            const predictedEndDate = new Date(now.getTime() + predictedMonthsRemaining * 30 * 24 * 60 * 60 * 1000);
+            const isDelayed = predictedEndDate > new Date(project.end_date || '');
+
+            return {
+                project_name: project.name,
+                velocity: velocity.toFixed(2) + "% / tháng",
+                original_end_date: project.end_date,
+                predicted_end_date: predictedEndDate.toISOString().split('T')[0],
+                status: isDelayed ? "CẢNH BÁO CHẬM TRỄ" : "ĐÚNG TIẾN ĐỘ",
+                delay_days: isDelayed ? Math.floor((predictedEndDate.getTime() - new Date(project.end_date || '').getTime()) / (1000 * 24 * 60 * 60)) : 0,
+                recommendation: isDelayed ? "Cần tăng cường nguồn lực ngay lập tức để bù đắp tiến độ." : "Duy trì tốc độ hiện tại."
+            };
+        }
+    },
+
+    analyze_material_supply_risk: {
+        name: 'analyze_material_supply_risk',
+        description: 'Phân tích rủi ro thiếu hụt vật tư dựa trên tồn kho và nhu cầu dự án.',
+        parameters: {
+            type: 'object',
+            properties: {
+                project_identifier: { type: 'string', description: 'Mã dự án hoặc tên dự án' },
+            },
+            required: ['project_identifier'],
+        },
+        execute: async ({ project_identifier }) => {
+            const projectId = await resolveProjectId(project_identifier);
+
+            // In a real system, we'd check project requirements. 
+            // Here we check inventory items with status 'Low'
+            const { data: lowStock } = await supabase
+                .from('inventory')
+                .select('*')
+                .eq('status', 'Low');
+
+            const { data: pendingPOs } = await supabase
+                .from('purchase_orders')
+                .select('*')
+                .eq('status', 'Pending');
+
+            return {
+                critical_materials: lowStock?.map(i => ({
+                    item: i.name,
+                    warehouse: i.warehouse,
+                    current_qty: i.quantity,
+                    unit: i.unit,
+                    risk_level: 'High'
+                })) || [],
+                supply_chain_mitigation: {
+                    pending_pos: pendingPOs?.length || 0,
+                    suggested_action: "Đẩy nhanh tiến độ phê duyệt các PO đang chờ hoặc tìm kiếm nhà cung cấp thay thế cho các mặt hàng tồn kho thấp."
+                },
+                message: lowStock?.length
+                    ? `Phát hiện ${lowStock.length} mặt hàng vật tư đang ở mức báo động thấp. Rủi ro gián đoạn thi công cao.`
+                    : "Tình hình cung ứng vật tư hiện tại đang ổn định."
+            };
+        }
+    },
+
+    get_budget_forecast: {
+        name: 'get_budget_forecast',
+        description: 'Dự báo chi phí khi hoàn thành dự án (EAC - Estimate At Completion).',
+        parameters: {
+            type: 'object',
+            properties: {
+                project_identifier: { type: 'string', description: 'Mã dự án hoặc tên dự án' },
+            },
+            required: ['project_identifier'],
+        },
+        execute: async ({ project_identifier }) => {
+            const projectId = await resolveProjectId(project_identifier);
+            if (!projectId) return { error: "Không tìm thấy dự án" };
+
+            const { data: budget } = await supabase.from('project_budget').select('*').eq('project_id', projectId);
+            const { data: project } = await supabase.from('projects').select('name, progress, budget').eq('id', projectId).single();
+
+            const actualSpent = budget?.reduce((sum, b) => sum + (b.actual_amount || 0), 0) || 0;
+            const progress = project?.progress || 1; // Avoid divide by zero
+
+            // Simple EAC formula: EAC = Actual Spent / Progress
+            const eac = (actualSpent / progress) * 100;
+            const plannedBudget = project?.budget || 0;
+            const variance = plannedBudget - eac;
+
+            return {
+                project_name: project?.name,
+                current_metrics: {
+                    spent_to_date: actualSpent,
+                    current_progress: progress + "%"
+                },
+                forecast: {
+                    estimate_at_completion: Math.round(eac),
+                    planned_budget: plannedBudget,
+                    projected_variance: Math.round(variance),
+                    status: variance < 0 ? "VƯỢT NGÂN SÁCH DỰ KIẾN" : "DƯỚI NGÂN SÁCH DỰ KIẾN"
+                },
+                advisory: variance < 0
+                    ? `Dự án có xu hướng vượt ngân sách khoảng ${Math.abs(Math.round(variance / 1000000))} triệu VNĐ khi hoàn thành. Cần rà soát lại các hạng mục chi phí biến đổi.`
+                    : "Chi phí đang được kiểm soát tốt theo sát tiến độ."
+            };
+        }
     }
 };
 

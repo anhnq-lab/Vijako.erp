@@ -302,6 +302,35 @@ export interface CashFlowData {
   net: number;
 }
 
+export interface Invoice {
+  id: string;
+  invoice_code: string;
+  invoice_type: 'sales' | 'purchase';
+  project_id: string;
+  project_name?: string;
+  vendor_name: string;
+  invoice_date: string;
+  due_date: string;
+  total_amount: number;
+  paid_amount: number;
+  outstanding_amount: number;
+  status: 'pending' | 'partially_paid' | 'paid' | 'overdue';
+}
+
+export interface PaymentRecord {
+  id: string;
+  payment_code: string;
+  payment_type: 'receipt' | 'disbursement';
+  project_id: string;
+  project_name?: string;
+  payment_date: string;
+  amount: number;
+  payment_method: string;
+  partner_name: string;
+  status: 'pending' | 'completed' | 'cancelled';
+  description?: string;
+}
+
 // Risk Matrix Types
 export type RiskCategory = 'schedule' | 'cost' | 'safety' | 'quality' | 'legal' | 'resource';
 export type RiskStatus = 'open' | 'mitigating' | 'closed' | 'accepted';
