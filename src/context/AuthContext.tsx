@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 import { authService } from '../services/authService';
 import { User } from '../../types';
 
@@ -44,11 +45,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     useEffect(() => {
+        // Initial session check
         const initAuth = async () => {
             try {
-                const currentSession = await authService.getSession();
+                const { data: { session: currentSession } } = await supabase.auth.getSession();
                 setSession(currentSession);
-                await fetchUser(currentSession);
+                if (currentSession) {
+                    await fetchUser(currentSession);
+                }
             } catch (error) {
                 console.error('Error initializing auth:', error);
             } finally {
@@ -59,8 +63,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         initAuth();
 
         // Listen for auth changes
-        // Note: To make this robust, we'd add supabase.auth.onAuthStateChange listener here
-        // But for now initial load is sufficient for basics, will add listener if needed for auto-logout
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
+            setSession(currentSession);
+            if (currentSession) {
+                await fetchUser(currentSession);
+            } else {
+                setUser(null);
+            }
+            setLoading(false);
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
     }, []);
 
     const signOut = async () => {
