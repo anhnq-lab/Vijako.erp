@@ -74,7 +74,7 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isOpen, on
                             <h1 className="text-xl font-black tracking-tighter leading-none">
                                 <span className="text-[#E60000]">VI</span><span className="text-[#0047AB]">JAKO</span>
                             </h1>
-                            <p className="text-[10px] font-bold tracking-[0.2em] text-emerald uppercase mt-1">Hệ Thống Quản Trị</p>
+                            <p className="text-[10px] font-bold tracking-[0.2em] text-[#000080] uppercase mt-1">Hệ Thống Quản Trị</p>
                         </div>
                     </div>
 
