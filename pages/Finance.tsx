@@ -10,7 +10,6 @@ import { InvoiceScanModal } from '../components/InvoiceScanModal';
 import { AddPaymentModal } from '../components/AddPaymentModal';
 import { Badge } from '../src/components/ui/CommonComponents';
 import { Contract } from '../types';
-import { mockInvoices, mockPayments, mockCashFlow } from '../src/mock/financeData';
 
 // --- Dữ liệu mô phỏng cho Mini Charts ---
 const assetData = [
