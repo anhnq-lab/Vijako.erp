@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PageHeader } from '../src/components/ui/Breadcrumbs';
+import { projectService } from '../src/services/projectService';
+import { ContractScanModal } from '../components/ContractScanModal';
 import { ExportButton } from '../src/components/ui/ExportComponents';
 import { Badge } from '../src/components/ui/CommonComponents';
 import { financeService } from '../src/services/financeService';
@@ -31,16 +33,19 @@ export default function Contracts() {
     const [contracts, setContracts] = useState<any[]>([]);
     const [packages, setPackages] = useState<any[]>([]);
     const [guarantees, setGuarantees] = useState<any[]>([]);
+    const [projects, setProjects] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isScanModalOpen, setIsScanModalOpen] = useState(false);
 
     useEffect(() => {
         const loadData = async () => {
             try {
                 setLoading(true);
-                const [cData, pData, gData] = await Promise.all([
+                const [cData, pData, gData, projectData] = await Promise.all([
                     financeService.getAllContracts(),
                     financeService.getAllBiddingPackages(),
-                    financeService.getAllBankGuarantees()
+                    financeService.getAllBankGuarantees(),
+                    projectService.getAllProjects()
                 ]);
 
                 // Map project_name for contracts
@@ -48,6 +53,7 @@ export default function Contracts() {
                 setContracts(cData);
                 setPackages(pData);
                 setGuarantees(gData);
+                setProjects(projectData);
             } catch (error) {
                 console.error("Failed to load contracts data:", error);
             } finally {
@@ -106,7 +112,17 @@ export default function Contracts() {
                     <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl text-sm font-black hover:bg-primary-light shadow-premium transition-premium group">
                         <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-premium">add</span>
                         <span>Hợp đồng mới</span>
-                    </button>
+                        <button
+                            onClick={() => setIsScanModalOpen(true)}
+                            className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-sm font-black hover:bg-slate-50 transition-premium shadow-sm hover:shadow-md"
+                        >
+                            <span className="material-symbols-outlined text-[20px] text-purple-600">document_scanner</span>
+                            <span>Quét Hợp đồng AI</span>
+                        </button>
+                        <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl text-sm font-black hover:bg-primary-light shadow-premium transition-premium group">
+                            <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-premium">add</span>
+                            <span>Hợp đồng mới</span>
+                        </button>
                 </div>
             </div>
 
@@ -275,6 +291,37 @@ export default function Contracts() {
                     )}
                 </div>
             </div>
+
+            <ContractScanModal
+                isOpen={isScanModalOpen}
+                onClose={() => setIsScanModalOpen(false)}
+                onSave={async (data) => {
+                    try {
+                        console.log('Saving contract:', data);
+                        await financeService.createContract({
+                            contract_code: data.contract_code,
+                            partner_name: data.partner_name,
+                            signing_date: data.signing_date,
+                            contract_value: data.contract_value,
+                            currency: data.currency, // Ensure your DB supports this or convert
+                            type: data.contract_type, // 'revenue' | 'expense' maps to DB type
+                            status: 'active', // Default status
+                            project_id: data.project_id,
+                            description: data.summary,
+                            // Add other fields if DB has them: duration, payment_terms etc.
+                        } as any);
+
+                        // Refresh data
+                        const newContracts = await financeService.getAllContracts();
+                        setContracts(newContracts);
+                        setIsScanModalOpen(false);
+                    } catch (error) {
+                        console.error('Error saving scanned contract:', error);
+                        alert('Lỗi khi lưu hợp đồng');
+                    }
+                }}
+                projects={projects}
+            />
         </div>
     );
 }

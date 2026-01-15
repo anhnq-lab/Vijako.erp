@@ -222,16 +222,104 @@ const IFCModel = ({ url, file, progressUpdate }: { url?: string; file?: File; pr
     return <primitive object={model} />;
 };
 
+const DemoHighRiseModel = () => {
+    // Determine status colors for demo
+    const glassMaterial = new THREE.MeshPhysicalMaterial({
+        color: '#88ccff',
+        metalness: 0.9,
+        roughness: 0.1,
+        transmission: 0.6,
+        transparent: true,
+        opacity: 0.6
+    });
+
+    const concreteMaterial = new THREE.MeshStandardMaterial({
+        color: '#e2e8f0',
+        metalness: 0.1,
+        roughness: 0.8
+    });
+
+    const frameMaterial = new THREE.MeshStandardMaterial({
+        color: '#1e293b',
+        metalness: 0.5,
+        roughness: 0.5
+    });
+
+    // Generate tower floors
+    const floors = Array.from({ length: 25 }, (_, i) => i);
+
+    return (
+        <group position={[0, 0, 0]}>
+            {/* Podium (Base) */}
+            <mesh position={[0, 5, 0]} castShadow receiveShadow>
+                <boxGeometry args={[60, 10, 40]} />
+                <primitive object={concreteMaterial} />
+            </mesh>
+            <mesh position={[0, 10.5, 0]} castShadow>
+                <boxGeometry args={[62, 1, 42]} />
+                <primitive object={frameMaterial} />
+            </mesh>
+
+            {/* Tower Body - Floors */}
+            {floors.map(floor => (
+                <group key={floor} position={[0, 15 + floor * 4, 0]}>
+                    {/* Floor Slab */}
+                    <mesh position={[0, -1.8, 0]} receiveShadow>
+                        <boxGeometry args={[30, 0.4, 30]} />
+                        <primitive object={concreteMaterial} />
+                    </mesh>
+                    {/* Glass Facade */}
+                    <mesh position={[0, 0, 0]} castShadow>
+                        <boxGeometry args={[29.5, 3.8, 29.5]} />
+                        <primitive object={glassMaterial} />
+                    </mesh>
+                    {/* Columns (Corner) */}
+                    {[-14, 14].map(x => [-14, 14].map(z => (
+                        <mesh key={`${x}-${z}`} position={[x, 0, z]} castShadow>
+                            <boxGeometry args={[1, 4, 1]} />
+                            <primitive object={concreteMaterial} />
+                        </mesh>
+                    )))}
+                </group>
+            ))}
+
+            {/* Roof Top */}
+            <group position={[0, 15 + 25 * 4, 0]}>
+                <mesh position={[0, 2, 0]} castShadow>
+                    <boxGeometry args={[32, 2, 32]} />
+                    <primitive object={frameMaterial} />
+                </mesh>
+                <mesh position={[0, 5, 0]} castShadow>
+                    <cylinderGeometry args={[0, 15, 6, 4]} />
+                    <meanMaterial color="#cbd5e1" />
+                    <meshStandardMaterial color="#94a3b8" metalness={0.8} roughness={0.2} />
+                </mesh>
+            </group>
+
+            {/* Ground */}
+            <mesh position={[0, -0.5, 0]} receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
+                <planeGeometry args={[500, 500]} />
+                <meshStandardMaterial color="#f1f5f9" />
+            </mesh>
+        </group>
+    );
+};
+
 function Model({ url, progressUpdate, file }: { url?: string; file?: File; progressUpdate?: Record<string, string> }) {
     // Determine type
     const isGlb = url && (url.endsWith('.glb') || url.endsWith('.gltf'));
+    const isDemo = url === 'demo-highrise';
 
-    if (file || (url && !isGlb)) {
+    if (file || (url && !isGlb && !isDemo)) {
         return <IFCModel url={url} file={file} progressUpdate={progressUpdate} />;
     }
 
     if (isGlb && url) {
         return <GLTFModel url={url} progressUpdate={progressUpdate} />;
+    }
+
+    if (isDemo) {
+        return <DemoHighRiseModel />;
     }
 
     return null;

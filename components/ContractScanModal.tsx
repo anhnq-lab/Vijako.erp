@@ -1,29 +1,21 @@
 import React, { useState, useRef } from 'react';
-import { invoiceService, ExtractedInvoice } from '../src/services/invoiceService';
+import { invoiceService, ExtractedContract } from '../src/services/invoiceService';
 import { Project } from '../types';
 
-interface InvoiceScanModalProps {
+interface ContractScanModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (data: ExtractedInvoice & { project_id: string }) => void;
+    onSave: (data: ExtractedContract & { project_id: string }) => void;
     projects: Project[];
-    defaultProjectId?: string;
 }
 
-export const InvoiceScanModal: React.FC<InvoiceScanModalProps> = ({ isOpen, onClose, onSave, projects, defaultProjectId }) => {
-    console.log('InvoiceScanModal projects:', projects);
+export const ContractScanModal: React.FC<ContractScanModalProps> = ({ isOpen, onClose, onSave, projects }) => {
     const [file, setFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [scanning, setScanning] = useState(false);
-    const [extractedData, setExtractedData] = useState<ExtractedInvoice | null>(null);
-    const [selectedProjectId, setSelectedProjectId] = useState<string>(defaultProjectId || '');
+    const [extractedData, setExtractedData] = useState<ExtractedContract | null>(null);
+    const [selectedProjectId, setSelectedProjectId] = useState<string>('');
     const fileInputRef = useRef<HTMLInputElement>(null);
-
-    React.useEffect(() => {
-        if (defaultProjectId) {
-            setSelectedProjectId(defaultProjectId);
-        }
-    }, [defaultProjectId, isOpen]);
 
     if (!isOpen) return null;
 
@@ -40,25 +32,25 @@ export const InvoiceScanModal: React.FC<InvoiceScanModalProps> = ({ isOpen, onCl
         if (!file) return;
         setScanning(true);
         try {
-            const data = await invoiceService.scanInvoice(file);
+            const data = await invoiceService.scanContract(file);
             setExtractedData(data);
         } catch (error) {
-            alert('Lỗi khi quét hóa đơn. Vui lòng thử lại!');
+            alert('Lỗi khi quét hợp đồng. Vui lòng thử lại!');
+            console.error(error);
         } finally {
             setScanning(false);
         }
     };
 
     const handleSave = () => {
-        if (extractedData && selectedProjectId) {
-            onSave({ ...extractedData, project_id: selectedProjectId });
+        if (extractedData) {
+            onSave({ ...extractedData, project_id: selectedProjectId || '' });
             onClose();
             // Reset state
             setFile(null);
             setPreviewUrl(null);
             setExtractedData(null);
-        } else if (!selectedProjectId) {
-            alert('Vui lòng chọn dự án!');
+            setSelectedProjectId('');
         }
     };
 
@@ -68,12 +60,12 @@ export const InvoiceScanModal: React.FC<InvoiceScanModalProps> = ({ isOpen, onCl
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                     <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white">
-                            <span className="material-symbols-outlined">auto_awesome</span>
+                        <div className="size-10 rounded-xl bg-purple-600 flex items-center justify-center text-white">
+                            <span className="material-symbols-outlined">contract_edit</span>
                         </div>
                         <div>
-                            <h3 className="font-black text-slate-900 text-xl">Quét hóa đơn AI</h3>
-                            <p className="text-sm text-slate-500">Tự động bóc tách dữ liệu từ ảnh hoặc PDF</p>
+                            <h3 className="font-black text-slate-900 text-xl">Quét Hợp đồng AI</h3>
+                            <p className="text-sm text-slate-500">Tự động trích xuất thông tin hợp đồng</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="size-10 rounded-full flex items-center justify-center hover:bg-slate-200 text-slate-400">
@@ -88,7 +80,7 @@ export const InvoiceScanModal: React.FC<InvoiceScanModalProps> = ({ isOpen, onCl
                             <div
                                 onClick={() => fileInputRef.current?.click()}
                                 className={`group relative border-2 border-dashed rounded-3xl p-12 flex flex-col items-center justify-center gap-4 transition-all cursor-pointer
-                                    ${file ? 'border-indigo-200 bg-indigo-50/30' : 'border-slate-200 hover:border-indigo-400 hover:bg-slate-50'}`}
+                                    ${file ? 'border-purple-200 bg-purple-50/30' : 'border-slate-200 hover:border-purple-400 hover:bg-slate-50'}`}
                             >
                                 <input
                                     type="file"
@@ -114,12 +106,12 @@ export const InvoiceScanModal: React.FC<InvoiceScanModalProps> = ({ isOpen, onCl
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="size-20 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
+                                        <div className="size-20 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-purple-100 group-hover:text-purple-600 transition-colors">
                                             <span className="material-symbols-outlined text-4xl">upload_file</span>
                                         </div>
                                         <div className="text-center">
-                                            <p className="font-bold text-slate-900">Chọn hoặc kéo thả hóa đơn vào đây</p>
-                                            <p className="text-sm text-slate-500 mt-1">Hỗ trợ định dạng JPG, PNG, PDF (Max 10MB)</p>
+                                            <p className="font-bold text-slate-900">Chọn hoặc kéo thả hợp đồng vào đây</p>
+                                            <p className="text-sm text-slate-500 mt-1">Hỗ trợ định dạng JPG, PNG, PDF (Max 20MB)</p>
                                         </div>
                                     </>
                                 )}
@@ -130,12 +122,12 @@ export const InvoiceScanModal: React.FC<InvoiceScanModalProps> = ({ isOpen, onCl
                                     <button
                                         onClick={handleScan}
                                         disabled={scanning}
-                                        className={`px-10 py-4 rounded-2xl font-black text-lg shadow-xl shadow-indigo-200 flex items-center gap-3 transition-all active:scale-95
-                                            ${scanning ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                                        className={`px-10 py-4 rounded-2xl font-black text-lg shadow-xl shadow-purple-200 flex items-center gap-3 transition-all active:scale-95
+                                            ${scanning ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-purple-600 text-white hover:bg-purple-700'}`}
                                     >
                                         {scanning ? (
                                             <>
-                                                <div className="size-6 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                                                <div className="size-6 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
                                                 ĐANG PHÂN TÍCH...
                                             </>
                                         ) : (
@@ -152,14 +144,14 @@ export const InvoiceScanModal: React.FC<InvoiceScanModalProps> = ({ isOpen, onCl
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in slide-in-from-bottom-4 duration-500">
                             {/* Left: Preview */}
                             <div className="space-y-4">
-                                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Ảnh hóa đơn gốc</h4>
+                                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Tài liệu gốc</h4>
                                 <div className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-100 shadow-inner max-h-[500px]">
                                     {file?.type === 'application/pdf' ? (
                                         <div className="flex items-center justify-center p-12">
                                             <span className="material-symbols-outlined text-slate-400 text-8xl">description</span>
                                         </div>
                                     ) : (
-                                        <img src={previewUrl!} alt="Invoice" className="w-full object-contain" />
+                                        <img src={previewUrl!} alt="Contract" className="w-full object-contain" />
                                     )}
                                 </div>
                             </div>
@@ -169,85 +161,84 @@ export const InvoiceScanModal: React.FC<InvoiceScanModalProps> = ({ isOpen, onCl
                                 <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">Dữ liệu AI trích xuất</h4>
 
                                 <div className="grid grid-cols-1 gap-4">
-                                    <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl flex items-start gap-4">
-                                        <div className="size-10 rounded-xl bg-white border border-indigo-200 flex items-center justify-center text-indigo-600 shrink-0">
-                                            <span className="material-symbols-outlined">store</span>
+                                    {/* Partner */}
+                                    <div className="bg-purple-50 border border-purple-100 p-4 rounded-2xl flex items-start gap-4">
+                                        <div className="size-10 rounded-xl bg-white border border-purple-200 flex items-center justify-center text-purple-600 shrink-0">
+                                            <span className="material-symbols-outlined">handshake</span>
                                         </div>
                                         <div className="flex-1">
-                                            <p className="text-[10px] text-indigo-400 font-black uppercase mb-0.5">Nhà cung cấp / Đối tác</p>
+                                            <p className="text-[10px] text-purple-400 font-black uppercase mb-0.5">Đối tác / Nhà thầu</p>
                                             <input
                                                 className="w-full bg-transparent font-bold text-slate-900 border-none p-0 focus:ring-0"
-                                                value={extractedData.vendor_name}
-                                                onChange={(e) => setExtractedData({ ...extractedData, vendor_name: e.target.value })}
+                                                value={extractedData.partner_name}
+                                                onChange={(e) => setExtractedData({ ...extractedData, partner_name: e.target.value })}
                                             />
                                         </div>
                                     </div>
 
+                                    {/* Values */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
-                                            <p className="text-[10px] text-slate-400 font-black uppercase mb-1">Số tiền thanh toán</p>
+                                            <p className="text-[10px] text-slate-400 font-black uppercase mb-1">Giá trị hợp đồng</p>
                                             <div className="flex items-center gap-2">
                                                 <input
                                                     type="number"
-                                                    className="w-full bg-transparent font-black text-indigo-600 text-xl border-none p-0 focus:ring-0"
-                                                    value={extractedData.amount}
-                                                    onChange={(e) => setExtractedData({ ...extractedData, amount: Number(e.target.value) })}
+                                                    className="w-full bg-transparent font-black text-emerald-600 text-xl border-none p-0 focus:ring-0"
+                                                    value={extractedData.contract_value}
+                                                    onChange={(e) => setExtractedData({ ...extractedData, contract_value: Number(e.target.value) })}
                                                 />
                                                 <span className="font-bold text-slate-400">{extractedData.currency}</span>
                                             </div>
                                         </div>
                                         <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
-                                            <p className="text-[10px] text-slate-400 font-black uppercase mb-1">Ngày hóa đơn</p>
+                                            <p className="text-[10px] text-slate-400 font-black uppercase mb-1">Ngày ký kết</p>
                                             <input
                                                 type="date"
                                                 className="w-full bg-transparent font-bold text-slate-900 border-none p-0 focus:ring-0"
-                                                value={extractedData.date}
-                                                onChange={(e) => setExtractedData({ ...extractedData, date: e.target.value })}
+                                                value={extractedData.signing_date}
+                                                onChange={(e) => setExtractedData({ ...extractedData, signing_date: e.target.value })}
                                             />
                                         </div>
                                     </div>
 
+                                    {/* Code & Type */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
-                                            <p className="text-[10px] text-slate-400 font-black uppercase mb-1">Loại chứng từ</p>
-                                            <select
+                                            <p className="text-[10px] text-slate-400 font-black uppercase mb-1">Số hợp đồng</p>
+                                            <input
+                                                type="text"
                                                 className="w-full bg-transparent font-bold text-slate-900 border-none p-0 focus:ring-0"
-                                                value={extractedData.type}
-                                                onChange={(e) => setExtractedData({ ...extractedData, type: e.target.value as any })}
-                                            >
-                                                <option value="expense">Chi phí (Mua vào)</option>
-                                                <option value="revenue">Doanh thu (Bán ra)</option>
-                                            </select>
+                                                value={extractedData.contract_code}
+                                                onChange={(e) => setExtractedData({ ...extractedData, contract_code: e.target.value })}
+                                            />
                                         </div>
                                         <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
-                                            <p className="text-[10px] text-slate-400 font-black uppercase mb-1">Dự án áp dụng</p>
+                                            <p className="text-[10px] text-slate-400 font-black uppercase mb-1">Loại hợp đồng</p>
                                             <select
-                                                className={`w-full bg-transparent font-bold text-slate-900 border-none p-0 focus:ring-0 ${defaultProjectId ? 'opacity-60 cursor-not-allowed' : ''}`}
-                                                value={selectedProjectId}
-                                                onChange={(e) => setSelectedProjectId(e.target.value)}
-                                                disabled={!!defaultProjectId}
+                                                className="w-full bg-transparent font-bold text-slate-900 border-none p-0 focus:ring-0"
+                                                value={extractedData.contract_type}
+                                                onChange={(e) => setExtractedData({ ...extractedData, contract_type: e.target.value as any })}
                                             >
-                                                <option value="">-- Chọn dự án --</option>
-                                                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                                <option value="revenue">Doanh thu (Đầu ra)</option>
+                                                <option value="expense">Chi phí (Đầu vào)</option>
                                             </select>
                                         </div>
                                     </div>
 
+                                    {/* Project */}
                                     <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
-                                        <p className="text-[10px] text-slate-400 font-black uppercase mb-1">Loại ngân sách (Gợi ý AI)</p>
+                                        <p className="text-[10px] text-slate-400 font-black uppercase mb-1">Dự án liên quan</p>
                                         <select
                                             className="w-full bg-transparent font-bold text-slate-900 border-none p-0 focus:ring-0"
-                                            value={extractedData.suggested_budget_category}
-                                            onChange={(e) => setExtractedData({ ...extractedData, suggested_budget_category: e.target.value })}
+                                            value={selectedProjectId}
+                                            onChange={(e) => setSelectedProjectId(e.target.value)}
                                         >
-                                            <option value="Vật tư">Vật tư (Materials)</option>
-                                            <option value="Nhân công">Nhân công (Labor)</option>
-                                            <option value="Máy thi công">Máy thi công (Equipment)</option>
-                                            <option value="Chi phí quản lý">Chi phí quản lý (Overhead)</option>
-                                            <option value="Chi phí khác">Chi phí khác (Other)</option>
+                                            <option value="">-- Chọn dự án --</option>
+                                            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                         </select>
                                     </div>
 
+                                    {/* Summary */}
                                     <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl">
                                         <p className="text-[10px] text-amber-600 font-black uppercase mb-1 italic flex items-center gap-1">
                                             <span className="material-symbols-outlined text-[12px]">info</span> Tóm tắt nội dung
@@ -265,7 +256,7 @@ export const InvoiceScanModal: React.FC<InvoiceScanModalProps> = ({ isOpen, onCl
                                     </button>
                                     <button
                                         onClick={handleSave}
-                                        className="flex-1 px-6 py-3 bg-indigo-600 text-white font-black rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100"
+                                        className="flex-1 px-6 py-3 bg-purple-600 text-white font-black rounded-xl hover:bg-purple-700 shadow-lg shadow-purple-100"
                                     >
                                         Lưu vào hệ thống
                                     </button>

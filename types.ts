@@ -34,7 +34,7 @@ export interface Contract {
   paid_amount: number;
   retention_amount: number;
   status: 'active' | 'completed' | 'terminated';
-  type?: 'revenue' | 'expense';
+  contract_type?: 'revenue' | 'expense';
   budget_category?: string; // Link to budget category for auto-calculation
   is_risk?: boolean;
   end_date?: string;

@@ -15,6 +15,18 @@ export interface ExtractedInvoice {
     summary: string;
 }
 
+export interface ExtractedContract {
+    contract_code: string;
+    partner_name: string;
+    signing_date: string;
+    contract_value: number;
+    currency: string;
+    contract_type: 'revenue' | 'expense';
+    summary: string;
+    duration_months?: number;
+    payment_terms?: string;
+}
+
 export const invoiceService = {
     async scanInvoice(file: File): Promise<ExtractedInvoice> {
         return new Promise((resolve, reject) => {
@@ -62,6 +74,59 @@ export const invoiceService = {
                     resolve(data);
                 } catch (error) {
                     console.error('Error scanning invoice:', error);
+                    reject(error);
+                }
+            };
+            reader.onerror = (err) => reject(err);
+            reader.readAsDataURL(file);
+        });
+    },
+
+    async scanContract(file: File): Promise<ExtractedContract> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = async () => {
+                try {
+                    const base64Content = (reader.result as string).split(',')[1];
+                    const mimeType = file.type;
+
+                    const prompt = `
+                        Hãy đóng vai một chuyên gia pháp lý và hợp đồng xây dựng. Hãy phân tích tài liệu hợp đồng này (ảnh hoặc PDF) và trích xuất các thông tin quan trọng sau dưới định dạng JSON:
+                        - contract_code: Số hợp đồng / Mã hợp đồng.
+                        - partner_name: Tên đối tác (bên A hoặc bên B, không phải là công ty Vijako).
+                        - signing_date: Ngày ký kết (định dạng YYYY-MM-DD).
+                        - contract_value: Giá trị hợp đồng (số).
+                        - currency: Loại tiền tệ.
+                        - contract_type: 'revenue' nếu Vijako là bên nhận thầu/bán hàng, 'expense' nếu Vijako là bên thuê thầu/mua hàng.
+                        - summary: Tóm tắt ngắn gọn nội dung/phạm vi công việc của hợp đồng (1 câu).
+                        - duration_months: Thời gian thực hiện hợp đồng (số tháng), nếu không rõ hãy ước lượng hoặc để null.
+                        - payment_terms: Tóm tắt ngắn gọn điều khoản thanh toán chính.
+
+                        Lưu ý:
+                        1. Chỉ trả về JSON.
+                        2. Ngôn ngữ Tiếng Việt.
+                        3. Nếu không tìm thấy, để null hoặc rỗng.
+                    `;
+
+                    const result = await model.generateContent([
+                        prompt,
+                        {
+                            inlineData: {
+                                data: base64Content,
+                                mimeType: mimeType
+                            }
+                        }
+                    ]);
+
+                    const response = await result.response;
+                    const text = response.text().trim();
+
+                    const jsonStr = text.replace(/^```json/, '').replace(/```$/, '').trim();
+                    const data = JSON.parse(jsonStr) as ExtractedContract;
+
+                    resolve(data);
+                } catch (error) {
+                    console.error('Error scanning contract:', error);
                     reject(error);
                 }
             };

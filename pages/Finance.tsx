@@ -3,7 +3,7 @@ import {
     ComposedChart, Line, Bar, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
     AreaChart, Area
 } from 'recharts';
-import { financeService, PaymentRequest, CashFlowData, Invoice, PaymentRecord, Contract } from '../src/services/financeService';
+import { financeService, PaymentRequest, CashFlowData, Invoice, PaymentRecord, Contract, BankGuarantee } from '../src/services/financeService';
 import { projectService } from '../src/services/projectService';
 import { Project } from '../types';
 import { InvoiceScanModal } from '../components/InvoiceScanModal';
@@ -112,12 +112,14 @@ const AIFinancialInsight = () => (
 );
 
 export default function Finance() {
-    const [activeTab, setActiveTab] = useState<'cashflow' | 'payments'>('cashflow');
+    const [activeTab, setActiveTab] = useState<'cashflow' | 'payments' | 'contracts'>('cashflow');
     const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [payments, setPayments] = useState<PaymentRecord[]>([]);
     const [cashFlowRecords, setCashFlowRecords] = useState<CashFlowData[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
+    const [contracts, setContracts] = useState<Contract[]>([]);
+    const [bankGuarantees, setBankGuarantees] = useState<BankGuarantee[]>([]);
     const [loading, setLoading] = useState(true);
     const [isInvoiceScanModalOpen, setIsInvoiceScanModalOpen] = useState(false);
 
@@ -128,12 +130,14 @@ export default function Finance() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [prData, cfData, pData, invData, payData] = await Promise.all([
+            const [prData, cfData, pData, invData, payData, contractData, bgData] = await Promise.all([
                 financeService.getAllPaymentRequests(),
                 financeService.getCashFlowData(),
                 projectService.getAllProjects(),
                 financeService.getAllInvoices(),
-                financeService.getAllPayments()
+                financeService.getAllPayments(),
+                financeService.getAllContracts(),
+                financeService.getAllBankGuarantees()
             ]);
 
             setPaymentRequests(prData || []);
@@ -141,6 +145,8 @@ export default function Finance() {
             setPayments(payData || []);
             setCashFlowRecords(cfData || []);
             setProjects(pData || []);
+            setContracts(contractData || []);
+            setBankGuarantees(bgData || []);
         } catch (err) {
             console.error('Failed to fetch finance data', err);
         } finally {
@@ -345,7 +351,9 @@ export default function Finance() {
                         <div className="flex border-b border-slate-100 p-2 bg-slate-50/50">
                             {[
                                 { id: 'cashflow', label: 'Dòng tiền & Ngân sách', icon: 'query_stats' },
+                                { id: 'cashflow', label: 'Dòng tiền & Ngân sách', icon: 'query_stats' },
                                 { id: 'payments', label: 'Giao dịch & Công nợ', icon: 'history' },
+                                { id: 'contracts', label: 'Hợp đồng & Bảo lãnh', icon: 'assignment' },
                             ].map((tab) => (
                                 <button
                                     key={tab.id}
@@ -579,6 +587,96 @@ export default function Finance() {
                                                 )}
                                             </tbody>
                                         </table>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'contracts' && (
+                                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    {/* Contracts Section */}
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <h4 className="text-xl font-black text-slate-900 tracking-tight">Danh sách Hợp đồng</h4>
+                                            <div className="flex gap-2">
+                                                <div className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-bold uppercase tracking-wider border border-emerald-100">Doanh thu: {contracts.filter(c => c.contract_type === 'revenue' || !c.contract_type).length}</div>
+                                                <div className="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-xs font-bold uppercase tracking-wider border border-red-100">Chi phí: {contracts.filter(c => c.contract_type === 'expense').length}</div>
+                                            </div>
+                                        </div>
+                                        <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                                            <table className="w-full text-left">
+                                                <thead className="bg-slate-50/50">
+                                                    <tr className="border-b border-slate-100">
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Mã Hợp đồng</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Đối tác</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Giá trị (₫)</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Đã thanh toán (₫)</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Trạng thái</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-50">
+                                                    {contracts.map((c) => (
+                                                        <tr key={c.id} className="hover:bg-slate-50/80 transition-premium group">
+                                                            <td className="px-6 py-5 font-bold text-slate-700">{c.contract_code}</td>
+                                                            <td className="px-6 py-5 font-bold text-slate-900">{c.partner_name}</td>
+                                                            <td className="px-6 py-5 text-right font-black text-slate-900 tracking-tight">{(c.value || 0).toLocaleString()}</td>
+                                                            <td className="px-6 py-5 text-right font-bold text-emerald-600">{(c.paid_amount || 0).toLocaleString()}</td>
+                                                            <td className="px-6 py-5 text-center">
+                                                                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase ${c.status === 'active' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'}`}>
+                                                                    {c.status === 'active' ? 'Hiệu lực' : c.status}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                    {contracts.length === 0 && (
+                                                        <tr>
+                                                            <td colSpan={5} className="py-8 text-center text-slate-400 italic">Chưa có hợp đồng nào.</td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    {/* Bank Guarantees Section */}
+                                    <div className="space-y-4 pt-6 border-t border-slate-100">
+                                        <h4 className="text-xl font-black text-slate-900 tracking-tight">Bảo lãnh Ngân hàng</h4>
+                                        <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                                            <table className="w-full text-left">
+                                                <thead className="bg-slate-50/50">
+                                                    <tr className="border-b border-slate-100">
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Mã Bảo lãnh</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Loại</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Ngân hàng</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Giá trị (₫)</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Hết hạn</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Trạng thái</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-50">
+                                                    {bankGuarantees.map((bg) => (
+                                                        <tr key={bg.id} className="hover:bg-slate-50/80 transition-premium group">
+                                                            <td className="px-6 py-5 font-bold text-slate-700">{bg.guarantee_code}</td>
+                                                            <td className="px-6 py-5 font-bold text-slate-600">{bg.guarantee_type}</td>
+                                                            <td className="px-6 py-5 font-bold text-slate-900">{bg.bank_name}</td>
+                                                            <td className="px-6 py-5 text-right font-black text-slate-900 tracking-tight">{(bg.guarantee_value || 0).toLocaleString()}</td>
+                                                            <td className="px-6 py-5 font-mono text-xs text-slate-500">{new Date(bg.expiry_date).toLocaleDateString('vi-VN')}</td>
+                                                            <td className="px-6 py-5 text-center">
+                                                                <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase ${bg.status === 'active' ? 'bg-emerald-50 text-emerald-600' :
+                                                                    bg.status === 'warning' ? 'bg-amber-50 text-amber-600' :
+                                                                        bg.status === 'expired' ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-500'}`}>
+                                                                    {bg.status === 'active' ? 'Hiệu lực' : bg.status}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                    {bankGuarantees.length === 0 && (
+                                                        <tr>
+                                                            <td colSpan={6} className="py-8 text-center text-slate-400 italic">Chưa có bảo lãnh nào.</td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             )}
