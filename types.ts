@@ -37,7 +37,14 @@ export interface Contract {
   contract_type?: 'revenue' | 'expense';
   budget_category?: string; // Link to budget category for auto-calculation
   is_risk?: boolean;
+  // Date fields
+  signing_date?: string;
+  start_date?: string;
   end_date?: string;
+  // Additional fields
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface WBSItem {
@@ -460,3 +467,200 @@ export interface TaskBoardColumn {
   title: string;
   tasks: UserTask[];
 }
+
+// ==========================================
+// PAYMENT CLAIM MANAGEMENT TYPES (QT-CL-20)
+// ==========================================
+
+// Payment Contract - Điều khoản thanh toán
+export interface PaymentContract {
+  id: string;
+  contract_id: string; // FK to contracts table
+  retention_percent: number; // VD: 5.00 = 5%
+  retention_limit: number; // Hạn mức giữ lại tối đa
+  advance_payment_amount: number; // Số tiền tạm ứng
+  advance_repayment_rule: string; // Quy tắc hoàn ứng (JSON hoặc formula)
+  vat_percent: number; // VD: 10.00 = 10%
+  created_at: string;
+  updated_at: string;
+
+  // Joined fields
+  contract_code?: string;
+  contract_name?: string;
+  project_name?: string;
+  partner_name?: string;
+}
+
+// BOQ Item - Bill of Quantities (cấu trúc cây)
+export interface BOQItem {
+  id: string;
+  payment_contract_id: string;
+  bill_number: string; // VD: "Bill 1", "Bill 2"
+  group_code?: string; // VD: "1.0", "2.1"
+  item_code: string; // VD: "1.1.01", "2.3.05"
+  description: string; // Mô tả hạng mục
+  unit: string; // Đơn vị: m3, m2, kg, tấn...
+  unit_rate: number; // Đơn giá
+  contract_qty: number; // Khối lượng hợp đồng
+  contract_amount: number; // unit_rate * contract_qty (tự động tính)
+  parent_id?: string; // Cho cấu trúc cây
+  created_at: string;
+
+  // Frontend only - populated on client
+  children?: BOQItem[];
+  level?: number; // Tree level for display
+}
+
+// IPC Status
+export type IPCStatus =
+  | 'draft'           // Nháp
+  | 'internal_review' // Đang duyệt nội bộ
+  | 'submitted'       // Đã trình khách hàng
+  | 'certified'       // Khách hàng đã xác nhận
+  | 'invoiced'        // Đã xuất hóa đơn
+  | 'rejected';       // Từ chối
+
+// Interim Payment Claim - Hồ sơ thanh toán đợt
+export interface InterimPaymentClaim {
+  id: string;
+  payment_contract_id: string;
+  ipc_number: string; // VD: "Đợt 01", "No. 01"
+  period_start: string; // Date
+  period_end: string; // Date
+  status: IPCStatus;
+  submitted_date?: string; // Date
+  certified_date?: string; // Date
+
+  // Các giá trị tài chính (được tính toán)
+  works_executed_amount: number; // Giá trị công việc đã hoàn thành
+  variations_amount: number; // Giá trị phát sinh (đã duyệt)
+  mos_amount: number; // Material On Site
+  gross_total: number; // Tổng gộp
+  retention_amount: number; // Giữ lại
+  advance_repayment: number; // Hoàn trả tạm ứng
+  net_payment: number; // Thanh toán ròng
+  vat_amount: number; // Thuế VAT
+  total_with_vat: number; // Tổng cộng có VAT
+
+  // Dual tracking
+  submitted_net_payment?: number; // Số tiền mình trình
+  certified_net_payment?: number; // Số tiền khách duyệt
+
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+
+  // Joined fields
+  contract_code?: string;
+  project_name?: string;
+}
+
+// IPC Work Detail - Chi tiết khối lượng từng hạng mục
+export interface IPCWorkDetail {
+  id: string;
+  ipc_id: string;
+  boq_item_id: string;
+
+  // Khối lượng
+  current_qty: number; // Khối lượng kỳ này
+  cumulative_qty: number; // Lũy kế đến kỳ này
+
+  // Giá trị
+  current_amount: number; // Giá trị kỳ này
+  cumulative_amount: number; // Giá trị lũy kế
+
+  notes?: string;
+  created_at: string;
+
+  // Joined fields từ BOQItem
+  item_code?: string;
+  description?: string;
+  unit?: string;
+  unit_rate?: number;
+  contract_qty?: number;
+  contract_amount?: number;
+}
+
+// Variation Type
+export type VariationType =
+  | 'material_change'  // Thay đổi vật liệu
+  | 'quantity_change'  // Thay đổi khối lượng
+  | 'new_item';        // Hạng mục mới
+
+// Variation Status
+export type VariationStatus =
+  | 'pending'   // Chờ duyệt
+  | 'approved'  // Đã duyệt
+  | 'rejected'; // Từ chối
+
+// Variation - Phát sinh hợp đồng
+export interface Variation {
+  id: string;
+  payment_contract_id: string;
+  variation_code: string; // VD: "VO-001", "VO-002"
+  type: VariationType;
+  description: string;
+
+  // Số tiền
+  proposed_amount: number; // Đề xuất
+  approved_amount?: number; // Đã duyệt
+
+  status: VariationStatus;
+  boq_item_id?: string; // Link to BOQ item nếu có
+  approved_date?: string; // Date
+  approved_by?: string;
+
+  created_at: string;
+  updated_at: string;
+
+  // Joined fields
+  item_description?: string;
+}
+
+// IPC Document Type
+export type IPCDocumentType =
+  | 'photo'              // Hình ảnh thi công
+  | 'bienbannghiemthu'   // Biên bản nghiệm thu
+  | 'boqdetail'          // Chi tiết BOQ
+  | 'other';             // Khác
+
+// IPC Document - Tài liệu đính kèm
+export interface IPCDocument {
+  id: string;
+  ipc_id: string;
+  document_type: IPCDocumentType;
+  file_name: string;
+  file_url: string;
+  file_size: number; // bytes
+  uploaded_by: string;
+  uploaded_at: string;
+
+  // Joined fields
+  uploader_name?: string;
+}
+
+// IPC Workflow History - Lịch sử phê duyệt
+export interface IPCWorkflowHistory {
+  id: string;
+  ipc_id: string;
+  from_status: IPCStatus;
+  to_status: IPCStatus;
+  approver_id?: string;
+  approver_name: string;
+  comments?: string;
+  action_date: string;
+}
+
+// Helper type cho financial summary
+export interface IPCFinancialSummary {
+  works_executed_amount: number;
+  variations_amount: number;
+  mos_amount: number;
+  gross_total: number;
+  retention_amount: number;
+  advance_repayment: number;
+  net_payment: number;
+  vat_amount: number;
+  total_with_vat: number;
+}
+

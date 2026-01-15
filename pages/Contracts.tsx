@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { PageHeader } from '../src/components/ui/Breadcrumbs';
 import { projectService } from '../src/services/projectService';
 import { ContractScanModal } from '../components/ContractScanModal';
+import { ContractFormModal } from '../src/components/ContractFormModal';
+import { ContractDetailModal } from '../src/components/ContractDetailModal';
 import { ExportButton } from '../src/components/ui/ExportComponents';
 import { Badge } from '../src/components/ui/CommonComponents';
 import { financeService } from '../src/services/financeService';
+import { Contract } from '../types';
 
 const PremiumStatCard = ({ title, value, sub, progress, icon, color, gradient }: any) => (
     <div className="relative group overflow-hidden bg-white p-6 rounded-3xl border border-slate-200 shadow-glass hover:shadow-premium transition-premium">
@@ -36,6 +39,13 @@ export default function Contracts() {
     const [projects, setProjects] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isScanModalOpen, setIsScanModalOpen] = useState(false);
+
+    // New modal states
+    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
+    const [editingContract, setEditingContract] = useState<Contract | null>(null);
+    const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
 
     useEffect(() => {
         const loadData = async () => {
@@ -116,8 +126,13 @@ export default function Contracts() {
                         <span className="material-symbols-outlined text-[20px] text-purple-600">document_scanner</span>
                         <span>Quét Hợp đồng AI</span>
                     </button>
-                    <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl text-sm font-black hover:bg-primary-light shadow-premium transition-premium group">
-                        <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-premium">add</span>
+                    <button
+                        onClick={() => {
+                            setEditingContract(null);
+                            setIsFormModalOpen(true);
+                        }}
+                        className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl text-sm font-black hover:bg-primary-light shadow-premium transition-premium group"
+                    >                        <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-premium">add</span>
                         <span>Hợp đồng mới</span>
                     </button>
                 </div>
@@ -209,8 +224,17 @@ export default function Contracts() {
                                     </thead>
                                     <tbody className="divide-y divide-slate-50">
                                         {getCurrentData().map((item: any) => (
-                                            <tr key={item.id} className="hover:bg-slate-50/80 transition-premium group">
-                                                <td className="px-8 py-5">
+                                            <tr
+                                                key={item.id}
+                                                onClick={() => {
+                                                    // Only for contracts (revenue/expense tabs)
+                                                    if (activeTab === 'revenue' || activeTab === 'expense') {
+                                                        setSelectedContract(item);
+                                                        setIsDetailModalOpen(true);
+                                                    }
+                                                }}
+                                                className={`hover:bg-slate-50/80 transition-premium group ${(activeTab === 'revenue' || activeTab === 'expense') ? 'cursor-pointer' : ''}`}
+                                            >                                                <td className="px-8 py-5">
                                                     <div className="flex items-center gap-4">
                                                         <div className="size-10 rounded-xl bg-slate-100 flex items-center justify-center group-hover:bg-primary transition-premium">
                                                             <span className="material-symbols-outlined text-[20px] text-slate-500 group-hover:text-white transition-premium">
@@ -299,13 +323,10 @@ export default function Contracts() {
                             contract_code: data.contract_code,
                             partner_name: data.partner_name,
                             signing_date: data.signing_date,
-                            contract_value: data.contract_value,
-                            currency: data.currency, // Ensure your DB supports this or convert
-                            contract_type: data.contract_type, // 'revenue' | 'expense' maps to DB type
-                            status: 'active', // Default status
+                            value: data.contract_value,
+                            contract_type: data.contract_type,
+                            status: 'active',
                             project_id: data.project_id,
-                            description: data.summary,
-                            // Add other fields if DB has them: duration, payment_terms etc.
                         } as any);
 
                         // Refresh data
@@ -318,6 +339,60 @@ export default function Contracts() {
                     }
                 }}
                 projects={projects}
+            />
+
+            {/* Contract Form Modal */}
+            <ContractFormModal
+                isOpen={isFormModalOpen}
+                onClose={() => {
+                    setIsFormModalOpen(false);
+                    setEditingContract(null);
+                }}
+                contract={editingContract}
+                onSave={async (contractData) => {
+                    try {
+                        if (editingContract) {
+                            // Update existing
+                            await financeService.updateContract(editingContract.id, contractData);
+                        } else {
+                            // Create new
+                            await financeService.createContract(contractData as any);
+                        }
+                        // Refresh
+                        const newContracts = await financeService.getAllContracts();
+                        setContracts(newContracts);
+                        setIsFormModalOpen(false);
+                        setEditingContract(null);
+                    } catch (error) {
+                        console.error('Error saving contract:', error);
+                        throw error;
+                    }
+                }}
+            />
+
+            {/* Contract Detail Modal */}
+            <ContractDetailModal
+                isOpen={isDetailModalOpen}
+                onClose={() => {
+                    setIsDetailModalOpen(false);
+                    setSelectedContract(null);
+                }}
+                contract={selectedContract}
+                onEdit={(contract) => {
+                    setEditingContract(contract);
+                    setIsDetailModalOpen(false);
+                    setIsFormModalOpen(true);
+                }}
+                onDelete={async (id) => {
+                    try {
+                        await financeService.deleteContract(id);
+                        const newContracts = await financeService.getAllContracts();
+                        setContracts(newContracts);
+                    } catch (error) {
+                        console.error('Error deleting contract:', error);
+                        alert('Lỗi khi xóa hợp đồng');
+                    }
+                }}
             />
         </div>
     );
