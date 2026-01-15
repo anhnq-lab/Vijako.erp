@@ -106,6 +106,13 @@ export const ResponsiveSidebar: React.FC<ResponsiveSidebarProps> = ({ isOpen, on
                         active={path === '/workspace'}
                         onClick={onClose}
                     />
+                    <SidebarItem
+                        to="/tasks"
+                        icon="check_circle"
+                        label="Quản lý công việc"
+                        active={path === '/tasks'}
+                        onClick={onClose}
+                    />
 
                     <div className="px-4 mt-8 mb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                         QUẢN LÝ VẬN HÀNH

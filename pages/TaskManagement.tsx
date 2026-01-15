@@ -1,0 +1,125 @@
+import React, { useState, useEffect } from 'react';
+import { TaskBoard } from '../src/components/TaskBoard';
+import { projectService } from '../src/services/projectService';
+import { UserTask } from '../types';
+import { showToast } from '../src/components/ui/Toast';
+
+const TaskManagement = () => {
+    const [tasks, setTasks] = useState<UserTask[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<'my_tasks' | 'project_tasks'>('my_tasks');
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false); // Placeholder for future modal
+
+    useEffect(() => {
+        fetchTasks();
+    }, []);
+
+    const fetchTasks = async () => {
+        setLoading(true);
+        try {
+            // For now, only fetching user tasks. WBS integration can be added later or mixed here.
+            const userTasks = await projectService.getUserTasks();
+            setTasks(userTasks);
+        } catch (error) {
+            console.error(error);
+            showToast.error('Không thể tải danh sách công việc');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleStatusChange = async (taskId: string, newStatus: UserTask['status']) => {
+        // Optimistic update
+        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+
+        try {
+            await projectService.updateUserTask(taskId, { status: newStatus });
+            showToast.success('Cập nhật trạng thái thành công');
+        } catch (error) {
+            showToast.error('Lỗi khi cập nhật trạng thái');
+            fetchTasks(); // Revert on error
+        }
+    };
+
+    const handleTaskClick = (task: UserTask) => {
+        // Open detail modal (future implementation)
+        console.log('Task clicked:', task);
+    };
+
+    const handleQuickCreate = async () => {
+        // Demo quick create
+        try {
+            const newTask = await projectService.createUserTask({
+                title: 'Công việc mới (Demo)',
+                description: 'Được tạo nhanh từ dashboard',
+                status: 'todo',
+                priority: 'normal',
+                due_date: new Date().toISOString()
+            });
+            if (newTask) {
+                setTasks(prev => [...prev, newTask]);
+                showToast.success('Đã tạo công việc mới');
+            }
+        } catch (error) {
+            showToast.error('Lỗi khi tạo công việc');
+        }
+    };
+
+    return (
+        <div className="h-full flex flex-col bg-[#f8fafc]">
+            {/* Header */}
+            <div className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
+                <div className="flex items-center gap-4">
+                    <h1 className="text-lg font-bold text-slate-800">Quản lý Công việc</h1>
+                    <div className="h-6 w-px bg-slate-200"></div>
+                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                        <button
+                            onClick={() => setActiveTab('my_tasks')}
+                            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${activeTab === 'my_tasks' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            Của tôi
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('project_tasks')}
+                            className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${activeTab === 'project_tasks' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            Dự án
+                        </button>
+                    </div>
+                </div>
+                <button
+                    onClick={handleQuickCreate}
+                    className="bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-primary-light shadow-premium transition-premium flex items-center gap-2"
+                >
+                    <span className="material-symbols-outlined text-[20px]">add</span>
+                    Thêm công việc
+                </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-hidden p-6">
+                {loading ? (
+                    <div className="flex items-center justify-center h-full text-slate-400 gap-2">
+                        <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                        Đang tải dữ liệu...
+                    </div>
+                ) : (
+                    activeTab === 'my_tasks' ? (
+                        <TaskBoard
+                            tasks={tasks}
+                            onStatusChange={handleStatusChange}
+                            onTaskClick={handleTaskClick}
+                        />
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                            <span className="material-symbols-outlined text-[48px] mb-2">construction</span>
+                            <p>Đang phát triển: Xem công việc theo Dự án (WBS View)</p>
+                        </div>
+                    )
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default TaskManagement;

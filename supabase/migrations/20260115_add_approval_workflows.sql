@@ -43,10 +43,20 @@ ALTER TABLE public.approval_workflow_steps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.approval_request_steps ENABLE ROW LEVEL SECURITY;
 
 -- Public access policies (for development simplicity as requested)
+-- Public access policies (for development simplicity as requested)
+DROP POLICY IF EXISTS "Public read workflows" ON public.approval_workflows;
 CREATE POLICY "Public read workflows" ON public.approval_workflows FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read workflow steps" ON public.approval_workflow_steps;
 CREATE POLICY "Public read workflow steps" ON public.approval_workflow_steps FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public read request steps" ON public.approval_request_steps;
 CREATE POLICY "Public read request steps" ON public.approval_request_steps FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Public insert request steps" ON public.approval_request_steps;
 CREATE POLICY "Public insert request steps" ON public.approval_request_steps FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public update request steps" ON public.approval_request_steps;
 CREATE POLICY "Public update request steps" ON public.approval_request_steps FOR UPDATE USING (true);
 
 -- 5. Automation: Generate Request Steps on Request Creation

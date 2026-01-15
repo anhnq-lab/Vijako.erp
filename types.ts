@@ -208,8 +208,22 @@ export interface Employee {
   department: string;
   site: string;
   status: 'active' | 'leave' | 'inactive';
-  last_checkin?: string;
+  last_checkin?: string; // timestamp
   created_at?: string;
+  // Auth fields
+  email?: string;
+  user_id?: string;
+  avatar_url?: string;
+  is_admin?: boolean;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  full_name?: string;
+  avatar_url?: string;
+  role?: string; // from Employee
+  employee_id?: string;
 }
 
 export interface Attendance {
@@ -427,4 +441,21 @@ export interface ApprovalRequest {
   project_name?: string;
   requester_name?: string;
   approver_name?: string;
+}
+// Task Management Types
+export interface UserTask {
+  id: string;
+  user_id: string;
+  title: string;
+  description?: string;
+  status: 'todo' | 'in_progress' | 'done' | 'blocked';
+  priority: 'high' | 'normal' | 'low';
+  due_date?: string;
+  created_at: string;
+}
+
+export interface TaskBoardColumn {
+  id: string;
+  title: string;
+  tasks: UserTask[];
 }
