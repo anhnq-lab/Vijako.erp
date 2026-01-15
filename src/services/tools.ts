@@ -623,10 +623,21 @@ async function resolveProjectId(identifier: string): Promise<string | null> {
     if (uuidRegex.test(identifier)) return identifier;
 
     // Otherwise search by code or name (case-insensitive)
+    // Otherwise search by code or name (case-insensitive)
+    // 1. Try exact match on code
+    const { data: exactCode } = await supabase
+        .from('projects')
+        .select('id')
+        .ilike('code', identifier)
+        .maybeSingle();
+
+    if (exactCode) return exactCode.id;
+
+    // 2. Try fuzzy match on name or partial code
     const { data } = await supabase
         .from('projects')
         .select('id')
-        .or(`code.ilike.${identifier},name.ilike.%${identifier}%`)
+        .or(`code.ilike.%${identifier}%,name.ilike.%${identifier}%`)
         .limit(1)
         .maybeSingle();
 

@@ -178,18 +178,18 @@ BEGIN
 
     -- Cash flow record for the above payment
     INSERT INTO public.cash_flow_records (
-        project_id, contract_id, record_date, flow_type, category, amount, description
+        project_id, record_date, flow_type, category, amount, description
     ) VALUES (
-        v_project_id, v_supply_contract_id, CURRENT_DATE - INTERVAL '1 month', 'outflow', 'Materials', 12000000000, 'Tạm ứng thép'
+        v_project_id, CURRENT_DATE - INTERVAL '1 month', 'outflow', 'Materials', 12000000000, 'Tạm ứng thép'
     );
 
     -- 4. Document Activities (For recent activity log)
     -- Must have at least one document seeded in cde_alert_schema but let's assume we link to existing or just skip specific IDs for now
     -- Or better, create a dummy document for this project
     INSERT INTO public.project_documents (
-        project_id, name, link, status, category, discipline, revision, upload_date
+        project_id, name, url, status, category, discipline, revision
     ) VALUES (
-        v_project_id, 'Ban_ve_thi_cong_T05.dwg', 'https://example.com/dwg01', 'WIP', 'Design', 'ARCH', 'P01', NOW()
+        v_project_id, 'Ban_ve_thi_cong_T05.dwg', 'https://example.com/dwg01', 'WIP', 'Design', 'ARCH', 'P01'
     );
 
 END $$;
