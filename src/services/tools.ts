@@ -20,7 +20,7 @@ export const tools: Record<string, Tool> = {
         parameters: {
             type: 'object',
             properties: {
-                project_code: { type: 'string', description: 'The project code (e.g., P-001, P-002)' },
+                project_code: { type: 'string', description: 'The EXACT project code OR name. Remove words like "dự án", "công trình". Example: "P-001" or "Dream Residence"' },
             },
             required: ['project_code'],
         },
@@ -45,7 +45,7 @@ export const tools: Record<string, Tool> = {
         parameters: {
             type: 'object',
             properties: {
-                project_identifier: { type: 'string', description: 'Mã dự án (VD: P-001) hoặc Tên dự án' },
+                project_identifier: { type: 'string', description: 'Mã dự án (P-001) hoặc Tên dự án (Dream Residence). QUAN TRỌNG: Chỉ lấy tên riêng, bỏ từ "Dự án".' },
                 task_name: { type: 'string', description: 'Tên công việc cần tạo' },
                 due_date: { type: 'string', description: 'Hạn hoàn thành (YYYY-MM-DD)' },
                 assignee: { type: 'string', description: 'Người được giao việc' }
@@ -71,7 +71,7 @@ export const tools: Record<string, Tool> = {
         parameters: {
             type: 'object',
             properties: {
-                project_identifier: { type: 'string', description: 'Mã dự án (VD: P-001) hoặc Tên dự án' },
+                project_identifier: { type: 'string', description: 'Mã dự án (P-001) hoặc Tên dự án (Dream Residence). QUAN TRỌNG: Chỉ lấy tên riêng, bỏ từ "Dự án".' },
             },
             required: ['project_identifier'],
         },
@@ -135,7 +135,7 @@ export const tools: Record<string, Tool> = {
         parameters: {
             type: 'object',
             properties: {
-                project_identifier: { type: 'string', description: 'Mã dự án (VD: P-001) hoặc Tên dự án' },
+                project_identifier: { type: 'string', description: 'Mã dự án (P-001) hoặc Tên dự án (Dream Residence). QUAN TRỌNG: Chỉ lấy tên riêng, bỏ từ "Dự án".' },
             },
             required: ['project_identifier'],
         },
@@ -191,7 +191,7 @@ export const tools: Record<string, Tool> = {
         parameters: {
             type: 'object',
             properties: {
-                project_identifier: { type: 'string', description: 'Mã dự án (VD: P-001) hoặc Tên dự án' },
+                project_identifier: { type: 'string', description: 'Mã dự án (P-001) hoặc Tên dự án (Dream Residence). QUAN TRỌNG: Chỉ lấy tên riêng, bỏ từ "Dự án".' },
                 type: { type: 'string', description: 'Loại vấn đề: NCR, RFI, hoặc General' },
                 title: { type: 'string', description: 'Tiêu đề vấn đề' },
                 priority: { type: 'string', description: 'Độ ưu tiên: High, Medium, Low' },
@@ -233,7 +233,7 @@ export const tools: Record<string, Tool> = {
         parameters: {
             type: 'object',
             properties: {
-                project_identifier: { type: 'string', description: 'Mã dự án (VD: P-001) hoặc Tên dự án' },
+                project_identifier: { type: 'string', description: 'Mã dự án (P-001) hoặc Tên dự án (Dream Residence). QUAN TRỌNG: Chỉ lấy tên riêng, bỏ từ "Dự án".' },
             },
             required: ['project_identifier'],
         },
@@ -268,7 +268,7 @@ export const tools: Record<string, Tool> = {
         parameters: {
             type: 'object',
             properties: {
-                project_identifier: { type: 'string', description: 'Mã dự án (VD: P-001) hoặc Tên dự án (không bắt buộc, để trống sẽ lấy tất cả)' },
+                project_identifier: { type: 'string', description: 'Mã dự án (P-001) hoặc Tên dự án (Dream Residence). QUAN TRỌNG: Chỉ lấy tên riêng, bỏ từ "Dự án".' },
             },
             required: [],
         },
@@ -348,7 +348,7 @@ export const tools: Record<string, Tool> = {
         parameters: {
             type: 'object',
             properties: {
-                project_identifier: { type: 'string', description: 'Mã dự án hoặc tên dự án' },
+                project_identifier: { type: 'string', description: 'Mã dự án (P-001) hoặc Tên dự án (Dream Residence). QUAN TRỌNG: Chỉ lấy tên riêng, bỏ từ "Dự án".' },
             },
             required: ['project_identifier'],
         },
@@ -488,7 +488,7 @@ export const tools: Record<string, Tool> = {
         parameters: {
             type: 'object',
             properties: {
-                project_identifier: { type: 'string', description: 'Mã dự án hoặc tên dự án' },
+                project_identifier: { type: 'string', description: 'Mã dự án (P-001) hoặc Tên dự án (Dream Residence). QUAN TRỌNG: Chỉ lấy tên riêng, bỏ từ "Dự án".' },
             },
             required: ['project_identifier'],
         },
