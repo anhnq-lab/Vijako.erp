@@ -179,15 +179,27 @@ const LoginPage: React.FC = () => {
                                     }
                                     try {
                                         setIsLoading(true);
-                                        await authService.signUp(email, password);
-                                        // Auto login after signup in some cases, or just notify
-                                        // For simplicity, try to login immediately or say "Success"
-                                        setError('Đăng ký thành công! Đang đăng nhập...');
-                                        await authService.signIn(email, password);
-                                        await refreshUser();
-                                        navigate(from, { replace: true });
+                                        const { user, session } = await authService.signUp(email, password);
+
+                                        if (user && !session) {
+                                            setError('Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản trước khi đăng nhập.');
+                                            return;
+                                        }
+
+                                        // If we have a session, we are logged in
+                                        if (session) {
+                                            setError('Đăng ký thành công! Đang đăng nhập...');
+                                            await authService.signIn(email, password);
+                                            await refreshUser();
+                                            navigate(from, { replace: true });
+                                        }
                                     } catch (err: any) {
-                                        setError('Đăng ký thất bại: ' + (err.message || 'Lỗi không xác định'));
+                                        console.error("Signup error:", err);
+                                        if (err.message?.includes('registered')) {
+                                            setError('Email này đã được đăng ký. Vui lòng nhấn nút "Đăng nhập" ở trên.');
+                                        } else {
+                                            setError('Đăng ký thất bại: ' + (err.message || 'Lỗi không xác định'));
+                                        }
                                     } finally {
                                         setIsLoading(false);
                                     }

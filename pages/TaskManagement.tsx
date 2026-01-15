@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { TaskBoard } from '../src/components/TaskBoard';
 import { TaskTable } from '../src/components/TaskTable';
+import { WBSTable } from '../src/components/WBSTable';
 import { TaskDetailModal } from '../src/components/TaskDetailModal';
 import { projectService } from '../src/services/projectService';
-import { UserTask } from '../types';
+import { UserTask, Project, WBSItem } from '../types';
 import { showToast } from '../src/components/ui/Toast';
 
 const TaskManagement = () => {
@@ -13,6 +14,12 @@ const TaskManagement = () => {
     const [viewMode, setViewMode] = useState<'board' | 'list'>('board');
     const [selectedTask, setSelectedTask] = useState<UserTask | null>(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+    // Project WBS States
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+    const [wbsItems, setWbsItems] = useState<WBSItem[]>([]);
+    const [loadingWBS, setLoadingWBS] = useState(false);
 
     useEffect(() => {
         fetchTasks();
@@ -24,11 +31,34 @@ const TaskManagement = () => {
             // For now, only fetching user tasks. WBS integration can be added later or mixed here.
             const userTasks = await projectService.getUserTasks();
             setTasks(userTasks);
+
+            // Also fetch projects list
+            const projectList = await projectService.getAllProjects();
+            setProjects(projectList);
         } catch (error) {
             console.error(error);
             showToast.error('Không thể tải danh sách công việc');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleProjectChange = async (projectId: string) => {
+        setSelectedProjectId(projectId);
+        if (!projectId) {
+            setWbsItems([]);
+            return;
+        }
+
+        setLoadingWBS(true);
+        try {
+            const items = await projectService.getProjectWBS(projectId);
+            setWbsItems(items);
+        } catch (error) {
+            console.error(error);
+            showToast.error('Lỗi khi tải WBS dự án');
+        } finally {
+            setLoadingWBS(false);
         }
     };
 
@@ -192,9 +222,40 @@ const TaskManagement = () => {
                             />
                         )
                     ) : (
-                        <div className="flex flex-col items-center justify-center h-full text-slate-400">
-                            <span className="material-symbols-outlined text-[48px] mb-2">construction</span>
-                            <p>Đang phát triển: Xem công việc theo Dự án (WBS View)</p>
+                        <div className="h-full flex flex-col">
+                            {/* Project Selector Toolbar */}
+                            <div className="mb-4 flex items-center gap-4">
+                                <div className="relative min-w-[300px]">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400">apartment</span>
+                                    <select
+                                        value={selectedProjectId}
+                                        onChange={(e) => handleProjectChange(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-700 font-bold focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer hover:border-slate-300 transition-colors"
+                                    >
+                                        <option value="">-- Chọn dự án --</option>
+                                        {projects.map(p => (
+                                            <option key={p.id} value={p.id}>{p.name} ({p.code})</option>
+                                        ))}
+                                    </select>
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-sm pointer-events-none">expand_more</span>
+                                </div>
+                                {selectedProjectId && (
+                                    <div className="text-sm text-slate-500 font-semibold animate-in fade-in slide-in-from-left-2">
+                                        {wbsItems.length} hạng mục công việc
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* WBS Table */}
+                            {selectedProjectId ? (
+                                <WBSTable items={wbsItems} loading={loadingWBS} />
+                            ) : (
+                                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50 m-1">
+                                    <span className="material-symbols-outlined text-[64px] mb-4 text-slate-300">engineering</span>
+                                    <h3 className="text-lg font-bold text-slate-600 mb-2">Chọn dự án để xem WBS</h3>
+                                    <p className="text-center max-w-sm text-slate-500">Vui lòng chọn một dự án từ danh sách trên để xem cấu trúc phân chia công việc (WBS).</p>
+                                </div>
+                            )}
                         </div>
                     )
                 )}
