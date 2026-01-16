@@ -388,25 +388,35 @@ export default function Workspace() {
     // --- Data Fetching ---
     useEffect(() => {
         const fetchData = async () => {
-            const [taskList, alerts, checkIn, projectList, vendorList] = await Promise.all([
-                workspaceService.getTasks(),
-                alertService.getAllAlerts(),
-                workspaceService.getCheckInStatus(),
-                projectService.getAllProjects(),
-                supplyChainService.getAllVendors()
-            ]);
+            try {
+                // Fetch tasks independently to ensure timeline always shows
+                try {
+                    const taskList = await workspaceService.getTasks();
+                    setTasks(taskList);
+                } catch (error) {
+                    console.error('Error fetching tasks:', error);
+                    setTasks([]);
+                }
 
-            setTasks(taskList);
-            setProjects(projectList);
-            setVendors(vendorList);
+                // Fetch other data in parallel, but don't block UI if they fail
+                const [alerts, checkIn, projectList, vendorList, realApprovals] = await Promise.all([
+                    alertService.getAllAlerts().catch(() => []),
+                    workspaceService.getCheckInStatus().catch(() => null),
+                    projectService.getAllProjects().catch(() => []),
+                    supplyChainService.getAllVendors().catch(() => []),
+                    approvalService.getApprovalRequests().catch(() => [])
+                ]);
 
-            // Fetch Real Approvals
-            const realApprovals = await approvalService.getApprovalRequests();
-            setApprovals(realApprovals);
+                setProjects(projectList);
+                setVendors(vendorList);
+                setApprovals(realApprovals);
 
-            if (checkIn) {
-                setIsCheckedIn(true);
-                setCheckInTime(new Date(checkIn.check_in).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }));
+                if (checkIn) {
+                    setIsCheckedIn(true);
+                    setCheckInTime(new Date(checkIn.check_in).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }));
+                }
+            } catch (error) {
+                console.error("Critical error in workspace data fetching", error);
             }
         };
         fetchData();

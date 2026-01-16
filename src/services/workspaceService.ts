@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { mockTasks, mockNote, mockCheckIn } from '../mock/workspaceData';
 
 export interface UserTask {
     id: string;
@@ -19,6 +20,11 @@ export interface UserNote {
 export const workspaceService = {
     // --- Tasks management ---
     async getTasks(): Promise<UserTask[]> {
+        // Mock data for "full" UI
+        return new Promise((resolve) => {
+            setTimeout(() => resolve(mockTasks), 500);
+        });
+        /*
         const { data, error } = await supabase
             .from('user_tasks')
             .select('*')
@@ -30,6 +36,7 @@ export const workspaceService = {
         }
 
         return data || [];
+        */
     },
 
     async updateTaskStatus(id: string, status: 'done' | 'active' | 'pending'): Promise<UserTask | null> {
@@ -64,6 +71,11 @@ export const workspaceService = {
 
     // --- Notes management ---
     async getNote(): Promise<UserNote | null> {
+        // Mock data
+        return new Promise((resolve) => {
+            setTimeout(() => resolve(mockNote), 300);
+        });
+        /*
         const { data, error } = await supabase
             .from('user_notes')
             .select('*')
@@ -76,6 +88,7 @@ export const workspaceService = {
         }
 
         return data;
+        */
     },
 
     async saveNote(content: string): Promise<UserNote | null> {
@@ -111,6 +124,11 @@ export const workspaceService = {
 
     // --- Check-in management ---
     async getCheckInStatus(employeeCode: string = 'VJ-0056'): Promise<any> {
+        // Mock check-in
+        return new Promise((resolve) => {
+            setTimeout(() => resolve(mockCheckIn), 200);
+        });
+        /*
         const today = new Date().toISOString().split('T')[0];
         const { data: employee } = await supabase
             .from('employees')
@@ -134,6 +152,7 @@ export const workspaceService = {
         }
 
         return data;
+        */
     },
 
     async toggleCheckIn(employeeCode: string = 'VJ-0056'): Promise<boolean> {

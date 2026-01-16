@@ -1,8 +1,14 @@
 import { supabase } from '../lib/supabase';
 import { ApprovalRequest, ApprovalStatus } from '../../types';
+import { mockApprovals } from '../mock/workspaceData';
 
 export const approvalService = {
     async getApprovalRequests() {
+        // Mock data
+        return new Promise((resolve) => {
+            setTimeout(() => resolve(mockApprovals), 400);
+        }) as Promise<ApprovalRequest[]>;
+        /*
         const { data, error } = await supabase
             .from('approval_requests')
             .select(`
@@ -20,6 +26,7 @@ export const approvalService = {
             ...item,
             project_name: item.projects?.name
         })) as ApprovalRequest[];
+        */
     },
 
     async getApprovalRequestById(id: string) {
