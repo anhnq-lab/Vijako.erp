@@ -14,7 +14,7 @@ INSERT INTO partners (code, name, type, tax_code, address, phone, email, contact
 -- Subcontractors (Thầu phụ)
 ('SUB001', 'Công ty M&E An Phát', 'subcontractor', '0105678912', '123 Giảng Võ, Đống Đa, Hà Nội', '0912345678', 'contact@anphatme.com', 'Nguyễn Văn An', 'active', 4),
 ('SUB002', 'Nội thất Gỗ Xanh', 'subcontractor', '0108899776', 'Thạch Thất, Hà Nội', '0987654321', 'info@goxanh.vn', 'Phạm Văn Mộc', 'active', 3),
-('SUB003', 'Xây dựng Tuấn Minh (Ép cọc)', 'subcontractor', '0103344556', 'Thường Tín, Hà Nội', '0909090909', 'epcoc@tuanminh.com', 'Trần Tuấn Minh', 'warning', 2),
+('SUB003', 'Xây dựng Tuấn Minh (Ép cọc)', 'subcontractor', '0103344556', 'Thường Tín, Hà Nội', '0909090909', 'epcoc@tuanminh.com', 'Trần Tuấn Minh', 'potential', 2),
 
 -- Teams (Tổ đội)
 ('TEAM01', 'Tổ nề - Ông Bảy', 'team', NULL, 'Hà Nam', '0988776655', NULL, 'Nguyễn Văn Bảy', 'active', 4),
