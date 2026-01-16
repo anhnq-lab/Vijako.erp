@@ -30,18 +30,18 @@ const expenseBreakdown = [
 ];
 
 const costStructureData = [
-    { name: 'Th1', inflow: 4500, outflow: 3500, netFlow: 1000 },
-    { name: 'Th2', inflow: 5200, outflow: 4800, netFlow: 400 },
-    { name: 'Th3', inflow: 4800, outflow: 5500, netFlow: -700 },
-    { name: 'Th4', inflow: 6100, outflow: 4200, netFlow: 1900 },
-    { name: 'Th5', inflow: 5500, outflow: 5000, netFlow: 500 },
-    { name: 'Th6', inflow: 6700, outflow: 5800, netFlow: 900 },
-    { name: 'Th7', inflow: 7200, outflow: 6100, netFlow: 1100 },
-    { name: 'Th8', inflow: 6800, outflow: 6500, netFlow: 300 },
-    { name: 'Th9', inflow: 8100, outflow: 6900, netFlow: 1200 },
-    { name: 'Th10', inflow: 7900, outflow: 7200, netFlow: 700 },
-    { name: 'Th11', inflow: 9200, outflow: 7500, netFlow: 1700 },
-    { name: 'Th12', inflow: 10500, outflow: 8200, netFlow: 2300 },
+    { name: 'Th1', thu: 4500, chi: 3500, net: 1000 },
+    { name: 'Th2', thu: 5200, chi: 4800, net: 400 },
+    { name: 'Th3', thu: 4800, chi: 5500, net: -700 },
+    { name: 'Th4', thu: 6100, chi: 4200, net: 1900 },
+    { name: 'Th5', thu: 5500, chi: 5000, net: 500 },
+    { name: 'Th6', thu: 6700, chi: 5800, net: 900 },
+    { name: 'Th7', thu: 7200, chi: 6100, net: 1100 },
+    { name: 'Th8', thu: 6800, chi: 6500, net: 300 },
+    { name: 'Th9', thu: 8100, chi: 6900, net: 1200 },
+    { name: 'Th10', thu: 7900, chi: 7200, net: 700 },
+    { name: 'Th11', thu: 9200, chi: 7500, net: 1700 },
+    { name: 'Th12', thu: 10500, chi: 8200, net: 2300 },
 ];
 
 const summaryCardsData = [
@@ -245,8 +245,7 @@ export default function Finance() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 {/* Card 1: Tài sản ròng (Dynamic) */}
                                 <PremiumStatCard
-                                    title="Tài sản ròng"
-                                    value={`${((payments.reduce((acc, p) => acc + (p.payment_type === 'receipt' ? p.amount : -p.amount), 0) + 17100000000) / 1000000000).toFixed(1)}B ₫`}
+                                    value={`${((payments.reduce((acc, p) => acc + (p.payment_type === 'receipt' ? (p.amount || 0) : -(p.amount || 0)), 0) + 17100000000) / 1000000000).toFixed(1)}B ₫`}
                                     sub="+5.2% vs tháng trước"
                                     icon="account_balance_wallet"
                                     color="bg-primary"

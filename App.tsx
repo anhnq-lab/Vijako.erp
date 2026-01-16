@@ -65,6 +65,7 @@ export default function App() {
                         <Route path="/tasks" element={<TaskManagement />} />
                         <Route path="/projects" element={<ProjectList />} />
                         <Route path="/projects/:id" element={<ProjectDetail />} />
+                        <Route path="/contracts" element={<Contracts />} />
                         <Route path="/partners" element={<Partners />} />
                         <Route path="/finance" element={<Finance />} />
                         <Route path="/supply" element={<SupplyChain />} />
