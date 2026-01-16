@@ -9,6 +9,7 @@ import { NotificationProvider } from './src/context/NotificationContext';
 import ProtectedRoute from './src/components/ProtectedRoute';
 import { Layout } from './src/components/Layout';
 import LoginPage from './src/pages/Login';
+import Partners from './pages/Partners';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 
 // Lazy load pages for better performance
@@ -64,7 +65,7 @@ export default function App() {
                         <Route path="/tasks" element={<TaskManagement />} />
                         <Route path="/projects" element={<ProjectList />} />
                         <Route path="/projects/:id" element={<ProjectDetail />} />
-                        <Route path="/contracts" element={<Contracts />} />
+                        <Route path="/partners" element={<Partners />} />
                         <Route path="/finance" element={<Finance />} />
                         <Route path="/supply" element={<SupplyChain />} />
                         <Route path="/hrm" element={<HRM />} />

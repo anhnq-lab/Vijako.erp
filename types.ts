@@ -735,3 +735,23 @@ export interface IPCFinancialSummary {
   total_with_vat: number;
 }
 
+export interface Partner {
+  id: string;
+  code: string;
+  name: string;
+  type: 'customer' | 'supplier' | 'subcontractor' | 'team';
+  tax_code?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  contact_person?: string;
+  contact_phone?: string;
+  bank_name?: string;
+  bank_account?: string;
+  status: 'active' | 'inactive' | 'blacklisted' | 'potential';
+  rating: number;
+  notes?: string;
+  created_at?: string;
+}
+
