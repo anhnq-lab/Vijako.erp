@@ -40,6 +40,7 @@ export default function Contracts() {
     const [guarantees, setGuarantees] = useState<any[]>([]);
     const [projects, setProjects] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedProject, setSelectedProject] = useState<string | null>(null);
     const [isScanModalOpen, setIsScanModalOpen] = useState(false);
 
     // New modal states
@@ -150,14 +151,21 @@ export default function Contracts() {
     };
 
     // Get current data based on active tab
+    // Get current data based on active tab and project filter
     const getCurrentData = () => {
+        let data = [];
         switch (activeTab) {
-            case 'revenue': return revenueContracts;
-            case 'expense': return expenseContracts;
-            case 'bidding': return packages;
-            case 'guarantees': return guarantees;
-            default: return [];
+            case 'revenue': data = revenueContracts; break;
+            case 'expense': data = expenseContracts; break;
+            case 'bidding': data = packages; break;
+            case 'guarantees': data = guarantees; break;
+            default: data = [];
         }
+
+        if (selectedProject) {
+            return data.filter(item => item.project_id === selectedProject);
+        }
+        return data;
     };
 
     return (
@@ -245,26 +253,44 @@ export default function Contracts() {
                         />
                     </div>
 
-                    {/* Tabs Navigation */}
-                    <div className="flex items-center p-1.5 bg-slate-200/50 rounded-2xl w-fit">
-                        {[
-                            { id: 'revenue', label: 'Doanh thu (A-B)', icon: 'north_east' },
-                            { id: 'expense', label: 'Chi phí (B-C)', icon: 'south_west' },
-                            { id: 'bidding', label: 'Đấu thầu', icon: 'campaign' },
-                            { id: 'guarantees', label: 'Bảo lãnh', icon: 'security' },
-                        ].map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id as any)}
-                                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black transition-premium ${activeTab === tab.id
-                                    ? 'bg-white text-primary shadow-sm'
-                                    : 'text-slate-500 hover:text-primary'
-                                    }`}
+                    {/* Filters & Tabs Row */}
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                        {/* Tabs */}
+                        <div className="flex items-center p-1.5 bg-slate-200/50 rounded-2xl w-fit">
+                            {[
+                                { id: 'revenue', label: 'Hợp đồng Đầu ra', icon: 'output' },
+                                { id: 'expense', label: 'Hợp đồng Đầu vào', icon: 'input' },
+                                { id: 'bidding', label: 'Gói thầu', icon: 'campaign' },
+                                { id: 'guarantees', label: 'Bảo lãnh', icon: 'security' },
+                            ].map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id as any)}
+                                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black transition-premium ${activeTab === tab.id
+                                        ? 'bg-white text-primary shadow-sm'
+                                        : 'text-slate-500 hover:text-primary'
+                                        }`}
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Project Filter */}
+                        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
+                            <span className="material-symbols-outlined text-slate-400">filter_alt</span>
+                            <select
+                                className="bg-transparent border-none text-sm font-bold text-slate-700 focus:ring-0 cursor-pointer min-w-[200px]"
+                                value={selectedProject || ''}
+                                onChange={(e) => setSelectedProject(e.target.value || null)}
                             >
-                                <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
-                                {tab.label}
-                            </button>
-                        ))}
+                                <option value="">Tất cả Dự án</option>
+                                {projects.map(p => (
+                                    <option key={p.id} value={p.id}>{p.name} ({p.code})</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     {/* Table Section */}
@@ -279,12 +305,13 @@ export default function Contracts() {
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-slate-50/50 border-b border-slate-100">
-                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Thông tin chi tiết</th>
-                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Đối tác / Dự án</th>
-                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Giá trị (₫)</th>
-                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Tiến độ</th>
-                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Trạng thái</th>
-                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Thao tác</th>
+                                            <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Mã & Hợp đồng</th>
+                                            <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Đối tácc / Dự án</th>
+                                            <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Thời hạn</th>
+                                            <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Giá trị (₫)</th>
+                                            <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Tiến độ TT</th>
+                                            <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Trạng thái</th>
+                                            <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-50">
@@ -299,32 +326,45 @@ export default function Contracts() {
                                                     }
                                                 }}
                                                 className={`hover:bg-slate-50/80 transition-premium group ${(activeTab === 'revenue' || activeTab === 'expense') ? 'cursor-pointer' : ''}`}
-                                            >                                                <td className="px-8 py-5">
+                                            >                                                <td className="px-6 py-5">
                                                     <div className="flex items-center gap-4">
                                                         <div className="size-10 rounded-xl bg-slate-100 flex items-center justify-center group-hover:bg-primary transition-premium">
                                                             <span className="material-symbols-outlined text-[20px] text-slate-500 group-hover:text-white transition-premium">
-                                                                {activeTab === 'bidding' ? 'gavel' : 'description'}
+                                                                {activeTab === 'bidding' ? 'gavel' : activeTab === 'guarantees' ? 'verified_user' : 'description'}
                                                             </span>
                                                         </div>
                                                         <div>
                                                             <p className="font-mono text-sm font-black text-primary uppercase">
                                                                 {item.contract_code || item.package_code || item.guarantee_code || item.code}
                                                             </p>
-                                                            <p className="text-xs text-slate-500 font-bold mt-0.5">
-                                                                {item.signing_date || item.issue_date || item.publish_date || 'N/A'}
+                                                            <p className="text-xs text-slate-500 font-bold mt-0.5 truncate max-w-[200px]" title={item.name}>
+                                                                {item.name || 'Hợp đồng'}
                                                             </p>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-8 py-5">
+                                                <td className="px-6 py-5">
                                                     <p className="font-black text-slate-900 leading-tight">
                                                         {item.partner_name || item.title || item.bank_name}
                                                     </p>
-                                                    <p className="text-xs text-slate-500 font-medium mt-1 truncate max-w-[200px]">
-                                                        {item.project_name || item.contract_code || 'Chưa phân bổ'}
-                                                    </p>
+                                                    <div className="flex items-center gap-1 mt-1">
+                                                        <span className="material-symbols-outlined text-[10px] text-slate-400">apartment</span>
+                                                        <p className="text-xs text-slate-500 font-medium truncate max-w-[150px]">
+                                                            {item.project_name || 'Chưa phân bổ'}
+                                                        </p>
+                                                    </div>
                                                 </td>
-                                                <td className="px-8 py-5 text-right">
+                                                <td className="px-6 py-5">
+                                                    <div className="flex flex-col gap-1">
+                                                        <span className="text-xs text-slate-900 font-bold">
+                                                            Ký: {item.signing_date || item.issue_date || 'N/A'}
+                                                        </span>
+                                                        <span className="text-[10px] text-slate-500 font-medium">
+                                                            KT: {item.end_date || item.expiry_date || item.deadline || 'N/A'}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-5 text-right">
                                                     <p className="font-black text-slate-900 tracking-tight">
                                                         {Math.round(item.contract_value || item.value || item.budget || item.guarantee_value || 0).toLocaleString()}
                                                     </p>
@@ -334,7 +374,7 @@ export default function Contracts() {
                                                         </p>
                                                     )}
                                                 </td>
-                                                <td className="px-8 py-5">
+                                                <td className="px-6 py-5">
                                                     {(item.contract_value || item.value || item.budget) ? (
                                                         <div className="flex flex-col items-center gap-1.5">
                                                             <div className="w-24 bg-slate-100 h-1.5 rounded-full overflow-hidden">
@@ -351,7 +391,7 @@ export default function Contracts() {
                                                         <div className="text-center text-slate-300">N/A</div>
                                                     )}
                                                 </td>
-                                                <td className="px-8 py-5">
+                                                <td className="px-6 py-5">
                                                     <div className="flex justify-center">
                                                         <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${item.status === 'active' || item.status === 'published' || item.status === 'Đang thực hiện' || item.status === 'Đã trúng thầu' || item.status === 'Còn hiệu lực'
                                                             ? 'bg-emerald/10 text-emerald border border-emerald/20'
@@ -363,7 +403,7 @@ export default function Contracts() {
                                                         </span>
                                                     </div>
                                                 </td>
-                                                <td className="px-8 py-5 text-right">
+                                                <td className="px-6 py-5 text-right">
                                                     <button className="size-10 rounded-xl hover:bg-white hover:shadow-sm flex items-center justify-center text-slate-400 hover:text-primary transition-premium">
                                                         <span className="material-symbols-outlined">more_vert</span>
                                                     </button>
