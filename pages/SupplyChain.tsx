@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { supplyChainService } from '../src/services/supplyChainService';
-import { Vendor, PurchaseOrder, InventoryItem } from '../types';
+import { projectService } from '../src/services/projectService';
+import { Vendor, PurchaseOrder, InventoryItem, MaterialRequest, Project } from '../types';
+import { PurchaseRequestModal } from '../src/components/SupplyChain/PurchaseRequestModal';
+import { PermissionGate } from '../src/components/PermissionGate';
+import { PERMISSIONS } from '../src/utils/permissions';
+import { format } from 'date-fns';
 
 const priceData = [
     { month: 'T1', steel: 14200, cement: 1450 },
@@ -123,12 +128,17 @@ const StatCard = ({ title, value, sub, icon, color }: any) => (
 )
 
 export default function SupplyChain() {
-    const [activeTab, setActiveTab] = useState('procurement');
+    const [activeTab, setActiveTab] = useState('requests'); // Default to requests
     const [vendors, setVendors] = useState<Vendor[]>([]);
     const [orders, setOrders] = useState<PurchaseOrder[]>([]);
+    const [requests, setRequests] = useState<MaterialRequest[]>([]); // New state
     const [inventory, setInventory] = useState<InventoryItem[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]); // Need projects for modal
     const [loading, setLoading] = useState(true);
+
     const [isPOModalOpen, setIsPOModalOpen] = useState(false);
+    const [isPRModalOpen, setIsPRModalOpen] = useState(false); // New modal state
+
     const [newPO, setNewPO] = useState({
         vendor_id: '',
         items_summary: '',
@@ -139,19 +149,27 @@ export default function SupplyChain() {
 
     useEffect(() => {
         fetchData();
+        fetchProjects();
     }, []);
+
+    const fetchProjects = async () => {
+        const data = await projectService.getAllProjects();
+        setProjects(data);
+    }
 
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [v, o, i] = await Promise.all([
+            const [v, o, i, r] = await Promise.all([
                 supplyChainService.getAllVendors(),
                 supplyChainService.getAllOrders(),
-                supplyChainService.getAllInventory()
+                supplyChainService.getAllInventory(),
+                supplyChainService.getRequests() // Fetch requests
             ]);
             setVendors(v);
             setOrders(o);
             setInventory(i);
+            setRequests(r);
         } catch (error) {
             console.error("Failed to fetch supply chain data", error);
         } finally {
@@ -224,10 +242,16 @@ export default function SupplyChain() {
                     <div>
                         <div className="flex items-center gap-6 border-b border-slate-200 mb-6">
                             <button
+                                onClick={() => setActiveTab('requests')}
+                                className={`pb-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'requests' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+                            >
+                                Yêu cầu Vật tư (PR)
+                            </button>
+                            <button
                                 onClick={() => setActiveTab('procurement')}
                                 className={`pb-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'procurement' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
                             >
-                                Tổng quan & Đặt hàng
+                                Đơn đặt hàng (PO)
                             </button>
                             <button
                                 onClick={() => setActiveTab('inventory')}
@@ -251,6 +275,102 @@ export default function SupplyChain() {
                                 </div>
                             ) : (
                                 <>
+                                    {activeTab === 'requests' && (
+                                        <div className="space-y-6">
+                                            <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                                <div>
+                                                    <h3 className="font-bold text-slate-900">Danh sách Yêu cầu Vật tư</h3>
+                                                    <p className="text-xs text-slate-500">Quản lý các đề xuất mua sắm từ công trường</p>
+                                                </div>
+                                                <PermissionGate allowedRoles={PERMISSIONS.CREATE_PURCHASE_REQUEST}>
+                                                    <button
+                                                        onClick={() => setIsPRModalOpen(true)}
+                                                        className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-primary/90 shadow-lg shadow-primary/20"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[20px]">add</span> Tạo Yêu cầu
+                                                    </button>
+                                                </PermissionGate>
+                                            </div>
+
+                                            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                                                <table className="w-full text-left">
+                                                    <thead className="bg-slate-50 text-xs text-slate-500 uppercase font-semibold">
+                                                        <tr>
+                                                            <th className="px-6 py-3">Mã PR</th>
+                                                            <th className="px-6 py-3">Tiêu đề</th>
+                                                            <th className="px-6 py-3">Dự án</th>
+                                                            <th className="px-6 py-3">Người yêu cầu</th>
+                                                            <th className="px-6 py-3">Độ ưu tiên</th>
+                                                            <th className="px-6 py-3">Ngày cần</th>
+                                                            <th className="px-6 py-3">Trạng thái</th>
+                                                            <th className="px-6 py-3"></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {requests.length > 0 ? requests.map(req => (
+                                                            <tr key={req.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                                                                <td className="px-6 py-4 font-mono text-xs font-bold text-primary">{req.request_code}</td>
+                                                                <td className="px-6 py-4 text-sm font-bold text-slate-900">{req.title}</td>
+                                                                <td className="px-6 py-4 text-xs text-slate-600">{req.project_name}</td>
+                                                                <td className="px-6 py-4 text-xs text-slate-600">{req.requester_name}</td>
+                                                                <td className="px-6 py-4">
+                                                                    <span className={`px-2 py-1 rounded text-[10px] font-bold 
+                                                                ${req.priority === 'Urgent' ? 'bg-red-100 text-red-700' :
+                                                                            req.priority === 'High' ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-600'}`}>
+                                                                        {req.priority}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-xs text-slate-600">
+                                                                    {req.delivery_date ? format(new Date(req.delivery_date), 'dd/MM/yyyy') : '-'}
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold 
+                                                                ${req.status === 'approved' ? 'bg-green-100 text-green-700' :
+                                                                            req.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                                                        {req.status === 'approved' ? 'Đã duyệt' :
+                                                                            req.status === 'rejected' ? 'Từ chối' : 'Chờ duyệt'}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-right">
+                                                                    <PermissionGate allowedRoles={PERMISSIONS.APPROVE_PURCHASE_REQUEST}>
+                                                                        {req.status === 'pending' && (
+                                                                            <div className="flex gap-2 justify-end">
+                                                                                <button
+                                                                                    onClick={async () => {
+                                                                                        if (confirm('Duyệt yêu cầu này?')) {
+                                                                                            await supplyChainService.updateStatus(req.id, 'approved');
+                                                                                            fetchData();
+                                                                                        }
+                                                                                    }}
+                                                                                    className="p-1 rounded bg-green-50 text-green-600 hover:bg-green-100" title="Duyệt"
+                                                                                >
+                                                                                    <span className="material-symbols-outlined text-[18px]">check</span>
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={async () => {
+                                                                                        if (confirm('Từ chối yêu cầu này?')) {
+                                                                                            await supplyChainService.updateStatus(req.id, 'rejected');
+                                                                                            fetchData();
+                                                                                        }
+                                                                                    }}
+                                                                                    className="p-1 rounded bg-red-50 text-red-600 hover:bg-red-100" title="Từ chối"
+                                                                                >
+                                                                                    <span className="material-symbols-outlined text-[18px]">close</span>
+                                                                                </button>
+                                                                            </div>
+                                                                        )}
+                                                                    </PermissionGate>
+                                                                </td>
+                                                            </tr>
+                                                        )) : (
+                                                            <tr><td colSpan={8} className="px-6 py-8 text-center text-slate-500">Chưa có yêu cầu nào.</td></tr>
+                                                        )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {activeTab === 'procurement' && (
                                         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
                                             <div className="xl:col-span-8 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -454,6 +574,14 @@ export default function SupplyChain() {
                         </form>
                     </div>
                 </div>
+            )}
+            {isPRModalOpen && (
+                <PurchaseRequestModal
+                    isOpen={isPRModalOpen}
+                    onClose={() => setIsPRModalOpen(false)}
+                    projects={projects}
+                    onSave={fetchData}
+                />
             )}
         </div>
     )

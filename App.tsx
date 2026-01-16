@@ -5,6 +5,7 @@ import { HashRouter, Routes, Route } from 'react-router-dom';
 import { ToastProvider } from './src/components/ui/Toast';
 import { PageLoader } from './src/components/ui/LoadingComponents';
 import { AuthProvider } from './src/context/AuthContext';
+import { NotificationProvider } from './src/context/NotificationContext';
 import ProtectedRoute from './src/components/ProtectedRoute';
 import { Layout } from './src/components/Layout';
 import LoginPage from './src/pages/Login';
@@ -24,6 +25,7 @@ const Alerts = lazy(() => import('./pages/Alerts'));
 const Recruitment = lazy(() => import('./pages/Recruitment'));
 const TaskManagement = lazy(() => import('./pages/TaskManagement'));
 const PaymentClaims = lazy(() => import('./pages/PaymentClaims'));
+const SiteDiary = lazy(() => import('./src/pages/SiteDiary'));
 
 // Create QueryClient with optimized defaults
 const queryClient = new QueryClient({
@@ -47,35 +49,38 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           <AuthProvider>
-            <HashRouter>
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
-                  {/* Public Routes */}
-                  <Route path="/login" element={<LoginPage />} />
+            <NotificationProvider>
+              <HashRouter>
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route path="/login" element={<LoginPage />} />
 
-                  {/* Protected Routes */}
-                  <Route element={<ProtectedRoute />}>
-                    <Route element={<Layout><div className="h-full overflow-y-auto"><Routes>
-                      <Route path="/" element={<Dashboard />} />
-                      <Route path="/workspace" element={<Workspace />} />
-                      <Route path="/tasks" element={<TaskManagement />} />
-                      <Route path="/projects" element={<ProjectList />} />
-                      <Route path="/projects/:id" element={<ProjectDetail />} />
-                      <Route path="/contracts" element={<Contracts />} />
-                      <Route path="/finance" element={<Finance />} />
-                      <Route path="/supply" element={<SupplyChain />} />
-                      <Route path="/hrm" element={<HRM />} />
-                      <Route path="/recruitment" element={<Recruitment />} />
-                      <Route path="/documents" element={<Documents />} />
-                      <Route path="/payment-claims" element={<PaymentClaims />} />
-                      <Route path="/alerts" element={<Alerts />} />
-                      {/* Placeholders for other routes */}
-                      <Route path="*" element={<div className="p-10 text-center text-slate-500">Đang phát triển...</div>} />
-                    </Routes></div></Layout>} path="*" />
-                  </Route>
-                </Routes>
-              </Suspense>
-            </HashRouter>
+                    {/* Protected Routes */}
+                    <Route element={<ProtectedRoute />}>
+                      <Route element={<Layout><div className="h-full overflow-y-auto"><Routes>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/workspace" element={<Workspace />} />
+                        <Route path="/tasks" element={<TaskManagement />} />
+                        <Route path="/projects" element={<ProjectList />} />
+                        <Route path="/projects/:id" element={<ProjectDetail />} />
+                        <Route path="/contracts" element={<Contracts />} />
+                        <Route path="/finance" element={<Finance />} />
+                        <Route path="/supply" element={<SupplyChain />} />
+                        <Route path="/hrm" element={<HRM />} />
+                        <Route path="/recruitment" element={<Recruitment />} />
+                        <Route path="/documents" element={<Documents />} />
+                        <Route path="/payment-claims" element={<PaymentClaims />} />
+                        <Route path="/site-diary" element={<SiteDiary />} />
+                        <Route path="/alerts" element={<Alerts />} />
+                        {/* Placeholders for other routes */}
+                        <Route path="*" element={<div className="p-10 text-center text-slate-500">Đang phát triển...</div>} />
+                      </Routes></div></Layout>} path="*" />
+                    </Route>
+                  </Routes>
+                </Suspense>
+              </HashRouter>
+            </NotificationProvider>
           </AuthProvider>
         </ToastProvider>
         {/* React Query Devtools - only in development */}

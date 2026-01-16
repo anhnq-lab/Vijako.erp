@@ -8,6 +8,8 @@ import { ExportButton } from '../src/components/ui/ExportComponents';
 import { Badge } from '../src/components/ui/CommonComponents';
 import { financeService } from '../src/services/financeService';
 import { Contract } from '../types';
+import { PermissionGate } from '../src/components/PermissionGate';
+import { PERMISSIONS } from '../src/utils/permissions';
 
 const PremiumStatCard = ({ title, value, sub, progress, icon, color, gradient }: any) => (
     <div className="relative group overflow-hidden bg-white p-6 rounded-3xl border border-slate-200 shadow-glass hover:shadow-premium transition-premium">
@@ -186,15 +188,18 @@ export default function Contracts() {
                         <span className="material-symbols-outlined text-[20px] text-purple-600">document_scanner</span>
                         <span>Quét Hợp đồng AI</span>
                     </button>
-                    <button
-                        onClick={() => {
-                            setEditingContract(null);
-                            setIsFormModalOpen(true);
-                        }}
-                        className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl text-sm font-black hover:bg-primary-light shadow-premium transition-premium group"
-                    >                        <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-premium">add</span>
-                        <span>Hợp đồng mới</span>
-                    </button>
+                    <PermissionGate allowedRoles={PERMISSIONS.CREATE_CONTRACT} showError>
+                        <button
+                            onClick={() => {
+                                setEditingContract(null);
+                                setIsFormModalOpen(true);
+                            }}
+                            className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl text-sm font-black hover:bg-primary-light shadow-premium transition-premium group"
+                        >
+                            <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-premium">add</span>
+                            <span>Hợp đồng mới</span>
+                        </button>
+                    </PermissionGate>
                 </div>
             </div>
 

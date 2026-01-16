@@ -153,6 +153,26 @@ export interface DailyLog {
   updated_at: string;
 }
 
+export interface DailyLogManpower {
+  id: string;
+  log_id: string;
+  contractor_name: string;
+  role: string;
+  quantity: number;
+  notes?: string;
+  created_at?: string;
+}
+
+export interface DailyLogEquipment {
+  id: string;
+  log_id: string;
+  equipment_name: string;
+  quantity: number;
+  status: 'working' | 'maintenance' | 'idle';
+  notes?: string;
+  created_at?: string;
+}
+
 export interface ProjectDocument {
   id: string;
   project_id: string;
@@ -267,6 +287,48 @@ export interface JobApplication {
   cover_letter?: string;
   status: 'applied' | 'screening' | 'interviewing' | 'offered' | 'rejected';
   applied_at?: string;
+}
+
+export interface MaterialRequest {
+  id: string;
+  project_id: string;
+  request_code: string;
+  requester_id?: string;
+  title: string;
+  description?: string;
+  priority: 'Low' | 'Normal' | 'High' | 'Urgent';
+  status: 'pending' | 'approved' | 'rejected' | 'ordered' | 'received';
+  delivery_date?: string;
+  total_items?: number;
+  created_at: string;
+  approved_at?: string;
+  approved_by?: string;
+
+  // Joined
+  project_name?: string;
+  requester_name?: string;
+  items?: MaterialRequestItem[];
+}
+
+export interface MaterialRequestItem {
+  id: string;
+  request_id: string;
+  item_name: string;
+  unit?: string;
+  quantity: number;
+  estimated_price?: number;
+  notes?: string;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  link?: string;
+  is_read: boolean;
+  created_at: string;
 }
 
 export interface BiddingPackage {

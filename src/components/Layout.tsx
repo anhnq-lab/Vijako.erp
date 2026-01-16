@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ResponsiveSidebar } from './layout/ResponsiveSidebar';
 import { GlobalSearch, useGlobalSearch } from './ui/GlobalSearch';
+import { NotificationBell } from './NotificationBell';
 import { ChatWidget } from './AIChat/ChatWidget';
 import { useAuth } from '../context/AuthContext';
 import { LogOut } from 'lucide-react';
@@ -50,6 +51,7 @@ export const Layout = ({ children }: { children?: React.ReactNode }) => {
 
                     {/* Search Button on Mobile */}
                     <div className="ml-auto flex items-center gap-2">
+                        <NotificationBell />
                         <button
                             onClick={() => setSearchOpen(true)}
                             className="size-10 flex items-center justify-center hover:bg-slate-100 rounded-xl transition-premium"
