@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đặc Tả Kỹ Thuật - Vijako ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0d1117;
+            /* GitHub Dark Dimmed / VSCode Dark */
+            color: #e6edf3;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+        }
+
+        h1 {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 0.5em;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 0.3em;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+        }
+
+        h3 {
+            font-size: 1.25em;
+            font-weight: 600;
+            margin-top: 1.2em;
+            margin-bottom: 0.5em;
+            color: #d2a8ff;
+            /* Light Purple for accents */
+        }
+
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        li {
+            margin-bottom: 0.5em;
+            position: relative;
+            padding-left: 1.5em;
+        }
+
+        li::before {
+            content: "•";
+            color: #8b949e;
+            position: absolute;
+            left: 0.5em;
+            font-weight: bold;
+        }
+
+        strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        code {
+            font-family: 'ui-monospace', 'SF Mono', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", monospace;
+            background-color: rgba(110, 118, 129, 0.4);
+            color: #d2a8ff;
+            padding: 0.2em 0.4em;
+            border-radius: 6px;
+            font-size: 0.85em;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .metadata {
+            color: #8b949e;
+            font-size: 0.9em;
+            margin-bottom: 2em;
+        }
+
+        /* Box imitation */
+        .preview-box {
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 30px;
+            background: #0d1117;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="preview-box">
+            <!-- Header -->
+            <div class="flex items-center gap-3 mb-2 text-gray-400 text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <span>Technical Specifications</span>
+                <span class="mx-1">•</span>
+                <span>Just now</span>
+            </div>
+
+            <!-- Title -->
+            <h1 class="text-3xl text-white mb-2 border-none">Đặc Tả Kỹ Thuật Hệ Thống Vijako ERP</h1>
+            <p class="text-gray-400 mb-8">Tài liệu định nghĩa kiến trúc kỹ thuật, mô hình dữ liệu và các nguyên tắc phát
+                triển cốt lõi cho dự án.</p>
+
+            <!-- Section 1 -->
+            <div class="mb-8">
+                <h2 class="text-xl text-white">1. Nguyên Tắc Cốt Lõi (Core Principles)</h2>
+                <ul>
+                    <li><strong>Dữ liệu tập trung (Centralized):</strong> Loại bỏ sự phân mảnh, mọi dữ liệu dự án chỉ
+                        nằm trên một nguồn duy nhất (Supabase).</li>
+                    <li><strong>Thời gian thực (Real-time):</strong> Ưu tiên cập nhật tức thì cho dashboard tài chính và
+                        thông báo hiện trường.</li>
+                    <li><strong>Trải nghiệm người dùng (UX First):</strong> Giảm thiểu thao tác nhập liệu, tự động hóa
+                        tính toán tối đa cho người dùng cuối.</li>
+                    <li><strong>Bảo mật (Security):</strong> Áp dụng <code>Row Level Security</code> triệt để cho từng
+                        dự án.</li>
+                </ul>
+            </div>
+
+            <!-- Section 2 -->
+            <div class="mb-8">
+                <h2 class="text-xl text-white">2. Công Nghệ & Stack (Tech Stack)</h2>
+                <p class="italic text-gray-400 mb-4">(Cấu hình này là tiêu chuẩn cho phiên bản 2.0)</p>
+                <ul>
+                    <li><strong>Frontend:</strong> <code>React 18</code>, <code>TypeScript</code>, <code>Vite</code>.
+                    </li>
+                    <li><strong>Styling:</strong> <code>Tailwind CSS</code> (hệ thống Design System riêng).</li>
+                    <li><strong>Backend:</strong> <code>Supabase</code> (PostgreSQL + Auth + Storage).</li>
+                    <li><strong>State Management:</strong> <code>TanStack Query</code> (cho server state),
+                        <code>Context API</code> (cho UI state).</li>
+                    <li><strong>Maps:</strong> <code>Leaflet</code> với lớp phủ vệ tinh Google Hybrid.</li>
+                </ul>
+            </div>
+
+            <!-- Section 3 -->
+            <div class="mb-8">
+                <h2 class="text-xl text-white">3. Đặc Tả Chức Năng (Functional Specs)</h2>
+
+                <h3 class="text-lg text-white mt-4 mb-2">3.1. Phân hệ Thanh toán (Payment Claims)</h3>
+                <ul>
+                    <li><strong>Cấu trúc:</strong> Quản lý theo <code>WBS</code> (Work Breakdown Structure) và danh mục
+                        <code>BOQ</code>.</li>
+                    <li><strong>Logic tính toán:</strong> Tự động trừ <code>Advance Repayment</code> và
+                        <code>Retention</code>.</li>
+                    <li><strong>Quy trình:</strong> Draft &rarr; Submitted &rarr; Certified &rarr; Approved.</li>
+                </ul>
+
+                <h3 class="text-lg text-white mt-4 mb-2">3.2. Phân hệ Nhân sự (HRM)</h3>
+                <ul>
+                    <li><strong>Định danh:</strong> Mỗi nhân sự gắn với một <code>employee_code</code> duy nhất.</li>
+                    <li><strong>Chấm công:</strong> Tích hợp GPS khi check-in tại công trường.</li>
+                </ul>
+            </div>
+
+            <!-- Section 4 -->
+            <div class="mb-8">
+                <h2 class="text-xl text-white">4. Quy Chuẩn Code (Coding Standards)</h2>
+                <ul>
+                    <li><strong>Naming Convention:</strong>
+                        <ul style="padding-left: 1.5em; margin-top: 0.5em;">
+                            <li style="margin-bottom: 0;">Biến/Hàm: <code>camelCase</code> (ví dụ:
+                                <code>calculateTotal</code>, <code>fetchProject</code>).</li>
+                            <li>Component: <code>PascalCase</code> (ví dụ: <code>ProjectCard.tsx</code>).</li>
+                        </ul>
+                    </li>
+                    <li><strong>Commit Message:</strong>
+                        <ul style="padding-left: 1.5em; margin-top: 0.5em;">
+                            <li>Format: <code>type: description</code> (ví dụ:
+                                <code>feat: add payment calculation logic</code>).</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+</html>
